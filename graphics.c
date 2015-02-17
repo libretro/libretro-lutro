@@ -124,6 +124,10 @@ static void blit(int dest_x, int dest_y, int w, int h,
 static void drawq(int dest_x, int dest_y, int w, int h,
       int total_w, int total_h, uint32_t *data, int id)
 {
+   if (dest_x + w < 0 || dest_y + h < 0
+   || dest_x > settings.width || dest_y > settings.height)
+      return;
+
    int orig_x = ((id-1)%(total_w/w))*w;
    int orig_y = ((id-1)/(total_w/w))*w;
 

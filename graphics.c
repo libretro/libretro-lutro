@@ -35,7 +35,7 @@ int gfx_newImage(lua_State *L)
    int n = lua_gettop(L);
 
    if (n != 1)
-      return luaL_error(L, "lutro.graphics.newImage requires 1 arguments, %i given.", n);
+      return luaL_error(L, "lutro.graphics.newImage requires 1 arguments, %d given.", n);
 
    const char* name = luaL_checkstring(L, 1);
 
@@ -62,7 +62,7 @@ int gfx_clear(lua_State *L)
    int n = lua_gettop(L);
 
    if (n != 1)
-      return luaL_error(L, "lutro.graphics.clear requires 1 arguments, %i given.", n);
+      return luaL_error(L, "lutro.graphics.clear requires 1 arguments, %d given.", n);
 
    uint32_t c = luaL_checkint(L, 1);
 
@@ -81,7 +81,7 @@ int gfx_rectangle(lua_State *L)
    int n = lua_gettop(L);
 
    if (n != 5)
-      return luaL_error(L, "lutro.graphics.rectangle requires 5 arguments, %i given.", n);
+      return luaL_error(L, "lutro.graphics.rectangle requires 5 arguments, %d given.", n);
 
    int x = luaL_checknumber(L, 1);
    int y = luaL_checknumber(L, 2);
@@ -141,7 +141,7 @@ int gfx_drawq(lua_State *L)
    int n = lua_gettop(L);
 
    if (n != 8)
-      return luaL_error(L, "lutro.graphics.drawq requires 8 arguments, %i given.", n);
+      return luaL_error(L, "lutro.graphics.drawq requires 8 arguments, %d given.", n);
 
    int dest_x = luaL_checknumber(L, 1);
    int dest_y = luaL_checknumber(L, 2);

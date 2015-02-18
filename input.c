@@ -37,7 +37,7 @@ int input_joypad(lua_State *L)
    int n = lua_gettop(L);
 
    if (n != 1)
-      return luaL_error(L, "lutro.input.joypad requires at least one argument, %i given.", n);
+      return luaL_error(L, "lutro.input.joypad requires at least one argument, %d given.", n);
 
    unsigned id = luaL_checkunsigned(L, 1);
    unsigned port = 0;

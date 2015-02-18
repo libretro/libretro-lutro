@@ -125,7 +125,7 @@ void retro_run(void)
    input_poll_cb();
 
    lutro_run(frame_time);
-   video_cb(settings.framebuffer, settings.width, settings.height, settings.pitch*2);
+   video_cb(settings.framebuffer, settings.width, settings.height, settings.pitch);
 }
 
 bool retro_load_game(const struct retro_game_info *info)

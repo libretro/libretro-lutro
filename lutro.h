@@ -12,6 +12,7 @@ typedef struct lutro_settings_t {
    int width;
    int height;
    int pitch;
+   int pitch_pixels; // pitch in pixels to avoid recalculating it all the time
    uint32_t *framebuffer;
    retro_input_state_t input_cb;
 } lutro_settings_t;

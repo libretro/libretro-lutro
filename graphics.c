@@ -26,8 +26,10 @@ int lutro_graphics_preload(lua_State *L)
 
 void lutro_graphics_init()
 {
-   settings.pitch = settings.width * sizeof(uint32_t);
-   settings.framebuffer = calloc(1, settings.pitch * settings.height*2);
+   // TODO: power of two framebuffers
+   settings.pitch_pixels = settings.width;
+   settings.pitch        = settings.pitch_pixels * sizeof(uint32_t);
+   settings.framebuffer  = calloc(1, settings.pitch * settings.height);
 }
 
 int gfx_newImage(lua_State *L)
@@ -69,9 +71,11 @@ int gfx_clear(lua_State *L)
    lua_pop(L, n);
 
    unsigned i;
-   unsigned size = settings.width * settings.height;
+   unsigned size = settings.pitch_pixels * settings.height;
+   uint32_t *framebuffer = settings.framebuffer;
+
    for (i = 0; i < size; ++i)
-      settings.framebuffer[i] = c;
+      framebuffer[i] = c;
 
    return 0;
 }
@@ -92,9 +96,11 @@ int gfx_rectangle(lua_State *L)
    lua_pop(L, n);
 
    int i, j;
+   int pitch_pixels = settings.pitch_pixels;
+   uint32_t *framebuffer = settings.framebuffer;
    for (j = y; j < y + w; j++)
       for (i = x; i < x + h; i++)
-         settings.framebuffer[j * (settings.pitch >> 1) + i] = c;
+         framebuffer[j * pitch_pixels + i] = c;
 
    return 0;
 }
@@ -105,6 +111,10 @@ static void blit(int dest_x, int dest_y, int w, int h,
    int i, j;
    int jj = orig_y;
    int imgpitch = total_w * sizeof(uint16_t);
+
+   int pitch_pixels = settings.pitch_pixels;
+   uint32_t *framebuffer = settings.framebuffer;
+
    for (j = dest_y; j < dest_y + h; j++) {
       int ii = orig_x;
       if (j >= 0 && j < settings.height) {
@@ -112,7 +122,7 @@ static void blit(int dest_x, int dest_y, int w, int h,
             if (i >= 0 && i < settings.width) {
                uint32_t c = data[jj * (imgpitch >> 1) + ii];
                if (0xff000000 & c)
-                  settings.framebuffer[j * (settings.pitch >> 1) + i] = c;
+                  framebuffer[j * pitch_pixels + i] = c;
             }
             ii++;
          }

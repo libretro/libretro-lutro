@@ -68,10 +68,10 @@ int gfx_clear(lua_State *L)
 
    lua_pop(L, n);
 
-   int i, j;
-   for (j = 0; j < settings.height; j++)
-      for (i = 0; i < settings.width; i++)
-         settings.framebuffer[j * (settings.pitch >> 1) + i] = c;
+   unsigned i;
+   unsigned size = settings.width * settings.height;
+   for (i = 0; i < size; ++i)
+      settings.framebuffer[i] = c;
 
    return 0;
 }

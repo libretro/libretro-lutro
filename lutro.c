@@ -81,7 +81,7 @@ void lutro_deinit()
 
 int lutro_set_package_path( lua_State* L, const char* path )
 {
-   char *cur_path;
+   const char *cur_path;
    char new_path[PATH_MAX_LENGTH];
    lua_getglobal(L, "package");
    lua_getfield(L, -1, "path");

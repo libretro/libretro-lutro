@@ -10,8 +10,10 @@ int lutro_graphics_preload(lua_State *L)
       { "clear",        gfx_clear },
       { "rectangle",    gfx_rectangle },
       { "newImage",     gfx_newImage },
+      { "newFont",      gfx_newFont },
       { "draw",         gfx_draw },
       { "drawq",        gfx_drawq },
+      { "print",        gfx_print },
       {NULL, NULL}
    };
 
@@ -53,6 +55,45 @@ int gfx_newImage(lua_State *L)
 
    lua_pushlightuserdata(L, img.data);
    lua_setfield(L, -2, "data");
+
+   return 1;
+}
+
+int gfx_newFont(lua_State *L)
+{
+   int n = lua_gettop(L);
+
+   if (n != 2)
+      return luaL_error(L, "lutro.graphics.newImageFont requires 2 arguments, %i given.", n);
+
+   const char* imgpath = luaL_checkstring(L, 1);
+   const char* characters = luaL_checkstring(L, 2);
+
+   lua_pop(L, n);
+
+   gfx_Image img;
+
+   rpng_load_image_argb(imgpath, &img.data, &img.width, &img.height);
+
+   uint32_t separator = img.data[0];
+
+   int *separators = NULL;
+   separators = calloc(strlen(characters), sizeof(int));
+
+   int i, char_counter = 0;
+   for (i = 0; i < img.width; i++)
+   {
+      uint32_t c = img.data[i];
+      if (c == separator)
+         separators[char_counter++] = i;
+   }
+
+   gfx_Font *font = calloc(1, sizeof(gfx_Font));
+   font->image = img;
+   font->separators = separators;
+   font->characters = characters;
+
+   lua_pushlightuserdata(L, font);
 
    return 1;
 }
@@ -188,6 +229,49 @@ int gfx_draw(lua_State *L)
    lua_pop(L, n);
 
    blit(x, y, w, h, w, h, data, 0, 0);
+
+   return 1;
+}
+
+static int strpos(const char *haystack, char needle)
+{
+   char *p = strchr(haystack, needle);
+   if (p)
+      return p - haystack;
+   return -1;
+}
+
+int gfx_print(lua_State *L)
+{
+   int n = lua_gettop(L);
+
+   if (n != 4)
+      return luaL_error(L, "lutro.graphics.draw requires 4 arguments, %i given.", n);
+
+   gfx_Font *f = lua_touserdata(L, 1);
+   const char* message = luaL_checkstring(L, 2);
+   int dest_x = luaL_checknumber(L, 3);
+   int dest_y = luaL_checknumber(L, 4);
+
+   lua_pop(L, n);
+
+   int i;
+   for (i = 0; i < strlen(message); i++)
+   {
+      char c = message[i];
+
+      int pos = strpos(f->characters, c);
+
+      int orig_x = f->separators[pos] + 1;
+      int w = f->separators[pos+1] - orig_x;
+      int h = f->image.height;
+      int total_w = f->image.width;
+      int total_h = f->image.height;
+
+      blit(dest_x, dest_y, w, h, total_w, total_h, f->image.data, orig_x, 0);
+
+      dest_x += w + 1;
+   }
 
    return 1;
 }

@@ -220,7 +220,7 @@ int gfx_drawq(lua_State *L)
       dest_y + camera_y,
       w, h, total_w, total_h, data, id);
 
-   return 1;
+   return 0;
 }
 
 int gfx_draw(lua_State *L)
@@ -240,7 +240,7 @@ int gfx_draw(lua_State *L)
 
    blit(x, y, w, h, w, h, data, 0, 0);
 
-   return 1;
+   return 0;
 }
 
 static int strpos(const char *haystack, char needle)

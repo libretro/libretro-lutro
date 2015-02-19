@@ -228,7 +228,7 @@ int gfx_draw(lua_State *L)
    int n = lua_gettop(L);
 
    if (n != 5)
-      return luaL_error(L, "lutro.graphics.draw requires 5 arguments, %i given.", n);
+      return luaL_error(L, "lutro.graphics.draw requires 5 arguments, %d given.", n);
 
    uint32_t* data = lua_touserdata(L, 1);
    int x = luaL_checknumber(L, 2);
@@ -256,7 +256,7 @@ int gfx_print(lua_State *L)
    int n = lua_gettop(L);
 
    if (n != 4)
-      return luaL_error(L, "lutro.graphics.draw requires 4 arguments, %i given.", n);
+      return luaL_error(L, "lutro.graphics.draw requires 4 arguments, %d given.", n);
 
    gfx_Font *f = lua_touserdata(L, 1);
    const char* message = luaL_checkstring(L, 2);

@@ -79,11 +79,11 @@ int gfx_newFont(lua_State *L)
 
    uint32_t separator = img.data[0];
 
-   int *separators = NULL;
-   separators = calloc(strlen(characters), sizeof(int));
+   int max_separators = strlen(characters);
+   int *separators = calloc(max_separators, sizeof(int));
 
    int i, char_counter = 0;
-   for (i = 0; i < img.width; i++)
+   for (i = 0; i < img.width && char_counter < max_separators; i++)
    {
       uint32_t c = img.data[i];
       if (c == separator)

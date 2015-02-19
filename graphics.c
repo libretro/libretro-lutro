@@ -283,5 +283,5 @@ int gfx_print(lua_State *L)
       dest_x += w + 1;
    }
 
-   return 1;
+   return 0;
 }

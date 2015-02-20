@@ -1,4 +1,7 @@
-Sample game: https://github.com/Kivutar/lutro-platformer
+Sample game:
+
+ * https://github.com/Kivutar/lutro-platformer
+ * https://github.com/Niouby/lutro-game-of-life
 
 Usage:
 

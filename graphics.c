@@ -10,7 +10,7 @@ int lutro_graphics_preload(lua_State *L)
       { "clear",        gfx_clear },
       { "rectangle",    gfx_rectangle },
       { "newImage",     gfx_newImage },
-      { "newFont",      gfx_newFont },
+      { "newImageFont", gfx_newImageFont },
       { "draw",         gfx_draw },
       { "drawq",        gfx_drawq },
       { "print",        gfx_print },
@@ -43,30 +43,67 @@ int gfx_newImage(lua_State *L)
 
    const char* name = luaL_checkstring(L, 1);
 
-   gfx_Image img;
+   gfx_Image* self = (gfx_Image*)lua_newuserdata(L, sizeof(gfx_Image));
 
-   rpng_load_image_argb(name, &img.data, &img.width, &img.height);
+   rpng_load_image_argb(name, &self->data, &self->width, &self->height);
 
-   lua_newtable(L);
+   if (luaL_newmetatable(L, "image") != 0)
+   {
+      static luaL_Reg img_funcs[] = {
+         { "getData",       img_getData },
+         { "getWidth",      img_getWidth },
+         { "getHeight",     img_getHeight },
+         { "getDimensions", img_getDimensions },
+         {NULL, NULL}
+      };
 
-   lua_pushnumber(L, img.width);
-   lua_setfield(L, -2, "width");
+      lua_pushvalue(L, -1);
 
-   lua_pushnumber(L, img.height);
-   lua_setfield(L, -2, "height");
+      lua_setfield(L, -2, "__index");
 
-   lua_pushlightuserdata(L, img.data);
-   lua_setfield(L, -2, "data");
+      luaL_setfuncs(L, img_funcs, 0);
+   }
+
+   lua_setmetatable(L, -2);
 
    return 1;
 }
 
-int gfx_newFont(lua_State *L)
+int img_getData(lua_State *L)
+{
+   gfx_Image* self = (gfx_Image*)luaL_checkudata(L, 1, "image");
+   lua_pushlightuserdata(L, self->data);
+   return 1;
+}
+
+int img_getWidth(lua_State *L)
+{
+   gfx_Image* self = (gfx_Image*)luaL_checkudata(L, 1, "image");
+   lua_pushnumber(L, self->width);
+   return 1;
+}
+
+int img_getHeight(lua_State *L)
+{
+   gfx_Image* self = (gfx_Image*)luaL_checkudata(L, 1, "image");
+   lua_pushnumber(L, self->height);
+   return 1;
+}
+
+int img_getDimensions(lua_State *L)
+{
+   gfx_Image* self = (gfx_Image*)luaL_checkudata(L, 1, "image");
+   lua_pushnumber(L, self->width);
+   lua_pushnumber(L, self->height);
+   return 2;
+}
+
+int gfx_newImageFont(lua_State *L)
 {
    int n = lua_gettop(L);
 
    if (n != 2)
-      return luaL_error(L, "lutro.graphics.newImageFont requires 2 arguments, %i given.", n);
+      return luaL_error(L, "lutro.graphics.newImageFont requires 2 arguments, %d given.", n);
 
    const char* imgpath = luaL_checkstring(L, 1);
    const char* characters = luaL_checkstring(L, 2);
@@ -283,5 +320,5 @@ int gfx_print(lua_State *L)
       dest_x += w + 1;
    }
 
-   return 0;
+   return 1;
 }

@@ -59,7 +59,7 @@ void retro_get_system_info(struct retro_system_info *info)
    info->library_name     = "lutro";
    info->library_version  = "v1.0";
    info->need_fullpath    = true;
-   info->valid_extensions = "lua";
+   info->valid_extensions = "lutro|lua";
 }
 
 void retro_get_system_av_info(struct retro_system_av_info *info)

@@ -2,6 +2,7 @@
 #include "runtime.h"
 #include "file/file_path.h"
 #include "compat/strl.h"
+#include "unzip.h"
 
 #include "graphics.h"
 #include "input.h"
@@ -79,7 +80,7 @@ void lutro_deinit()
    lua_close(L);
 }
 
-int lutro_set_package_path( lua_State* L, const char* path )
+int lutro_set_package_path(lua_State* L, const char* path)
 {
    const char *cur_path;
    char new_path[PATH_MAX_LENGTH];
@@ -95,8 +96,119 @@ int lutro_set_package_path( lua_State* L, const char* path )
    return 1;
 }
 
+int lutro_unzip(const char *path, const char *extraction_directory)
+{
+   path_mkdir(extraction_directory);
+
+   unzFile *zipfile = unzOpen(path);
+   if ( zipfile == NULL )
+   {
+      printf("%s: not found\n", path);
+      return -1;
+   }
+
+   unz_global_info global_info;
+   if (unzGetGlobalInfo(zipfile, &global_info) != UNZ_OK)
+   {
+      printf("could not read file global info\n");
+      unzClose(zipfile);
+      return -1;
+   }
+
+   char read_buffer[8192];
+
+   uLong i;
+   for (i = 0; i < global_info.number_entry; ++i)
+   {
+      unz_file_info file_info;
+      char filename[PATH_MAX_LENGTH];
+      if (unzGetCurrentFileInfo(zipfile, &file_info, filename, PATH_MAX_LENGTH,
+         NULL, 0, NULL, 0 ) != UNZ_OK)
+      {
+         printf( "could not read file info\n" );
+         unzClose( zipfile );
+         return -1;
+      }
+
+      const size_t filename_length = strlen(filename);
+      if (filename[filename_length-1] == '/')
+      {
+         printf("dir:%s\n", filename);
+         char abs_path[PATH_MAX_LENGTH];
+         fill_pathname_join(abs_path,
+               extraction_directory, filename, sizeof(abs_path));
+         path_mkdir(abs_path);
+      }
+      else
+      {
+         printf("file:%s\n", filename);
+         if (unzOpenCurrentFile(zipfile) != UNZ_OK)
+         {
+            printf("could not open file\n");
+            unzClose(zipfile);
+            return -1;
+         }
+
+         char abs_path[PATH_MAX_LENGTH];
+         fill_pathname_join(abs_path,
+               extraction_directory, filename, sizeof(abs_path));
+         FILE *out = fopen(abs_path, "wb");
+         if (out == NULL)
+         {
+            printf("could not open destination file\n");
+            unzCloseCurrentFile(zipfile);
+            unzClose(zipfile);
+            return -1;
+         }
+
+         int error = UNZ_OK;
+         do
+         {
+            error = unzReadCurrentFile(zipfile, read_buffer, 8192);
+            if (error < 0)
+            {
+               printf("error %d\n", error);
+               unzCloseCurrentFile(zipfile);
+               unzClose(zipfile);
+               return -1;
+            }
+
+            if (error > 0)
+               fwrite(read_buffer, error, 1, out);
+
+         } while (error > 0);
+
+         fclose(out);
+      }
+
+      unzCloseCurrentFile(zipfile);
+
+      if (i + 1  < global_info.number_entry)
+      {
+         if (unzGoToNextFile(zipfile) != UNZ_OK)
+         {
+            printf("cound not read next file\n");
+            unzClose(zipfile);
+            return -1;
+         }
+      }
+   }
+
+   unzClose(zipfile);
+   return 0;
+}
+
 int lutro_load(const char *path)
 {
+   if (!strcmp(path_get_extension(path), "lutro"))
+   {
+      char extr_dir[PATH_MAX_LENGTH];
+      fill_pathname(extr_dir, path, "", sizeof(extr_dir));
+      lutro_unzip(path, extr_dir);
+      fill_pathname_join(path,
+            extr_dir, "main.lua", PATH_MAX_LENGTH*sizeof(char));
+   }
+
    char package_path[PATH_MAX_LENGTH];
    strlcpy(package_path, ";", sizeof(package_path));
    strlcat(package_path, path, sizeof(package_path));

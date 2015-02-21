@@ -53,8 +53,12 @@ else
 endif
 
 OBJECTS := libretro.o lutro.o runtime.o graphics.o input.o \
-           libretro-sdk/formats/png/rpng.o libretro-sdk/file/file_path.o \
-           libretro-sdk/compat/compat.o
+           libretro-sdk/formats/png/rpng.o \
+           libretro-sdk/file/file_path.o \
+           libretro-sdk/compat/compat.o \
+           ioapi.o \
+           unzip.o
+
 CFLAGS += -Wall -pedantic $(fpic) -I./libretro-sdk/include
 
 LFLAGS := $(shell pkg-config --libs-only-L --libs-only-other $(packages)) -Wl,-E

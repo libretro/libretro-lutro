@@ -239,17 +239,15 @@ int gfx_drawq(lua_State *L)
    int camera_x = 0, camera_y = 0;
    int n = lua_gettop(L);
 
-   if (n != 8)
-      return luaL_error(L, "lutro.graphics.drawq requires 8 arguments, %d given.", n);
+   if (n != 6)
+      return luaL_error(L, "lutro.graphics.drawq requires 6 arguments, %d given.", n);
 
-   int dest_x = luaL_checknumber(L, 1);
-   int dest_y = luaL_checknumber(L, 2);
-   int w = luaL_checknumber(L, 3);
-   int h = luaL_checknumber(L, 4);
-   int total_w = luaL_checknumber(L, 5);
-   int total_h = luaL_checknumber(L, 6);
-   uint32_t* data = lua_touserdata(L, 7);
-   int id = luaL_checknumber(L, 8);
+   gfx_Image* img = (gfx_Image*)luaL_checkudata(L, 1, "image");
+   int dest_x = luaL_checknumber(L, 2);
+   int dest_y = luaL_checknumber(L, 3);
+   int w = luaL_checknumber(L, 4);
+   int h = luaL_checknumber(L, 5);
+   int id = luaL_checknumber(L, 6);
 
    lua_pop(L, n);
 
@@ -266,7 +264,7 @@ int gfx_drawq(lua_State *L)
    drawq(
       dest_x + camera_x,
       dest_y + camera_y,
-      w, h, total_w, total_h, data, id);
+      w, h, img->width, img->height, img->data, id);
 
    return 0;
 }
@@ -275,18 +273,19 @@ int gfx_draw(lua_State *L)
 {
    int n = lua_gettop(L);
 
-   if (n != 5)
-      return luaL_error(L, "lutro.graphics.draw requires 5 arguments, %d given.", n);
+   if (n != 3)
+      return luaL_error(L, "lutro.graphics.draw requires 3 arguments, %d given.", n);
 
-   uint32_t* data = lua_touserdata(L, 1);
+   gfx_Image* img = (gfx_Image*)luaL_checkudata(L, 1, "image");
    int x = luaL_checknumber(L, 2);
    int y = luaL_checknumber(L, 3);
-   int w = luaL_checknumber(L, 4);
-   int h = luaL_checknumber(L, 5);
 
    lua_pop(L, n);
 
-   blit(x, y, w, h, w, h, data, 0, 0);
+   blit(x, y,
+      img->width, img->height,
+      img->width, img->height,
+      img->data, 0, 0);
 
    return 0;
 }

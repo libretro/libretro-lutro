@@ -1,5 +1,6 @@
 #include "libretro.h"
 #include "lutro.h"
+#include "audio.h"
 
 #include <stdint.h>
 #include <string.h>
@@ -7,6 +8,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdarg.h>
+
+static bool use_audio_cb;
+int16_t audio_buffer[2 * AUDIO_FRAMES];
 
 static struct retro_log_callback logging;
 static retro_video_refresh_t video_cb;
@@ -17,6 +21,17 @@ static retro_input_poll_t input_poll_cb;
 static retro_input_state_t input_state_cb;
 
 double frame_time = 0;
+
+static void emit_audio()
+{
+   mixer_render(audio_buffer);
+   audio_batch_cb(audio_buffer, AUDIO_FRAMES);
+}
+
+static void audio_set_state(bool enable)
+{
+   (void)enable;
+}
 
 static void fallback_log(enum retro_log_level level, const char *fmt, ...)
 {
@@ -149,6 +164,9 @@ bool retro_load_game(const struct retro_game_info *info)
 
    struct retro_frame_time_callback frame_cb = { frame_time_cb, 1000000 / 60 };
    environ_cb(RETRO_ENVIRONMENT_SET_FRAME_TIME_CALLBACK, &frame_cb);
+
+   struct retro_audio_callback audio_cb = { emit_audio, audio_set_state };
+   use_audio_cb = environ_cb(RETRO_ENVIRONMENT_SET_AUDIO_CALLBACK, &audio_cb);
 
    int success = lutro_load(info->path);
 

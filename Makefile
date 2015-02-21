@@ -52,7 +52,7 @@ else
    CFLAGS += -O3
 endif
 
-OBJECTS := libretro.o lutro.o runtime.o graphics.o input.o \
+OBJECTS := libretro.o lutro.o runtime.o graphics.o input.o audio.o\
            libretro-sdk/formats/png/rpng.o \
            libretro-sdk/file/file_path.o \
            libretro-sdk/compat/compat.o \

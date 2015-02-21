@@ -6,6 +6,7 @@
 
 #include "graphics.h"
 #include "input.h"
+#include "audio.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -57,6 +58,7 @@ void lutro_init()
 
    lutro_preload(L, lutro_core_preload, "lutro");
    lutro_preload(L, lutro_graphics_preload, "lutro.graphics");
+   lutro_preload(L, lutro_audio_preload, "lutro.audio");
    lutro_preload(L, lutro_input_preload, "lutro.input");
 
    lua_getglobal(L, "require");
@@ -65,6 +67,10 @@ void lutro_init()
 
    lua_getglobal(L, "require");
    lua_pushstring(L, "lutro.graphics");
+   lua_call(L, 1, 1);
+
+   lua_getglobal(L, "require");
+   lua_pushstring(L, "lutro.audio");
    lua_call(L, 1, 1);
 
    lua_getglobal(L, "require");

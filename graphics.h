@@ -34,5 +34,6 @@ int img_getData(lua_State *L);
 int img_getWidth(lua_State *L);
 int img_getHeight(lua_State *L);
 int img_getDimensions(lua_State *L);
+int img_gc(lua_State *L);
 
 #endif // GRAPHICS_H

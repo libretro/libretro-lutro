@@ -54,12 +54,16 @@ int gfx_newImage(lua_State *L)
          { "getWidth",      img_getWidth },
          { "getHeight",     img_getHeight },
          { "getDimensions", img_getDimensions },
+         { "__gc",          img_gc },
          {NULL, NULL}
       };
 
       lua_pushvalue(L, -1);
 
       lua_setfield(L, -2, "__index");
+
+      lua_pushcfunction( L, img_gc );
+      lua_setfield( L, -2, "__gc" );
 
       luaL_setfuncs(L, img_funcs, 0);
    }
@@ -96,6 +100,13 @@ int img_getDimensions(lua_State *L)
    lua_pushnumber(L, self->width);
    lua_pushnumber(L, self->height);
    return 2;
+}
+
+int img_gc(lua_State *L)
+{
+   gfx_Image* self = (gfx_Image*)luaL_checkudata(L, 1, "image");
+   (void)self;
+   return 0;
 }
 
 int gfx_newImageFont(lua_State *L)

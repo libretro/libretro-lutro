@@ -5,6 +5,7 @@
 #include <string.h>
 
 static gfx_Font *current_font;
+static uint32_t current_color;
 
 int lutro_graphics_preload(lua_State *L)
 {
@@ -17,6 +18,8 @@ int lutro_graphics_preload(lua_State *L)
       { "newImageFont", gfx_newImageFont },
       { "setFont",      gfx_setFont },
       { "getFont",      gfx_getFont },
+      { "setColor",     gfx_setColor },
+      { "getColor",     gfx_getColor },
       { "draw",         gfx_draw },
       { "drawq",        gfx_drawq },
       { "print",        gfx_print },
@@ -38,6 +41,7 @@ void lutro_graphics_init()
    settings.pitch_pixels = settings.width;
    settings.pitch        = settings.pitch_pixels * sizeof(uint32_t);
    settings.framebuffer  = calloc(1, settings.pitch * settings.height);
+   current_color = 0xffffffff;
 }
 
 int gfx_newImage(lua_State *L)
@@ -184,6 +188,49 @@ int gfx_getFont(lua_State *L)
    return 1;
 }
 
+int gfx_setColor(lua_State *L)
+{
+   int n = lua_gettop(L);
+
+   if (n != 4)
+      return luaL_error(L, "lutro.graphics.setColor requires 4 arguments, %d given.", n);
+
+   gfx_Color c;
+   c.r = luaL_checkint(L, 1);
+   c.g = luaL_checkint(L, 2);
+   c.b = luaL_checkint(L, 3);
+   c.a = luaL_checkint(L, 4);
+
+   lua_pop(L, n);
+
+   current_color = (c.a<<24) | (c.r<<16) | (c.g<<8) | c.b;
+
+   return 0;
+}
+
+int gfx_getColor(lua_State *L)
+{
+   int n = lua_gettop(L);
+
+   if (n != 0)
+      return luaL_error(L, "lutro.graphics.getColor requires 0 arguments, %d given.", n);
+
+   lua_pop(L, n);
+
+   gfx_Color c;
+   c.a = (current_color >> 24) & 0xff;
+   c.r = (current_color >> 16) & 0xff;
+   c.g = (current_color >>  8) & 0xff;
+   c.b = (current_color >>  0) & 0xff;
+
+   lua_pushnumber(L, c.r);
+   lua_pushnumber(L, c.g);
+   lua_pushnumber(L, c.b);
+   lua_pushnumber(L, c.a);
+
+   return 4;
+}
+
 int gfx_clear(lua_State *L)
 {
    int n = lua_gettop(L);
@@ -209,14 +256,13 @@ int gfx_rectangle(lua_State *L)
 {
    int n = lua_gettop(L);
 
-   if (n != 5)
-      return luaL_error(L, "lutro.graphics.rectangle requires 5 arguments, %d given.", n);
+   if (n != 4)
+      return luaL_error(L, "lutro.graphics.rectangle requires 4 arguments, %d given.", n);
 
    int x = luaL_checknumber(L, 1);
    int y = luaL_checknumber(L, 2);
    int w = luaL_checknumber(L, 3);
    int h = luaL_checknumber(L, 4);
-   uint32_t c = luaL_checknumber(L, 5);
 
    lua_pop(L, n);
 
@@ -225,7 +271,7 @@ int gfx_rectangle(lua_State *L)
    uint32_t *framebuffer = settings.framebuffer;
    for (j = y; j < y + w; j++)
       for (i = x; i < x + h; i++)
-         framebuffer[j * pitch_pixels + i] = c;
+         framebuffer[j * pitch_pixels + i] = current_color;
 
    return 0;
 }
@@ -234,19 +280,18 @@ int gfx_point(lua_State *L)
 {
    int n = lua_gettop(L);
 
-   if (n != 3)
-      return luaL_error(L, "lutro.graphics.point requires 3 arguments, %d given.", n);
+   if (n != 2)
+      return luaL_error(L, "lutro.graphics.point requires 2 arguments, %d given.", n);
 
    int x = luaL_checknumber(L, 1);
    int y = luaL_checknumber(L, 2);
-   uint32_t c = luaL_checknumber(L, 3);
 
    lua_pop(L, n);
 
    int pitch_pixels = settings.pitch_pixels;
    uint32_t *framebuffer = settings.framebuffer;
 
-   framebuffer[y * pitch_pixels + x] = c;
+   framebuffer[y * pitch_pixels + x] = current_color;
 
    return 0;
 }
@@ -255,14 +300,13 @@ int gfx_line(lua_State *L)
 {
    int n = lua_gettop(L);
 
-   if (n != 5)
-      return luaL_error(L, "lutro.graphics.line requires 5 arguments, %d given.", n);
+   if (n != 4)
+      return luaL_error(L, "lutro.graphics.line requires 4 arguments, %d given.", n);
 
    int x1 = luaL_checknumber(L, 1);
    int y1 = luaL_checknumber(L, 2);
    int x2 = luaL_checknumber(L, 3);
    int y2 = luaL_checknumber(L, 4);
-   uint32_t c = luaL_checknumber(L, 5);
 
    lua_pop(L, n);
 
@@ -276,7 +320,7 @@ int gfx_line(lua_State *L)
    for (;;) {
       if (y1 >= 0 && y1 < settings.height)
          if (x1 >= 0 && x1 < settings.width)
-            framebuffer[y1 * pitch_pixels + x1] = c;
+            framebuffer[y1 * pitch_pixels + x1] = current_color;
       if (x1==x2 && y1==y2) break;
       e2 = err;
       if (e2 >-dx) { err -= dy; x1 += sx; }

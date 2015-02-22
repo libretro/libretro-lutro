@@ -14,6 +14,14 @@ typedef struct
 
 typedef struct
 {
+   int r;
+   int g;
+   int b;
+   int a;
+} gfx_Color;
+
+typedef struct
+{
    gfx_Image image;
    int *separators;
    const char *characters;
@@ -30,6 +38,8 @@ int gfx_newImage(lua_State *L);
 int gfx_newImageFont(lua_State *L);
 int gfx_setFont(lua_State *L);
 int gfx_getFont(lua_State *L);
+int gfx_setColor(lua_State *L);
+int gfx_getColor(lua_State *L);
 int gfx_draw(lua_State *L);
 int gfx_drawq(lua_State *L);
 int gfx_print(lua_State *L);

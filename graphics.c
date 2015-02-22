@@ -45,6 +45,7 @@ void lutro_graphics_init()
    settings.pitch        = settings.pitch_pixels * sizeof(uint32_t);
    settings.framebuffer  = calloc(1, settings.pitch * settings.height);
    current_color = 0xffffffff;
+   background_color = 0xff000000;
 }
 
 int gfx_newImage(lua_State *L)

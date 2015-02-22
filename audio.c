@@ -11,11 +11,9 @@ void mixer_render(int16_t *buffer)
 {
    // Clear buffer
    for (unsigned j = 0; j < AUDIO_FRAMES; j++)
-   {
       buffer[j*2+0] = buffer[j*2+1] = 0;
-   }
 
-   // Loop over sound effects
+   // Loop over audio sources
    for (unsigned i = 0; i < num_sources; i++)
    {
       uint8_t* rawsamples8 = calloc(
@@ -35,9 +33,7 @@ void mixer_render(int16_t *buffer)
       }
 
       if (end && sources[i]->loop)
-      {
          fseek(sources[i]->fp, WAV_HEADER_SIZE, SEEK_SET);
-      }
 
       free(rawsamples8);
    }
@@ -77,9 +73,7 @@ int audio_newSource(lua_State *L)
 
    FILE *fp = fopen(path, "rb");
    if (!fp)
-   {
       return -1;
-   }
 
    wavhead_t head;
    fread(&head, sizeof(uint8_t), WAV_HEADER_SIZE, fp);

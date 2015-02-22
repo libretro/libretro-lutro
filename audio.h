@@ -41,6 +41,6 @@ int lutro_audio_preload(lua_State *L);
 int audio_newSource(lua_State *L);
 int audio_play(lua_State *L);
 int source_gc(lua_State *L);
-void mixer_render();
+void mixer_render(int16_t *buffer);
 
 #endif // AUDIO_H

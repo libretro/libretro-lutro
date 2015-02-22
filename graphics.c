@@ -57,7 +57,7 @@ int gfx_newImage(lua_State *L)
 
    rpng_load_image_argb(name, &self->data, &self->width, &self->height);
 
-   if (luaL_newmetatable(L, "image") != 0)
+   if (luaL_newmetatable(L, "Image") != 0)
    {
       static luaL_Reg img_funcs[] = {
          { "getData",       img_getData },
@@ -85,28 +85,28 @@ int gfx_newImage(lua_State *L)
 
 int img_getData(lua_State *L)
 {
-   gfx_Image* self = (gfx_Image*)luaL_checkudata(L, 1, "image");
+   gfx_Image* self = (gfx_Image*)luaL_checkudata(L, 1, "Image");
    lua_pushlightuserdata(L, self->data);
    return 1;
 }
 
 int img_getWidth(lua_State *L)
 {
-   gfx_Image* self = (gfx_Image*)luaL_checkudata(L, 1, "image");
+   gfx_Image* self = (gfx_Image*)luaL_checkudata(L, 1, "Image");
    lua_pushnumber(L, self->width);
    return 1;
 }
 
 int img_getHeight(lua_State *L)
 {
-   gfx_Image* self = (gfx_Image*)luaL_checkudata(L, 1, "image");
+   gfx_Image* self = (gfx_Image*)luaL_checkudata(L, 1, "Image");
    lua_pushnumber(L, self->height);
    return 1;
 }
 
 int img_getDimensions(lua_State *L)
 {
-   gfx_Image* self = (gfx_Image*)luaL_checkudata(L, 1, "image");
+   gfx_Image* self = (gfx_Image*)luaL_checkudata(L, 1, "Image");
    lua_pushnumber(L, self->width);
    lua_pushnumber(L, self->height);
    return 2;
@@ -114,7 +114,7 @@ int img_getDimensions(lua_State *L)
 
 int img_gc(lua_State *L)
 {
-   gfx_Image* self = (gfx_Image*)luaL_checkudata(L, 1, "image");
+   gfx_Image* self = (gfx_Image*)luaL_checkudata(L, 1, "Image");
    (void)self;
    return 0;
 }
@@ -378,7 +378,7 @@ int gfx_drawq(lua_State *L)
    if (n != 6)
       return luaL_error(L, "lutro.graphics.drawq requires 6 arguments, %d given.", n);
 
-   gfx_Image* img = (gfx_Image*)luaL_checkudata(L, 1, "image");
+   gfx_Image* img = (gfx_Image*)luaL_checkudata(L, 1, "Image");
    int dest_x = luaL_checknumber(L, 2);
    int dest_y = luaL_checknumber(L, 3);
    int w = luaL_checknumber(L, 4);
@@ -412,7 +412,7 @@ int gfx_draw(lua_State *L)
    if (n != 3)
       return luaL_error(L, "lutro.graphics.draw requires 3 arguments, %d given.", n);
 
-   gfx_Image* img = (gfx_Image*)luaL_checkudata(L, 1, "image");
+   gfx_Image* img = (gfx_Image*)luaL_checkudata(L, 1, "Image");
    int x = luaL_checknumber(L, 2);
    int y = luaL_checknumber(L, 3);
 

@@ -4,8 +4,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-unsigned num_sources = 0;
-audio_Source** sources = NULL;
+static unsigned num_sources = 0;
+static audio_Source** sources = NULL;
 
 void mixer_render(int16_t *buffer)
 {

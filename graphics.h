@@ -24,6 +24,7 @@ int lutro_graphics_preload(lua_State *L);
 
 int gfx_clear(lua_State *L);
 int gfx_point(lua_State *L);
+int gfx_line(lua_State *L);
 int gfx_rectangle(lua_State *L);
 int gfx_newImage(lua_State *L);
 int gfx_newImageFont(lua_State *L);

@@ -9,6 +9,7 @@ int lutro_graphics_preload(lua_State *L)
    static luaL_Reg gfx_funcs[] =  {
       { "clear",        gfx_clear },
       { "point",        gfx_point },
+      { "line",         gfx_line },
       { "rectangle",    gfx_rectangle },
       { "newImage",     gfx_newImage },
       { "newImageFont", gfx_newImageFont },
@@ -212,6 +213,41 @@ int gfx_point(lua_State *L)
    uint32_t *framebuffer = settings.framebuffer;
 
    framebuffer[y * pitch_pixels + x] = c;
+
+   return 0;
+}
+
+int gfx_line(lua_State *L)
+{
+   int n = lua_gettop(L);
+
+   if (n != 5)
+      return luaL_error(L, "lutro.graphics.line requires 5 arguments, %d given.", n);
+
+   int x1 = luaL_checknumber(L, 1);
+   int y1 = luaL_checknumber(L, 2);
+   int x2 = luaL_checknumber(L, 3);
+   int y2 = luaL_checknumber(L, 4);
+   uint32_t c = luaL_checknumber(L, 5);
+
+   lua_pop(L, n);
+
+   int pitch_pixels = settings.pitch_pixels;
+   uint32_t *framebuffer = settings.framebuffer;
+
+   int dx = abs(x2-x1), sx = x1<x2 ? 1 : -1;
+   int dy = abs(y2-y1), sy = y1<y2 ? 1 : -1;
+   int err = (dx>dy ? dx : -dy)/2, e2;
+
+   for (;;) {
+      if (y1 >= 0 && y1 < settings.height)
+         if (x1 >= 0 && x1 < settings.width)
+            framebuffer[y1 * pitch_pixels + x1] = c;
+      if (x1==x2 && y1==y2) break;
+      e2 = err;
+      if (e2 >-dx) { err -= dy; x1 += sx; }
+      if (e2 < dy) { err += dx; y1 += sy; }
+   }
 
    return 0;
 }

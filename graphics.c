@@ -192,14 +192,14 @@ int gfx_setColor(lua_State *L)
 {
    int n = lua_gettop(L);
 
-   if (n != 4)
-      return luaL_error(L, "lutro.graphics.setColor requires 4 arguments, %d given.", n);
+   if (n != 3 && n != 4)
+      return luaL_error(L, "lutro.graphics.setColor requires 3 or 4 arguments, %d given.", n);
 
    gfx_Color c;
    c.r = luaL_checkint(L, 1);
    c.g = luaL_checkint(L, 2);
    c.b = luaL_checkint(L, 3);
-   c.a = luaL_checkint(L, 4);
+   c.a = luaL_optint(L, 4, 255);
 
    lua_pop(L, n);
 

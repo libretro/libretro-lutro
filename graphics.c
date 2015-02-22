@@ -8,6 +8,7 @@ int lutro_graphics_preload(lua_State *L)
 {
    static luaL_Reg gfx_funcs[] =  {
       { "clear",        gfx_clear },
+      { "point",        gfx_point },
       { "rectangle",    gfx_rectangle },
       { "newImage",     gfx_newImage },
       { "newImageFont", gfx_newImageFont },
@@ -190,6 +191,27 @@ int gfx_rectangle(lua_State *L)
    for (j = y; j < y + w; j++)
       for (i = x; i < x + h; i++)
          framebuffer[j * pitch_pixels + i] = c;
+
+   return 0;
+}
+
+int gfx_point(lua_State *L)
+{
+   int n = lua_gettop(L);
+
+   if (n != 3)
+      return luaL_error(L, "lutro.graphics.point requires 3 arguments, %d given.", n);
+
+   int x = luaL_checknumber(L, 1);
+   int y = luaL_checknumber(L, 2);
+   uint32_t c = luaL_checknumber(L, 3);
+
+   lua_pop(L, n);
+
+   int pitch_pixels = settings.pitch_pixels;
+   uint32_t *framebuffer = settings.framebuffer;
+
+   framebuffer[y * pitch_pixels + x] = c;
 
    return 0;
 }

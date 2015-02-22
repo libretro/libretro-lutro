@@ -533,16 +533,23 @@ int gfx_draw(lua_State *L)
 {
    int n = lua_gettop(L);
 
-   if (n != 3)
-      return luaL_error(L, "lutro.graphics.draw requires 3 arguments, %d given.", n);
+   if (n < 3)
+      return luaL_error(L, "lutro.graphics.draw requires at least 3 arguments, %d given.", n);
 
    gfx_Image* img = (gfx_Image*)luaL_checkudata(L, 1, "Image");
    int x = luaL_checknumber(L, 2);
    int y = luaL_checknumber(L, 3);
+   //int r = luaL_optnumber(L, 4, 0);
+   //int sx = luaL_optnumber(L, 5, 1);
+   //int sy = luaL_optnumber(L, 6, sx);
+   int ox = luaL_optnumber(L, 7, 0);
+   int oy = luaL_optnumber(L, 8, 0);
+   //int kx = luaL_optnumber(L, 9, 0);
+   //int ky = luaL_optnumber(L, 10, 0);
 
    lua_pop(L, n);
 
-   blit(x, y,
+   blit(x + ox, y + oy,
       img->width, img->height,
       img->width, img->height,
       img->data, 0, 0);

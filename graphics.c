@@ -25,7 +25,7 @@ int lutro_graphics_preload(lua_State *L)
       { "setBackgroundColor", gfx_setBackgroundColor },
       { "getBackgroundColor", gfx_getBackgroundColor },
       { "draw",         gfx_draw },
-      { "drawq",        gfx_drawq },
+      { "drawt",        gfx_drawt },
       { "print",        gfx_print },
       {NULL, NULL}
    };
@@ -480,7 +480,7 @@ static void blit(int dest_x, int dest_y, int w, int h,
    }
 }
 
-static void drawq(int dest_x, int dest_y, int w, int h,
+static void drawt(int dest_x, int dest_y, int w, int h,
       int total_w, int total_h, uint32_t *data, int id)
 {
    if (dest_x + w < 0 || dest_y + h < 0
@@ -494,13 +494,13 @@ static void drawq(int dest_x, int dest_y, int w, int h,
          total_w, total_h, data, orig_x, orig_y);
 }
 
-int gfx_drawq(lua_State *L)
+int gfx_drawt(lua_State *L)
 {
    int camera_x = 0, camera_y = 0;
    int n = lua_gettop(L);
 
    if (n != 6)
-      return luaL_error(L, "lutro.graphics.drawq requires 6 arguments, %d given.", n);
+      return luaL_error(L, "lutro.graphics.drawt requires 6 arguments, %d given.", n);
 
    gfx_Image* img = (gfx_Image*)luaL_checkudata(L, 1, "Image");
    int dest_x = luaL_checknumber(L, 2);
@@ -521,7 +521,7 @@ int gfx_drawq(lua_State *L)
    camera_y = lua_tointeger(L, -1);
    lua_remove(L, -1);
 
-   drawq(
+   drawt(
       dest_x + camera_x,
       dest_y + camera_y,
       w, h, img->width, img->height, img->data, id);

@@ -54,7 +54,7 @@ int gfx_getColor(lua_State *L);
 int gfx_setBackgroundColor(lua_State *L);
 int gfx_getBackgroundColor(lua_State *L);
 int gfx_draw(lua_State *L);
-int gfx_drawq(lua_State *L);
+int gfx_drawt(lua_State *L);
 int gfx_print(lua_State *L);
 
 int img_getData(lua_State *L);

@@ -275,14 +275,30 @@ int gfx_setColor(lua_State *L)
 {
    int n = lua_gettop(L);
 
-   if (n != 3 && n != 4)
-      return luaL_error(L, "lutro.graphics.setColor requires 3 or 4 arguments, %d given.", n);
+   if (n != 1 && n != 3 && n != 4)
+      return luaL_error(L, "lutro.graphics.setColor requires 1, 3 or 4 arguments, %d given.", n);
 
    gfx_Color c;
-   c.r = luaL_checkint(L, 1);
-   c.g = luaL_checkint(L, 2);
-   c.b = luaL_checkint(L, 3);
-   c.a = luaL_optint(L, 4, 255);
+
+   if (lua_istable(L, 1))
+   {
+      for (int i = 1; i <= 4; i++)
+         lua_rawgeti(L, 1, i);
+
+      c.r = luaL_checkint(L, -4);
+      c.g = luaL_checkint(L, -3);
+      c.b = luaL_checkint(L, -2);
+      c.a = luaL_optint(L, -1, 255);
+
+      lua_pop(L, 4);
+   }
+   else
+   {
+      c.r = luaL_checkint(L, 1);
+      c.g = luaL_checkint(L, 2);
+      c.b = luaL_checkint(L, 3);
+      c.a = luaL_optint(L, 4, 255);
+   }
 
    lua_pop(L, n);
 
@@ -318,14 +334,30 @@ int gfx_setBackgroundColor(lua_State *L)
 {
    int n = lua_gettop(L);
 
-   if (n != 3 && n != 4)
-      return luaL_error(L, "lutro.graphics.setBackgroundColor requires 3 or 4 arguments, %d given.", n);
+   if (n != 1 && n != 3 && n != 4)
+      return luaL_error(L, "lutro.graphics.setBackgroundColor requires 1, 3 or 4 arguments, %d given.", n);
 
    gfx_Color c;
-   c.r = luaL_checkint(L, 1);
-   c.g = luaL_checkint(L, 2);
-   c.b = luaL_checkint(L, 3);
-   c.a = luaL_optint(L, 4, 255);
+
+   if (lua_istable(L, 1))
+   {
+      for (int i = 1; i <= 4; i++)
+         lua_rawgeti(L, 1, i);
+
+      c.r = luaL_checkint(L, -4);
+      c.g = luaL_checkint(L, -3);
+      c.b = luaL_checkint(L, -2);
+      c.a = luaL_optint(L, -1, 255);
+
+      lua_pop(L, 4);
+   }
+   else
+   {
+      c.r = luaL_checkint(L, 1);
+      c.g = luaL_checkint(L, 2);
+      c.b = luaL_checkint(L, 3);
+      c.a = luaL_optint(L, 4, 255);
+   }
 
    lua_pop(L, n);
 

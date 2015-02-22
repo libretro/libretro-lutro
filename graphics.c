@@ -6,6 +6,7 @@
 
 static gfx_Font *current_font;
 static uint32_t current_color;
+static uint32_t background_color;
 
 int lutro_graphics_preload(lua_State *L)
 {
@@ -20,6 +21,8 @@ int lutro_graphics_preload(lua_State *L)
       { "getFont",      gfx_getFont },
       { "setColor",     gfx_setColor },
       { "getColor",     gfx_getColor },
+      { "setBackgroundColor", gfx_setBackgroundColor },
+      { "getBackgroundColor", gfx_getBackgroundColor },
       { "draw",         gfx_draw },
       { "drawq",        gfx_drawq },
       { "print",        gfx_print },
@@ -231,14 +234,55 @@ int gfx_getColor(lua_State *L)
    return 4;
 }
 
+int gfx_setBackgroundColor(lua_State *L)
+{
+   int n = lua_gettop(L);
+
+   if (n != 3 && n != 4)
+      return luaL_error(L, "lutro.graphics.setBackgroundColor requires 3 or 4 arguments, %d given.", n);
+
+   gfx_Color c;
+   c.r = luaL_checkint(L, 1);
+   c.g = luaL_checkint(L, 2);
+   c.b = luaL_checkint(L, 3);
+   c.a = luaL_optint(L, 4, 255);
+
+   lua_pop(L, n);
+
+   background_color = (c.a<<24) | (c.r<<16) | (c.g<<8) | c.b;
+
+   return 0;
+}
+
+int gfx_getBackgroundColor(lua_State *L)
+{
+   int n = lua_gettop(L);
+
+   if (n != 0)
+      return luaL_error(L, "lutro.graphics.getBackgroundColor requires 0 arguments, %d given.", n);
+
+   lua_pop(L, n);
+
+   gfx_Color c;
+   c.a = (background_color >> 24) & 0xff;
+   c.r = (background_color >> 16) & 0xff;
+   c.g = (background_color >>  8) & 0xff;
+   c.b = (background_color >>  0) & 0xff;
+
+   lua_pushnumber(L, c.r);
+   lua_pushnumber(L, c.g);
+   lua_pushnumber(L, c.b);
+   lua_pushnumber(L, c.a);
+
+   return 4;
+}
+
 int gfx_clear(lua_State *L)
 {
    int n = lua_gettop(L);
 
-   if (n != 1)
-      return luaL_error(L, "lutro.graphics.clear requires 1 arguments, %d given.", n);
-
-   uint32_t c = luaL_checkint(L, 1);
+   if (n != 0)
+      return luaL_error(L, "lutro.graphics.clear requires 0 arguments, %d given.", n);
 
    lua_pop(L, n);
 
@@ -247,7 +291,7 @@ int gfx_clear(lua_State *L)
    uint32_t *framebuffer = settings.framebuffer;
 
    for (i = 0; i < size; ++i)
-      framebuffer[i] = c;
+      framebuffer[i] = background_color;
 
    return 0;
 }

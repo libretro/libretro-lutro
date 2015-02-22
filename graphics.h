@@ -40,6 +40,8 @@ int gfx_setFont(lua_State *L);
 int gfx_getFont(lua_State *L);
 int gfx_setColor(lua_State *L);
 int gfx_getColor(lua_State *L);
+int gfx_setBackgroundColor(lua_State *L);
+int gfx_getBackgroundColor(lua_State *L);
 int gfx_draw(lua_State *L);
 int gfx_drawq(lua_State *L);
 int gfx_print(lua_State *L);

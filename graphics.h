@@ -28,6 +28,8 @@ int gfx_line(lua_State *L);
 int gfx_rectangle(lua_State *L);
 int gfx_newImage(lua_State *L);
 int gfx_newImageFont(lua_State *L);
+int gfx_setFont(lua_State *L);
+int gfx_getFont(lua_State *L);
 int gfx_draw(lua_State *L);
 int gfx_drawq(lua_State *L);
 int gfx_print(lua_State *L);

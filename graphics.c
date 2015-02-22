@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+static gfx_Font *current_font;
+
 int lutro_graphics_preload(lua_State *L)
 {
    static luaL_Reg gfx_funcs[] =  {
@@ -13,6 +15,8 @@ int lutro_graphics_preload(lua_State *L)
       { "rectangle",    gfx_rectangle },
       { "newImage",     gfx_newImage },
       { "newImageFont", gfx_newImageFont },
+      { "setFont",      gfx_setFont },
+      { "getFont",      gfx_getFont },
       { "draw",         gfx_draw },
       { "drawq",        gfx_drawq },
       { "print",        gfx_print },
@@ -146,6 +150,36 @@ int gfx_newImageFont(lua_State *L)
    font->characters = characters;
 
    lua_pushlightuserdata(L, font);
+
+   return 1;
+}
+
+int gfx_setFont(lua_State *L)
+{
+   int n = lua_gettop(L);
+
+   if (n != 1)
+      return luaL_error(L, "lutro.graphics.setFont requires 1 arguments, %d given.", n);
+
+   gfx_Font *font = lua_touserdata(L, 1);
+
+   lua_pop(L, n);
+
+   current_font = font;
+
+   return 0;
+}
+
+int gfx_getFont(lua_State *L)
+{
+   int n = lua_gettop(L);
+
+   if (n != 0)
+      return luaL_error(L, "lutro.graphics.getFont requires 0 arguments, %d given.", n);
+
+   lua_pop(L, n);
+
+   lua_pushlightuserdata(L, current_font);
 
    return 1;
 }
@@ -360,13 +394,16 @@ int gfx_print(lua_State *L)
 {
    int n = lua_gettop(L);
 
-   if (n != 4)
-      return luaL_error(L, "lutro.graphics.draw requires 4 arguments, %d given.", n);
+   if (n != 3)
+      return luaL_error(L, "lutro.graphics.print requires 3 arguments, %d given.", n);
 
-   gfx_Font *f = lua_touserdata(L, 1);
-   const char* message = luaL_checkstring(L, 2);
-   int dest_x = luaL_checknumber(L, 3);
-   int dest_y = luaL_checknumber(L, 4);
+   if (current_font == NULL)
+      return luaL_error(L, "lutro.graphics.print requires a font to be set.");
+
+   gfx_Font *font = current_font;
+   const char* message = luaL_checkstring(L, 1);
+   int dest_x = luaL_checknumber(L, 2);
+   int dest_y = luaL_checknumber(L, 3);
 
    lua_pop(L, n);
 
@@ -375,18 +412,18 @@ int gfx_print(lua_State *L)
    {
       char c = message[i];
 
-      int pos = strpos(f->characters, c);
+      int pos = strpos(font->characters, c);
 
-      int orig_x = f->separators[pos] + 1;
-      int w = f->separators[pos+1] - orig_x;
-      int h = f->image.height;
-      int total_w = f->image.width;
-      int total_h = f->image.height;
+      int orig_x = font->separators[pos] + 1;
+      int w = font->separators[pos+1] - orig_x;
+      int h = font->image.height;
+      int total_w = font->image.width;
+      int total_h = font->image.height;
 
-      blit(dest_x, dest_y, w, h, total_w, total_h, f->image.data, orig_x, 0);
+      blit(dest_x, dest_y, w, h, total_w, total_h, font->image.data, orig_x, 0);
 
       dest_x += w + 1;
    }
 
-   return 1;
+   return 0;
 }

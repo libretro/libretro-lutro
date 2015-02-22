@@ -17,6 +17,7 @@ int lutro_graphics_preload(lua_State *L)
       { "rectangle",    gfx_rectangle },
       { "newImage",     gfx_newImage },
       { "newImageFont", gfx_newImageFont },
+      { "newQuad",      gfx_newQuad },
       { "setFont",      gfx_setFont },
       { "getFont",      gfx_getFont },
       { "setColor",     gfx_setColor },
@@ -119,6 +120,84 @@ int img_getDimensions(lua_State *L)
 int img_gc(lua_State *L)
 {
    gfx_Image* self = (gfx_Image*)luaL_checkudata(L, 1, "Image");
+   (void)self;
+   return 0;
+}
+
+int gfx_newQuad(lua_State *L)
+{
+   int n = lua_gettop(L);
+
+   if (n != 6)
+      return luaL_error(L, "lutro.graphics.newQuad requires 6 arguments, %d given.", n);
+
+   gfx_Quad* self = (gfx_Quad*)lua_newuserdata(L, sizeof(gfx_Quad));
+   self->x = luaL_checknumber(L, 1);
+   self->y = luaL_checknumber(L, 2);
+   self->w = luaL_checknumber(L, 3);
+   self->h = luaL_checknumber(L, 4);
+   self->sw = luaL_checknumber(L, 5);
+   self->sh = luaL_checknumber(L, 6);
+
+   if (luaL_newmetatable(L, "Quad") != 0)
+   {
+      static luaL_Reg quad_funcs[] = {
+         { "getViewport",      quad_getViewport },
+         { "quad_setViewport", quad_setViewport },
+         { "__gc",             quad_gc },
+         {NULL, NULL}
+      };
+
+      lua_pushvalue(L, -1);
+
+      lua_setfield(L, -2, "__index");
+
+      lua_pushcfunction( L, img_gc );
+      lua_setfield( L, -2, "__gc" );
+
+      luaL_setfuncs(L, quad_funcs, 0);
+   }
+
+   lua_setmetatable(L, -2);
+
+   return 1;
+}
+
+int quad_setViewport(lua_State *L)
+{
+   int n = lua_gettop(L);
+
+   if (n != 4 && n != 6)
+      return luaL_error(L, "lutro.graphics.setViewport requires 4 or 6 arguments, %d given.", n);
+
+   gfx_Quad* self = (gfx_Quad*)luaL_checkudata(L, 1, "Quad");
+   self->x = luaL_checknumber(L, 2);
+   self->y = luaL_checknumber(L, 3);
+   self->w = luaL_checknumber(L, 4);
+   self->h = luaL_checknumber(L, 5);
+
+   if (!lua_isnoneornil(L, 6))
+      self->sw = luaL_checknumber(L, 6);
+
+   if (!lua_isnoneornil(L, 6))
+      self->sh = luaL_checknumber(L, 7);
+
+   return 4;
+}
+
+int quad_getViewport(lua_State *L)
+{
+   gfx_Quad* self = (gfx_Quad*)luaL_checkudata(L, 1, "Quad");
+   lua_pushnumber(L, self->x);
+   lua_pushnumber(L, self->y);
+   lua_pushnumber(L, self->w);
+   lua_pushnumber(L, self->h);
+   return 4;
+}
+
+int quad_gc(lua_State *L)
+{
+   gfx_Quad* self = (gfx_Quad*)luaL_checkudata(L, 1, "Quad");
    (void)self;
    return 0;
 }

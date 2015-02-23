@@ -1,6 +1,7 @@
 #include "filesystem.h"
 #include "lutro.h"
 #include "compat/strl.h"
+#include "file/file_path.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -9,6 +10,7 @@ int lutro_filesystem_preload(lua_State *L)
 {
    static luaL_Reg gfx_funcs[] =  {
       { "read",   fs_read },
+      { "exists", fs_exists },
       {NULL, NULL}
    };
 
@@ -48,6 +50,21 @@ int fs_read(lua_State *L)
    string[fsize] = 0;
 
    lua_pushstring(L, string);
+
+   return 1;
+}
+
+int fs_exists(lua_State *L)
+{
+   const char *path = luaL_checkstring(L, 1);
+
+   char fullpath[PATH_MAX_LENGTH];
+   strlcpy(fullpath, settings.gamedir, sizeof(fullpath));
+   strlcat(fullpath, path, sizeof(fullpath));
+
+   bool exists = path_file_exists(fullpath);
+
+   lua_pushboolean(L, exists);
 
    return 1;
 }

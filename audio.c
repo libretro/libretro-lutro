@@ -102,6 +102,8 @@ int audio_newSource(lua_State *L)
          { "isLooping",  source_isLooping },
          { "setVolume",  source_setVolume },
          { "getVolume",  source_getVolume },
+         { "setPitch",   source_setPitch },
+         { "getPitch",   source_getPitch },
          { "__gc",       source_gc },
          {NULL, NULL}
       };
@@ -177,6 +179,26 @@ int source_getVolume(lua_State *L)
 {
    audio_Source* self = (audio_Source*)luaL_checkudata(L, 1, "Source");
    lua_pushnumber(L, self->volume);
+   return 1;
+}
+
+int source_setPitch(lua_State *L)
+{
+   int n = lua_gettop(L);
+
+   if (n != 2)
+      return luaL_error(L, "Source.setPitch requires 2 arguments, %d given.", n);
+
+   audio_Source* self = (audio_Source*)luaL_checkudata(L, 1, "Source");
+   self->pitch = (float)luaL_checknumber(L, 2);
+
+   return 0;
+}
+
+int source_getPitch(lua_State *L)
+{
+   audio_Source* self = (audio_Source*)luaL_checkudata(L, 1, "Source");
+   lua_pushnumber(L, self->pitch);
    return 1;
 }
 

@@ -56,11 +56,15 @@ int gfx_getBackgroundColor(lua_State *L);
 int gfx_draw(lua_State *L);
 int gfx_drawt(lua_State *L);
 int gfx_print(lua_State *L);
+int gfx_setDefaultFilter(lua_State *L);
+int gfx_setLineStyle(lua_State *L);
+int gfx_scale(lua_State *L);
 
 int img_getData(lua_State *L);
 int img_getWidth(lua_State *L);
 int img_getHeight(lua_State *L);
 int img_getDimensions(lua_State *L);
+int img_setFilter(lua_State *L);
 int img_gc(lua_State *L);
 
 int quad_getViewport(lua_State *L);

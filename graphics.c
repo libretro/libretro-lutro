@@ -28,6 +28,9 @@ int lutro_graphics_preload(lua_State *L)
       { "draw",         gfx_draw },
       { "drawt",        gfx_drawt },
       { "print",        gfx_print },
+      { "setDefaultFilter", gfx_setDefaultFilter },
+      { "setLineStyle", gfx_setLineStyle },
+      { "scale",        gfx_scale },
       {NULL, NULL}
    };
 
@@ -74,6 +77,7 @@ int gfx_newImage(lua_State *L)
          { "getWidth",      img_getWidth },
          { "getHeight",     img_getHeight },
          { "getDimensions", img_getDimensions },
+         { "setFilter",     img_setFilter },
          { "__gc",          img_gc },
          {NULL, NULL}
       };
@@ -120,6 +124,11 @@ int img_getDimensions(lua_State *L)
    lua_pushnumber(L, self->width);
    lua_pushnumber(L, self->height);
    return 2;
+}
+
+int img_setFilter(lua_State *L)
+{
+   return 0;
 }
 
 int img_gc(lua_State *L)
@@ -663,5 +672,20 @@ int gfx_print(lua_State *L)
       dest_x += w + 1;
    }
 
+   return 0;
+}
+
+int gfx_setDefaultFilter(lua_State *L)
+{
+   return 0;
+}
+
+int gfx_setLineStyle(lua_State *L)
+{
+   return 0;
+}
+
+int gfx_scale(lua_State *L)
+{
    return 0;
 }

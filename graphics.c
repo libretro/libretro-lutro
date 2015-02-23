@@ -1,5 +1,6 @@
 #include "graphics.h"
 #include "lutro.h"
+#include "compat/strl.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -56,11 +57,15 @@ int gfx_newImage(lua_State *L)
    if (n != 1)
       return luaL_error(L, "lutro.graphics.newImage requires 1 arguments, %d given.", n);
 
-   const char* name = luaL_checkstring(L, 1);
+   const char* path = luaL_checkstring(L, 1);
+
+   char fullpath[PATH_MAX_LENGTH];
+   strlcpy(fullpath, settings.gamedir, sizeof(fullpath));
+   strlcat(fullpath, path, sizeof(fullpath));
 
    gfx_Image* self = (gfx_Image*)lua_newuserdata(L, sizeof(gfx_Image));
 
-   rpng_load_image_argb(name, &self->data, &self->width, &self->height);
+   rpng_load_image_argb(fullpath, &self->data, &self->width, &self->height);
 
    if (luaL_newmetatable(L, "Image") != 0)
    {
@@ -209,14 +214,18 @@ int gfx_newImageFont(lua_State *L)
    if (n != 2)
       return luaL_error(L, "lutro.graphics.newImageFont requires 2 arguments, %d given.", n);
 
-   const char* imgpath = luaL_checkstring(L, 1);
+   const char* path = luaL_checkstring(L, 1);
    const char* characters = luaL_checkstring(L, 2);
 
    lua_pop(L, n);
 
    gfx_Image img;
 
-   rpng_load_image_argb(imgpath, &img.data, &img.width, &img.height);
+   char fullpath[PATH_MAX_LENGTH];
+   strlcpy(fullpath, settings.gamedir, sizeof(fullpath));
+   strlcat(fullpath, path, sizeof(fullpath));
+
+   rpng_load_image_argb(fullpath, &img.data, &img.width, &img.height);
 
    uint32_t separator = img.data[0];
 

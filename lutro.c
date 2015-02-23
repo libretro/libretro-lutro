@@ -7,6 +7,7 @@
 #include "graphics.h"
 #include "input.h"
 #include "audio.h"
+#include "filesystem.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -60,6 +61,7 @@ void lutro_init()
    lutro_preload(L, lutro_graphics_preload, "lutro.graphics");
    lutro_preload(L, lutro_audio_preload, "lutro.audio");
    lutro_preload(L, lutro_input_preload, "lutro.input");
+   lutro_preload(L, lutro_filesystem_preload, "lutro.filesystem");
 
    lua_getglobal(L, "require");
    lua_pushstring(L, "lutro");
@@ -75,6 +77,10 @@ void lutro_init()
 
    lua_getglobal(L, "require");
    lua_pushstring(L, "lutro.input");
+   lua_call(L, 1, 1);
+
+   lua_getglobal(L, "require");
+   lua_pushstring(L, "lutro.filesystem");
    lua_call(L, 1, 1);
 
    // remove this if undefined references to lutro.* happen
@@ -232,11 +238,8 @@ int lutro_load(const char *path)
 
    lua_getglobal(L, "lutro");
 
-   char game_dir[PATH_MAX_LENGTH];
-   strlcpy(game_dir, path, sizeof(game_dir));
-   path_basedir(game_dir);
-   lua_pushstring(L, game_dir);
-   lua_setfield(L, -2, "path");
+   strlcpy(settings.gamedir, path, PATH_MAX_LENGTH*sizeof(char));
+   path_basedir(settings.gamedir);
 
    lua_pushnumber(L, 0);
    lua_setfield(L, -2, "camera_x");

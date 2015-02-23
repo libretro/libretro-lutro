@@ -1,5 +1,6 @@
 #include "audio.h"
 #include "lutro.h"
+#include "compat/strl.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -69,9 +70,13 @@ int audio_newSource(lua_State *L)
 
    const char* path = luaL_checkstring(L, 1);
 
+   char fullpath[PATH_MAX_LENGTH];
+   strlcpy(fullpath, settings.gamedir, sizeof(fullpath));
+   strlcat(fullpath, path, sizeof(fullpath));
+
    audio_Source* self = (audio_Source*)lua_newuserdata(L, sizeof(audio_Source));
 
-   FILE *fp = fopen(path, "rb");
+   FILE *fp = fopen(fullpath, "rb");
    if (!fp)
       return -1;
 

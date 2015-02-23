@@ -30,6 +30,7 @@ int lutro_graphics_preload(lua_State *L)
       { "print",        gfx_print },
       { "setDefaultFilter", gfx_setDefaultFilter },
       { "setLineStyle", gfx_setLineStyle },
+      { "setLineWidth", gfx_setLineWidth },
       { "scale",        gfx_scale },
       {NULL, NULL}
    };
@@ -681,6 +682,11 @@ int gfx_setDefaultFilter(lua_State *L)
 }
 
 int gfx_setLineStyle(lua_State *L)
+{
+   return 0;
+}
+
+int gfx_setLineWidth(lua_State *L)
 {
    return 0;
 }

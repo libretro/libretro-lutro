@@ -577,23 +577,45 @@ int gfx_draw(lua_State *L)
    if (n < 3)
       return luaL_error(L, "lutro.graphics.draw requires at least 3 arguments, %d given.", n);
 
-   gfx_Image* img = (gfx_Image*)luaL_checkudata(L, 1, "Image");
-   int x = luaL_checknumber(L, 2);
-   int y = luaL_checknumber(L, 3);
-   //int r = luaL_optnumber(L, 4, 0);
-   //int sx = luaL_optnumber(L, 5, 1);
-   //int sy = luaL_optnumber(L, 6, sx);
-   int ox = luaL_optnumber(L, 7, 0);
-   int oy = luaL_optnumber(L, 8, 0);
-   //int kx = luaL_optnumber(L, 9, 0);
-   //int ky = luaL_optnumber(L, 10, 0);
+   int start = 0;
+   gfx_Image* img = NULL;
+   gfx_Quad* quad = NULL;
+
+   void *p = lua_touserdata(L, 2);
+   if (p == NULL)
+   {
+      img = (gfx_Image*)luaL_checkudata(L, 1, "Image");
+      start = 1;
+   }
+   else
+   {
+      img = (gfx_Image*)luaL_checkudata(L, 1, "Image");
+      quad = (gfx_Quad*)luaL_checkudata(L, 2, "Quad");
+      start = 2;
+   }
+
+   int x = luaL_optnumber(L, start + 1, 0);
+   int y = luaL_optnumber(L, start + 2, 0);
+   //int r = luaL_optnumber(L, start + 3, 0);
+   //int sx = luaL_optnumber(L, start + 4, 1);
+   //int sy = luaL_optnumber(L, start + 5, sx);
+   int ox = luaL_optnumber(L, start + 6, 0);
+   int oy = luaL_optnumber(L, start + 7, 0);
+   //int kx = luaL_optnumber(L, start + 8, 0);
+   //int ky = luaL_optnumber(L, start + 9, 0);
 
    lua_pop(L, n);
 
-   blit(x + ox, y + oy,
-      img->width, img->height,
-      img->width, img->height,
-      img->data, 0, 0);
+   if (quad == NULL)
+      blit(x + ox, y + oy,
+         img->width, img->height,
+         img->width, img->height,
+         img->data, 0, 0);
+   else
+      blit(x + ox, y + oy,
+         quad->w, quad->h,
+         quad->sw, quad->sh,
+         img->data, quad->x, quad->y);
 
    return 0;
 }

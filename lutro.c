@@ -8,6 +8,7 @@
 #include "input.h"
 #include "audio.h"
 #include "filesystem.h"
+#include "live.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -23,6 +24,7 @@ lutro_settings_t settings = {
    .height = 240,
    .pitch = 0,
    .framebuffer = NULL,
+   .live = 0,
    .input_cb = NULL
 };
 
@@ -62,6 +64,7 @@ void lutro_init()
    lutro_preload(L, lutro_audio_preload, "lutro.audio");
    lutro_preload(L, lutro_input_preload, "lutro.input");
    lutro_preload(L, lutro_filesystem_preload, "lutro.filesystem");
+   lutro_preload(L, lutro_live_preload, "lutro.live");
 
    lua_getglobal(L, "require");
    lua_pushstring(L, "lutro");
@@ -83,12 +86,19 @@ void lutro_init()
    lua_pushstring(L, "lutro.filesystem");
    lua_call(L, 1, 1);
 
+   lua_getglobal(L, "require");
+   lua_pushstring(L, "lutro.live");
+   lua_call(L, 1, 1);
+
    // remove this if undefined references to lutro.* happen
    lua_pop(L, 2);
 }
 
 void lutro_deinit()
 {
+   if (settings.live)
+      lutro_live_deinit();
+
    lua_close(L);
 }
 
@@ -274,11 +284,18 @@ int lutro_load(const char *path)
       lua_getfield(L, -1, "height");
       settings.height = lua_tointeger(L, -1);
       lua_remove(L, -1);
+
+      lua_getfield(L, -1, "live");
+      settings.live = lua_toboolean(L, -1);
+      lua_remove(L, -1);
    }
 
    lua_pop(L, 1); // either lutro.settings or lutro.conf
 
    lutro_graphics_init();
+
+   if (settings.live)
+      lutro_live_init();
 
    lua_getfield(L, -1, "load");
 

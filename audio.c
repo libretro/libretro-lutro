@@ -44,6 +44,8 @@ int lutro_audio_preload(lua_State *L)
 {
    static luaL_Reg gfx_funcs[] =  {
       { "newSource",    audio_newSource },
+      { "setLooping",   audio_setLooping },
+      { "isLooping",    audio_isLooping },
       { "play",         audio_play },
       {NULL, NULL}
    };
@@ -65,8 +67,8 @@ int audio_newSource(lua_State *L)
 {
    int n = lua_gettop(L);
 
-   if (n != 1)
-      return luaL_error(L, "lutro.audio.newSource requires 1 arguments, %d given.", n);
+   if (n != 1 && n != 2)
+      return luaL_error(L, "lutro.audio.newSource requires 1 or 2 arguments, %d given.", n);
 
    const char* path = luaL_checkstring(L, 1);
 
@@ -110,6 +112,27 @@ int audio_newSource(lua_State *L)
 
    lua_setmetatable(L, -2);
 
+   return 1;
+}
+
+int audio_setLooping(lua_State *L)
+{
+   int n = lua_gettop(L);
+
+   if (n != 2)
+      return luaL_error(L, "lutro.audio.setLooping requires 2 arguments, %d given.", n);
+
+   audio_Source* self = (audio_Source*)luaL_checkudata(L, 1, "Source");
+   bool loop = lua_toboolean(L, 2);
+   self->loop = loop;
+
+   return 0;
+}
+
+int audio_isLooping(lua_State *L)
+{
+   audio_Source* self = (audio_Source*)luaL_checkudata(L, 1, "Source");
+   lua_pushboolean(L, self->loop);
    return 1;
 }
 

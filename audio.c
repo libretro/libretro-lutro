@@ -146,6 +146,7 @@ int source_gc(lua_State *L)
 int audio_play(lua_State *L)
 {
    audio_Source* self = (audio_Source*)luaL_checkudata(L, 1, "Source");
-   fseek(self->fp, WAV_HEADER_SIZE, SEEK_SET);
-   return 0;
+   bool success = fseek(self->fp, WAV_HEADER_SIZE, SEEK_SET) == 0;
+   lua_pushboolean(L, success);
+   return 1;
 }

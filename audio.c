@@ -7,6 +7,7 @@
 
 static unsigned num_sources = 0;
 static audio_Source** sources = NULL;
+static float volume = 1.0;
 
 void mixer_render(int16_t *buffer)
 {
@@ -29,8 +30,8 @@ void mixer_render(int16_t *buffer)
       
       for (unsigned j = 0; j < AUDIO_FRAMES; j++)
       {
-         buffer[j*2+0] += rawsamples16[j];
-         buffer[j*2+1] += rawsamples16[j];
+         buffer[j*2+0] += rawsamples16[j] * sources[i]->volume * volume;
+         buffer[j*2+1] += rawsamples16[j] * sources[i]->volume * volume;
       }
 
       if (end && sources[i]->loop)
@@ -44,8 +45,8 @@ int lutro_audio_preload(lua_State *L)
 {
    static luaL_Reg gfx_funcs[] =  {
       { "newSource",    audio_newSource },
-      { "setLooping",   audio_setLooping },
-      { "isLooping",    audio_isLooping },
+      { "setVolume",    audio_setVolume },
+      { "getVolume",    audio_getVolume },
       { "play",         audio_play },
       {NULL, NULL}
    };
@@ -87,6 +88,7 @@ int audio_newSource(lua_State *L)
    self->bps = head.NumChannels * head.BitsPerSample / 8;
    self->fp = fp;
    self->loop = false;
+   self->volume = 1.0;
    fseek(self->fp, 0, SEEK_END);
 
    num_sources++;
@@ -96,7 +98,11 @@ int audio_newSource(lua_State *L)
    if (luaL_newmetatable(L, "Source") != 0)
    {
       static luaL_Reg audio_funcs[] = {
-         { "__gc",  source_gc },
+         { "setLooping", source_setLooping },
+         { "isLooping",  source_isLooping },
+         { "setVolume",  source_setVolume },
+         { "getVolume",  source_getVolume },
+         { "__gc",       source_gc },
          {NULL, NULL}
       };
 
@@ -115,12 +121,30 @@ int audio_newSource(lua_State *L)
    return 1;
 }
 
-int audio_setLooping(lua_State *L)
+int audio_setVolume(lua_State *L)
+{
+   int n = lua_gettop(L);
+
+   if (n != 1)
+      return luaL_error(L, "lutro.audio.setVolume requires 1 argument, %d given.", n);
+
+   volume = (float)luaL_checknumber(L, 1);
+
+   return 0;
+}
+
+int audio_getVolume(lua_State *L)
+{
+   lua_pushnumber(L, volume);
+   return 1;
+}
+
+int source_setLooping(lua_State *L)
 {
    int n = lua_gettop(L);
 
    if (n != 2)
-      return luaL_error(L, "lutro.audio.setLooping requires 2 arguments, %d given.", n);
+      return luaL_error(L, "Source:setLooping requires 2 arguments, %d given.", n);
 
    audio_Source* self = (audio_Source*)luaL_checkudata(L, 1, "Source");
    bool loop = lua_toboolean(L, 2);
@@ -129,10 +153,30 @@ int audio_setLooping(lua_State *L)
    return 0;
 }
 
-int audio_isLooping(lua_State *L)
+int source_isLooping(lua_State *L)
 {
    audio_Source* self = (audio_Source*)luaL_checkudata(L, 1, "Source");
    lua_pushboolean(L, self->loop);
+   return 1;
+}
+
+int source_setVolume(lua_State *L)
+{
+   int n = lua_gettop(L);
+
+   if (n != 2)
+      return luaL_error(L, "Source.setVolume requires 2 arguments, %d given.", n);
+
+   audio_Source* self = (audio_Source*)luaL_checkudata(L, 1, "Source");
+   self->volume = (float)luaL_checknumber(L, 2);
+
+   return 0;
+}
+
+int source_getVolume(lua_State *L)
+{
+   audio_Source* self = (audio_Source*)luaL_checkudata(L, 1, "Source");
+   lua_pushnumber(L, self->volume);
    return 1;
 }
 

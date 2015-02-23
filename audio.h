@@ -33,16 +33,22 @@ typedef struct
    unsigned bps; // bytes per sample
    void* fp;
    bool loop;
+   float volume;
 } audio_Source;
 
 void lutro_audio_init();
 int lutro_audio_preload(lua_State *L);
+void mixer_render(int16_t *buffer);
 
 int audio_newSource(lua_State *L);
-int audio_setLooping(lua_State *L);
-int audio_isLooping(lua_State *L);
+int audio_setVolume(lua_State *L);
+int audio_getVolume(lua_State *L);
 int audio_play(lua_State *L);
+
+int source_setLooping(lua_State *L);
+int source_isLooping(lua_State *L);
+int source_getVolume(lua_State *L);
+int source_setVolume(lua_State *L);
 int source_gc(lua_State *L);
-void mixer_render(int16_t *buffer);
 
 #endif // AUDIO_H

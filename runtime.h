@@ -11,4 +11,23 @@ void lutro_namespace(lua_State *L);
 
 void lutro_stack_dump(lua_State* L);
 
+/* functions to help check the stack size in a function call or block of code */
+#ifndef NDEBUG
+#define lutro_checked_stack_begin() int __stack = lua_gettop(L)
+#define lutro_checked_stack_return(delta) \
+   do {\
+      lutro_checked_stack_end(delta);\
+      return delta;\
+   } while(0)
+#define lutro_checked_stack_end(delta) \
+   do {\
+      int __stack_delta = (lua_gettop(L)-__stack);\
+      assert((__stack_delta == delta) && "Delta is not " #delta);\
+   } while(0)
+#else
+#define lutro_checked_stack_begin()
+#define lutro_checked_stack_return(delta)
+#define lutro_checked_stack_end(delta)
+#endif
+
 #endif // RUNTIME_H

@@ -24,7 +24,8 @@ lutro_settings_t settings = {
    .height = 240,
    .pitch = 0,
    .framebuffer = NULL,
-   .live = 0,
+   .live_enable = 0,
+   .live_call_load = 0,
    .input_cb = NULL
 };
 
@@ -96,7 +97,7 @@ void lutro_init()
 
 void lutro_deinit()
 {
-   if (settings.live)
+   if (settings.live_enable)
       lutro_live_deinit();
 
    lua_close(L);
@@ -248,7 +249,8 @@ int lutro_load(const char *path)
 
    lua_getglobal(L, "lutro");
 
-   strlcpy(settings.gamedir, path, PATH_MAX_LENGTH*sizeof(char));
+   strlcpy(settings.mainfile, path, PATH_MAX_LENGTH);
+   strlcpy(settings.gamedir, path, PATH_MAX_LENGTH);
    path_basedir(settings.gamedir);
 
    lua_pushnumber(L, 0);
@@ -285,8 +287,12 @@ int lutro_load(const char *path)
       settings.height = lua_tointeger(L, -1);
       lua_remove(L, -1);
 
-      lua_getfield(L, -1, "live");
-      settings.live = lua_toboolean(L, -1);
+      lua_getfield(L, -1, "live_enable");
+      settings.live_enable = lua_toboolean(L, -1);
+      lua_remove(L, -1);
+
+      lua_getfield(L, -1, "live_call_load");
+      settings.live_call_load = lua_toboolean(L, -1);
       lua_remove(L, -1);
    }
 
@@ -294,7 +300,7 @@ int lutro_load(const char *path)
 
    lutro_graphics_init();
 
-   if (settings.live)
+   if (settings.live_enable)
       lutro_live_init();
 
    lua_getfield(L, -1, "load");
@@ -321,6 +327,9 @@ int lutro_load(const char *path)
 
 int lutro_run(double delta)
 {
+   if (settings.live_enable)
+      lutro_live_update(L);
+
    lua_getglobal(L, "lutro");
 
    lua_getfield(L, -1, "update");

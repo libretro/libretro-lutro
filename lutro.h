@@ -16,7 +16,9 @@ typedef struct lutro_settings_t {
    int pitch_pixels; // pitch in pixels to avoid recalculating it all the time
    uint32_t *framebuffer;
    retro_input_state_t input_cb;
-   int live;
+   int live_enable;
+   int live_call_load;
+   char mainfile[PATH_MAX_LENGTH];
    char gamedir[PATH_MAX_LENGTH];
 } lutro_settings_t;
 

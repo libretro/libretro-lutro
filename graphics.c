@@ -431,22 +431,43 @@ int gfx_rectangle(lua_State *L)
 {
    int n = lua_gettop(L);
 
-   if (n != 4)
-      return luaL_error(L, "lutro.graphics.rectangle requires 4 arguments, %d given.", n);
+   if (n != 5)
+      return luaL_error(L, "lutro.graphics.rectangle requires 5 arguments, %d given.", n);
 
-   int x = luaL_checknumber(L, 1);
-   int y = luaL_checknumber(L, 2);
-   int w = luaL_checknumber(L, 3);
-   int h = luaL_checknumber(L, 4);
+   const char* mode = luaL_checkstring(L, 1);  
+   int x = luaL_checknumber(L, 2);
+   int y = luaL_checknumber(L, 3);
+   int w = luaL_checknumber(L, 4);
+   int h = luaL_checknumber(L, 5);
 
    lua_pop(L, n);
 
    int i, j;
    int pitch_pixels = settings.pitch_pixels;
    uint32_t *framebuffer = settings.framebuffer;
-   for (j = y; j < y + w; j++)
+   if (!strcmp(mode, "fill"))
+   {
+      for (j = y; j < y + w; j++)
+         for (i = x; i < x + h; i++)
+            framebuffer[j * pitch_pixels + i] = current_color;     
+   }
+   else if (!strcmp(mode, "line"))
+   {
+      for (j = y; j < y + w; j++)
+      {
+         framebuffer[j * pitch_pixels + x] = current_color;
+         framebuffer[j * pitch_pixels + x+h-1] = current_color;
+      }
       for (i = x; i < x + h; i++)
-         framebuffer[j * pitch_pixels + i] = current_color;
+      {
+         framebuffer[y * pitch_pixels + i] = current_color;
+         framebuffer[(y+w-1) * pitch_pixels + i] = current_color;
+      }
+   }
+   else
+   {
+      return luaL_error(L, "lutro.graphics.rectangle's available modes are : fill or line", n);
+   }
 
    return 0;
 }

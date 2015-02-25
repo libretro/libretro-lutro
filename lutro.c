@@ -219,9 +219,9 @@ int lutro_load(const char *path)
    }
 
    char package_path[PATH_MAX_LENGTH];
-   strlcpy(package_path, ";", sizeof(package_path));
-   strlcat(package_path, path, sizeof(package_path));
-   path_basedir(package_path);
+   package_path[0] = ';';
+   strlcpy(package_path+1, path, sizeof(package_path)-1);
+   path_basedir(package_path+1);
    strlcat(package_path, "?.lua;", sizeof(package_path));
    lutro_set_package_path(L, package_path);
 

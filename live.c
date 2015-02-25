@@ -118,7 +118,7 @@ static void live_swap(lua_State *L)
       }
    }
 
-   lutro_checked_stack_end(0);
+   lutro_checked_stack_assert(0);
 }
 
 void lutro_live_update(lua_State *L)

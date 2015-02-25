@@ -58,6 +58,8 @@ void lutro_init()
    L = luaL_newstate();
    luaL_openlibs(L);
 
+   lutro_checked_stack_begin();
+
    init_settings(L);
 
    lutro_preload(L, lutro_core_preload, "lutro");
@@ -67,32 +69,16 @@ void lutro_init()
    lutro_preload(L, lutro_filesystem_preload, "lutro.filesystem");
    lutro_preload(L, lutro_live_preload, "lutro.live");
 
-   lua_getglobal(L, "require");
-   lua_pushstring(L, "lutro");
-   lua_call(L, 1, 1);
+   // if any of these requires fail, the checked stack assertion at the end will
+   // be triggered. remember that assertions are only avaialable in debug mode.
+   lutro_require(L, "lutro", 1);
+   lutro_require(L, "lutro.graphics", 1);
+   lutro_require(L, "lutro.audio", 1);
+   lutro_require(L, "lutro.input", 1);
+   lutro_require(L, "lutro.filesystem", 1);
+   lutro_require(L, "lutro.live", 1);
 
-   lua_getglobal(L, "require");
-   lua_pushstring(L, "lutro.graphics");
-   lua_call(L, 1, 1);
-
-   lua_getglobal(L, "require");
-   lua_pushstring(L, "lutro.audio");
-   lua_call(L, 1, 1);
-
-   lua_getglobal(L, "require");
-   lua_pushstring(L, "lutro.input");
-   lua_call(L, 1, 1);
-
-   lua_getglobal(L, "require");
-   lua_pushstring(L, "lutro.filesystem");
-   lua_call(L, 1, 1);
-
-   lua_getglobal(L, "require");
-   lua_pushstring(L, "lutro.live");
-   lua_call(L, 1, 1);
-
-   // remove this if undefined references to lutro.* happen
-   lua_pop(L, 2);
+   lutro_checked_stack_assert(0);
 }
 
 void lutro_deinit()

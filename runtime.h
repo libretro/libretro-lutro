@@ -10,10 +10,10 @@
 #define lutro_checked_stack_begin() int __stack = lua_gettop(L)
 #define lutro_checked_stack_return(delta) \
    do {\
-      lutro_checked_stack_end(delta);\
+      lutro_checked_stack_assert(delta);\
       return delta;\
    } while(0)
-#define lutro_checked_stack_end(delta) \
+#define lutro_checked_stack_assert(delta) \
    do {\
       int __stack_delta = (lua_gettop(L)-__stack);\
       assert((__stack_delta == delta) && "Delta is not " #delta);\

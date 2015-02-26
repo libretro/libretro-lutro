@@ -96,11 +96,66 @@ void set_package_loaded(lua_State *L, const char *modname)
    lua_pop(L, 3);
 }
 
+void deep_update_once(lua_State *L, int src, int dst, int updated)
+{
+   assert(lua_istable(L, src));
+   assert(lua_istable(L, dst));
+   assert(lua_istable(L, updated));
+
+   src = lua_absindex(L, src);
+   dst = lua_absindex(L, dst);
+   updated = lua_absindex(L, updated);
+
+   lutro_checked_stack_begin();
+
+   lua_pushvalue(L, dst);
+   lua_gettable(L, updated);
+
+   if (lua_isnoneornil(L, -1))
+   {
+      lua_pop(L, 1);
+
+      lua_pushvalue(L, dst);
+      lua_pushboolean(L, 1);
+      lua_settable(L, updated);
+
+      int top = lua_gettop(L);
+      int src_mt = lua_getmetatable(L, src);
+      int dst_mt = lua_getmetatable(L, dst);
+      if (src_mt && dst_mt)
+         deep_update_once(L, src_mt, dst_mt, updated);
+
+      lua_pop(L, lua_gettop(L) - top);
+
+      lua_pushnil(L);
+      while (lua_next(L, src))
+      {
+         if (lua_istable(L, -1))
+         {
+            lua_pushvalue(L, -2);
+            lua_gettable(L, dst);
+
+            deep_update_once(L, -2, -1, updated);
+            lua_pop(L, 2);
+         }
+         else
+         {
+            lua_pushvalue(L, -2);
+            lua_insert(L, -2);
+            lua_settable(L, dst);
+         }
+      }
+   }
+   else
+      lua_pop(L, 1);
+
+   lutro_checked_stack_assert(0);
+}
+
 // TODO: check if there's anything else that needs to be backed up
 static void live_hotswap(lua_State *L, const char *filename)
 {
    char modname[PATH_MAX_LENGTH];
-
    int backup = 0;
 
    lutro_checked_stack_begin();

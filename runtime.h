@@ -16,7 +16,13 @@
 #define lutro_checked_stack_assert(delta) \
    do {\
       int __stack_delta = (lua_gettop(L)-__stack);\
-      assert((__stack_delta == delta) && "Delta is not " #delta);\
+      if (__stack_delta != delta) {\
+         fprintf(stderr, "Stack delta assertion failed: delta=%i expected=%i.\n", delta, __stack_delta);\
+         lutro_stack_dump(L);\
+         fflush(stdout);\
+         fflush(stderr);\
+         abort();\
+      }\
    } while(0)
 #else
 #define lutro_checked_stack_begin()

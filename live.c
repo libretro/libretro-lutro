@@ -96,6 +96,15 @@ void set_package_loaded(lua_State *L, const char *modname)
    lua_pop(L, 3);
 }
 
+void get_package_loaded(lua_State *L, const char *modname)
+{
+   lua_getglobal(L, "package");
+   lua_getfield(L, -1, "loaded");
+   lua_getfield(L, -1, modname);
+   lua_remove(L, -2);
+   lua_remove(L, -2);
+}
+
 void deep_update_once(lua_State *L, int src, int dst, int updated)
 {
    assert(lua_istable(L, src));
@@ -152,11 +161,42 @@ void deep_update_once(lua_State *L, int src, int dst, int updated)
    lutro_checked_stack_assert(0);
 }
 
+static void update_inner_tables_once(lua_State *L, int src, int dst, int updated)
+{
+   lutro_checked_stack_begin();
+
+   assert(lua_istable(L, src));
+   assert(lua_istable(L, dst));
+   assert(lua_istable(L, updated));
+
+   src = lua_absindex(L, src);
+   dst = lua_absindex(L, dst);
+   updated = lua_absindex(L, updated);
+
+   lua_pushnil(L);
+   while (lua_next(L, src))
+   {
+      lua_pushvalue(L, -2);
+      lua_gettable(L, dst);
+
+      if (!lua_compare(L, -2, -1, LUA_OPEQ) && lua_istable(L, -2))
+      {
+         deep_update_once(L, -1, -2, updated);
+         lua_pushvalue(L, -3);
+         lua_pushvalue(L, -2);
+         lua_settable(L, dst);
+      }
+
+      lua_pop(L, 2);
+   }
+
+   lutro_checked_stack_assert(0);
+}
+
 // TODO: check if there's anything else that needs to be backed up
 static void live_hotswap(lua_State *L, const char *filename)
 {
    char modname[PATH_MAX_LENGTH];
-   int backup = 0;
 
    lutro_checked_stack_begin();
 
@@ -166,24 +206,35 @@ static void live_hotswap(lua_State *L, const char *filename)
    shallow_update(L, -2, -1);
    lua_remove(L, -2);
 
-   backup = lua_absindex(L, -1);
-
    lutro_relpath_to_modname(modname, filename);
 
+   // backup module state
+   get_package_loaded(L, modname);
+
+   // force reloading of the module
    lua_pushnil(L);
    set_package_loaded(L, modname);
 
-   if(!lutro_require(L, modname, 1))
+   if(!lutro_require(L, modname, 0))
    {
       fprintf(stderr, "lutro.live lua error: %s\n", lua_tostring(L, -1));
-      lua_pop(L, 2); // error and backup
+      lua_pop(L, 3); // error and backups
    }
    else
    {
+      lua_newtable(L); // to keep track of updated keys
+
+      if (lua_istable(L, -3))
+         deep_update_once(L, -2, -3, -1);
+
+      // drop backup and newmod
+      lua_remove(L, -2);
+      lua_remove(L, -2);
+
       // restore _G then drop it and the backup
       lua_pushglobaltable(L);
-      shallow_update(L, backup, -1);
-      lua_pop(L, 2);
+      update_inner_tables_once(L, -3, -1, -2);
+      lua_pop(L, 3);
 
       if (settings.live_call_load)
       {

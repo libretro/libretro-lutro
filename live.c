@@ -12,7 +12,7 @@
 
 static struct {
    int ifd; // inotify fd
-   int mfd; // main fd
+   int wfd; // watch fd
 } live;
 
 int lutro_live_preload(lua_State *L)
@@ -37,17 +37,17 @@ void lutro_live_init()
 
    if (live.ifd < 0)
    {
-      fprintf(stderr, "disabling lutro.live due to inotify initialization failure: %s\n", strerror(errno));
+      perror("Failed to initialize inotify");
       lutro_live_deinit();
       return;
    }
 
    // XXX: Some editors do not trigger IN_MODIFY since they write to a temp file
    //      and rename() it to the actual file.
-   live.mfd = inotify_add_watch(live.ifd, settings.mainfile, IN_MODIFY);
-   if (live.mfd < 0)
+   live.wfd = inotify_add_watch(live.ifd, settings.mainfile, IN_MODIFY);
+   if (live.wfd < 0)
    {
-      fprintf(stderr, "lutro.live failed to monitor main.lua: %s\n", strerror(errno));
+      perror("Failed to monitor main.lua");
       lutro_live_deinit();
       return;
    }
@@ -57,8 +57,8 @@ void lutro_live_deinit()
 {
    settings.live_enable = 0;
 
-   if (live.mfd >= 0)
-      close(live.mfd);
+   if (live.wfd >= 0)
+      close(live.wfd);
 
    if (live.ifd >= 0)
       close(live.ifd);
@@ -145,12 +145,12 @@ void lutro_live_update(lua_State *L)
 
    if (errno != EAGAIN)
    {
-      fprintf(stderr, "innotify read error: %s\n", strerror(errno));
+      perror("Could not read inotify event");
       return;
    }
 
    if (modified)
-      live_swap(L);
+      live_hotswap(L, settings.mainfile);
 }
 
 

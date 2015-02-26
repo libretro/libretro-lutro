@@ -228,14 +228,20 @@ static void live_hotswap(lua_State *L, const char *filename)
       if (lua_istable(L, -3))
          deep_update_once(L, -2, -3, -1);
 
-      // drop backup and newmod
-      lua_remove(L, -2);
+      // drop newmod
       lua_remove(L, -2);
 
       // restore _G then drop it and the backup
       lua_pushglobaltable(L);
-      update_inner_tables_once(L, -3, -1, -2);
-      lua_pop(L, 3);
+      update_inner_tables_once(L, -4, -1, -2);
+      lua_pop(L, 1);
+
+      lua_pop(L, 1); // updated key table
+
+      // restore oldmod
+      set_package_loaded(L, modname);
+
+      lua_pop(L, 1); // _G backup
 
       if (settings.live_call_load)
       {

@@ -9,6 +9,7 @@
 #include <sys/inotify.h>
 #include <unistd.h>
 #include <assert.h>
+#include <time.h>
 
 static struct {
    int ifd; // inotify fd
@@ -44,10 +45,10 @@ void lutro_live_init()
 
    // XXX: Some editors do not trigger IN_MODIFY since they write to a temp file
    //      and rename() it to the actual file.
-   live.wfd = inotify_add_watch(live.ifd, settings.mainfile, IN_MODIFY);
+   live.wfd = inotify_add_watch(live.ifd, settings.gamedir, IN_MODIFY|IN_MOVED_TO);
    if (live.wfd < 0)
    {
-      perror("Failed to monitor main.lua");
+      perror("Failed to monitor game directory");
       lutro_live_deinit();
       return;
    }
@@ -258,12 +259,26 @@ static void live_hotswap(lua_State *L, const char *filename)
 void lutro_live_update(lua_State *L)
 {
    char buf[sizeof(struct inotify_event) + PATH_MAX_LENGTH + 1]; // this ought to be enough for a single event
-   int modified = 0;
+   int rdsize = 0;
 
    // read all events
-   while (read(live.ifd, buf, sizeof(buf)) >= 0)
+   while ((rdsize = read(live.ifd, buf, sizeof(buf))) >= 0)
    {
-      modified = 1;
+      const char *ptr;
+      const struct inotify_event *ev;
+
+      for (ptr = buf; ptr < buf + rdsize; ptr += sizeof(struct inotify_event) + ev->len)
+      {
+         ev = (const struct inotify_event*)ptr;
+
+         if (ev->len && strcmp(path_get_extension(ev->name), "lua") == 0)
+         {
+            clock_t start = clock();
+            live_hotswap(L, ev->name);
+            printf("Swapped %s in %.3fs\n", ev->name, ((double)clock() - (double)start)* 1.0e-6);
+
+         }
+      }
    }
 
    if (errno != EAGAIN)
@@ -271,9 +286,6 @@ void lutro_live_update(lua_State *L)
       perror("Could not read inotify event");
       return;
    }
-
-   if (modified)
-      live_hotswap(L, settings.mainfile);
 }
 
 

@@ -195,9 +195,10 @@ static void update_inner_tables_once(lua_State *L, int src, int dst, int updated
 }
 
 // TODO: check if there's anything else that needs to be backed up
-static void live_hotswap(lua_State *L, const char *filename)
+static int live_hotswap(lua_State *L, const char *filename)
 {
    char modname[PATH_MAX_LENGTH];
+   int success = 1;
 
    lutro_checked_stack_begin();
 
@@ -219,7 +220,13 @@ static void live_hotswap(lua_State *L, const char *filename)
    if(!lutro_require(L, modname, 0))
    {
       fprintf(stderr, "lutro.live lua error: %s\n", lua_tostring(L, -1));
-      lua_pop(L, 3); // error and backups
+      lua_pop(L, 1);
+
+      lua_pushglobaltable(L);
+      shallow_update(L, -2, -1);
+      lua_pop(L, 1); // error and backups
+
+      success = 0;
    }
    else
    {
@@ -231,35 +238,37 @@ static void live_hotswap(lua_State *L, const char *filename)
       // drop newmod
       lua_remove(L, -2);
 
-      // restore _G then drop it and the backup
+      // restore _G then drop it
       lua_pushglobaltable(L);
       update_inner_tables_once(L, -4, -1, -2);
       lua_pop(L, 1);
 
-      lua_pop(L, 1); // updated key table
+      lua_pop(L, 1); // drop updated key table
+   }
 
-      // restore oldmod
-      set_package_loaded(L, modname);
+   // restore oldmod
+   set_package_loaded(L, modname);
 
-      lua_pop(L, 1); // _G backup
+   lua_pop(L, 1); // _G backup
 
-      if (settings.live_call_load)
+   if (success && settings.live_call_load)
+   {
+      lua_getglobal(L, "lutro");
+      lua_getfield(L, -1, "load");
+
+      // assume load is defined.
+      if(lua_pcall(L, 0, 0, 0))
       {
-         lua_getglobal(L, "lutro");
-         lua_getfield(L, -1, "load");
-
-         // assume load is defined.
-         if(lua_pcall(L, 0, 0, 0))
-         {
-            // TODO: dump stacktrace
-            fprintf(stderr, "%s\n", lua_tostring(L, -1));
-            lua_pop(L, 1);
-         }
+         // TODO: dump stacktrace
+         fprintf(stderr, "%s\n", lua_tostring(L, -1));
          lua_pop(L, 1);
       }
+      lua_pop(L, 1);
    }
 
    lutro_checked_stack_assert(0);
+
+   return success;
 }
 
 void lutro_live_update(lua_State *L)
@@ -280,9 +289,13 @@ void lutro_live_update(lua_State *L)
          if (ev->len && strcmp(path_get_extension(ev->name), "lua") == 0)
          {
             clock_t start = clock();
-            live_hotswap(L, ev->name);
-            printf("Swapped %s in %.3fs\n", ev->name, ((double)clock() - (double)start)* 1.0e-6);
-
+            if (live_hotswap(L, ev->name))
+            {
+               printf("Swapped %s in %.3fs\n", ev->name,
+                      ((double)clock() - (double)start)* 1.0e-6);
+            }
+            else
+               printf("Swapping of %s failed.\n", ev->name);
          }
       }
    }

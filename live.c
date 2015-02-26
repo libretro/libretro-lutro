@@ -86,9 +86,21 @@ static inline void shallow_update(lua_State *L, int src, int dst)
    lutro_checked_stack_assert(0);
 }
 
-// TODO: check if there's anything else that needs to be backed up
-static void live_swap(lua_State *L)
+// expects value to be on the top of the stack. it'll be pop'd out
+void set_package_loaded(lua_State *L, const char *modname)
 {
+   lua_getglobal(L, "package");
+   lua_getfield(L, -1, "loaded");
+   lua_pushvalue(L, -3);
+   lua_setfield(L, -2, modname);
+   lua_pop(L, 3);
+}
+
+// TODO: check if there's anything else that needs to be backed up
+static void live_hotswap(lua_State *L, const char *filename)
+{
+   char modname[PATH_MAX_LENGTH];
+
    int backup = 0;
 
    lutro_checked_stack_begin();
@@ -101,7 +113,12 @@ static void live_swap(lua_State *L)
 
    backup = lua_absindex(L, -1);
 
-   if(luaL_dofile(L, settings.mainfile))
+   lutro_relpath_to_modname(modname, filename);
+
+   lua_pushnil(L);
+   set_package_loaded(L, modname);
+
+   if(!lutro_require(L, modname, 1))
    {
       fprintf(stderr, "lutro.live lua error: %s\n", lua_tostring(L, -1));
       lua_pop(L, 2); // error and backup

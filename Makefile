@@ -17,23 +17,27 @@ endif
 endif
 
 TARGET_NAME := lutro
+LUA_MYCFLAGS :=
+LUA_SYSCFLAGS :=
 
 ifeq ($(platform), unix)
    TARGET := $(TARGET_NAME)_libretro.so
    fpic := -fPIC
    SHARED := -shared -Wl,--no-undefined
+   LUA_SYSCFLAGS := -DLUA_USE_POSIX
 else ifeq ($(platform), osx)
    TARGET := $(TARGET_NAME)_libretro.dylib
    fpic := -fPIC
    SHARED := -dynamiclib
+   LUA_SYSCFLAGS := -DLUA_USE_MACOSX
 else ifeq ($(platform), ios)
    TARGET := $(TARGET_NAME)_libretro_ios.dylib
-	fpic := -fPIC
-	SHARED := -dynamiclib
-	DEFINES := -DIOS
-	CC = clang -arch armv7 -isysroot $(IOSSDK)
+   fpic := -fPIC
+   SHARED := -dynamiclib
+   DEFINES := -DIOS
+   CC = clang -arch armv7 -isysroot $(IOSSDK)
 else ifeq ($(platform), qnx)
-	TARGET := $(TARGET_NAME)_libretro_qnx.so
+   TARGET := $(TARGET_NAME)_libretro_qnx.so
    fpic := -fPIC
    SHARED := -shared -Wl,--no-undefined
 else ifeq ($(platform), emscripten)
@@ -47,9 +51,11 @@ else
 endif
 
 ifeq ($(DEBUG), 1)
-   CFLAGS += -O0 -g -DLUA_USE_APICHECK -DLUA_USE_MKSTEMP
+   CFLAGS += -O0 -g
+   LUA_MYCFLAGS += -O0 -g -DLUA_USE_APICHECK
 else
    CFLAGS += -O3
+   LUA_MYCFLAGS += -O3
 endif
 
 OBJECTS := libretro.o lutro.o runtime.o live.o \
@@ -77,7 +83,7 @@ $(TARGET): $(OBJECTS) lua/src/liblua.a
 	$(CC) $(fpic) $(SHARED) $(INCLUDES) $(LFLAGS) -o $@ $(OBJECTS) $(LIBS)
 
 lua/src/liblua.a:
-	$(MAKE) -C lua/src/ CC=$(CC) CXX=$(CXX) MYCFLAGS="$(CFLAGS) -w -g" MYLDFLAGS="$(LFLAGS)" a
+	$(MAKE) -C lua/src/ CC=$(CC) CXX=$(CXX) MYCFLAGS="$(LUA_MYCFLAGS) -w -g" MYLDFLAGS="$(LFLAGS)" SYSCFLAGS="$(LUA_SYSCFLAGS) $(fpic)" a
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c -o $@ $<

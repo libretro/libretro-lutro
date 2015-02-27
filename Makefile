@@ -47,7 +47,7 @@ else
 endif
 
 ifeq ($(DEBUG), 1)
-   CFLAGS += -O0 -g -DLUA_USE_APICHECK
+   CFLAGS += -O0 -g -DLUA_USE_APICHECK -DLUA_USE_MKSTEMP
 else
    CFLAGS += -O3
 endif

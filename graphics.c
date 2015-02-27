@@ -1,6 +1,7 @@
 #include "graphics.h"
 #include "lutro.h"
 #include "compat/strl.h"
+#include "retro_miscellaneous.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -52,6 +53,29 @@ void lutro_graphics_init()
    settings.framebuffer  = calloc(1, settings.pitch * settings.height);
    current_color = 0xffffffff;
    background_color = 0xff000000;
+}
+
+// calculates the intersection and sets x1, y1, w1, h1 if non-null
+static int intersect(int *x1, int *y1, int *w1, int *h1, int x2, int y2, int w2, int h2)
+{
+   int left = max(*x1, x2);
+   int right = min(*x1 + *w1, x2 + w2);
+   int top = max(*y1, y2);
+   int bottom = min(*y1 + *h1, y2 + h2);
+   int width = right - left;
+   int height = bottom - top;
+
+   if (width <= 0 || height <= 0)
+      return 0;
+   else
+   {
+      *x1 = left;
+      *y1 = top;
+      *w1 = width;
+      *h1 = height;
+
+      return 1;
+   }
 }
 
 int gfx_newImage(lua_State *L)
@@ -434,7 +458,7 @@ int gfx_rectangle(lua_State *L)
    if (n != 5)
       return luaL_error(L, "lutro.graphics.rectangle requires 5 arguments, %d given.", n);
 
-   const char* mode = luaL_checkstring(L, 1);  
+   const char* mode = luaL_checkstring(L, 1);
    int x = luaL_checknumber(L, 2);
    int y = luaL_checknumber(L, 3);
    int w = luaL_checknumber(L, 4);
@@ -445,23 +469,27 @@ int gfx_rectangle(lua_State *L)
    int i, j;
    int pitch_pixels = settings.pitch_pixels;
    uint32_t *framebuffer = settings.framebuffer;
+
+   if (!intersect(&x, &y, &w, &h, 0, 0, settings.width, settings.height))
+      return 0;
+
    if (!strcmp(mode, "fill"))
    {
-      for (j = y; j < y + w; j++)
-         for (i = x; i < x + h; i++)
-            framebuffer[j * pitch_pixels + i] = current_color;     
+      for (j = y; j < y + h; j++)
+         for (i = x; i < x + w; i++)
+            framebuffer[j * pitch_pixels + i] = current_color;
    }
    else if (!strcmp(mode, "line"))
    {
-      for (j = y; j < y + w; j++)
+      for (j = y; j < y + h; j++)
       {
          framebuffer[j * pitch_pixels + x] = current_color;
-         framebuffer[j * pitch_pixels + x+h-1] = current_color;
+         framebuffer[j * pitch_pixels + x+w-1] = current_color;
       }
-      for (i = x; i < x + h; i++)
+      for (i = x; i < x + w; i++)
       {
          framebuffer[y * pitch_pixels + i] = current_color;
-         framebuffer[(y+w-1) * pitch_pixels + i] = current_color;
+         framebuffer[(y+h-1) * pitch_pixels + i] = current_color;
       }
    }
    else

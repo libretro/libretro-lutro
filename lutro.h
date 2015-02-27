@@ -18,7 +18,6 @@ typedef struct lutro_settings_t {
    retro_input_state_t input_cb;
    int live_enable;
    int live_call_load;
-   char mainfile[PATH_MAX_LENGTH];
    char gamedir[PATH_MAX_LENGTH];
 } lutro_settings_t;
 

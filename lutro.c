@@ -209,23 +209,26 @@ int lutro_unzip(const char *path, const char *extraction_directory)
 
 int lutro_load(const char *path)
 {
-   if (!strcmp(path_get_extension(path), "lutro"))
+   char mainfile[PATH_MAX_LENGTH];
+   strlcpy(mainfile, path, PATH_MAX_LENGTH);
+
+   if (!strcmp(path_get_extension(mainfile), "lutro"))
    {
       char extr_dir[PATH_MAX_LENGTH];
-      fill_pathname(extr_dir, path, "", sizeof(extr_dir));
-      lutro_unzip(path, extr_dir);
-      fill_pathname_join(path,
-            extr_dir, "main.lua", PATH_MAX_LENGTH*sizeof(char));
+      fill_pathname(extr_dir, mainfile, "", sizeof(extr_dir));
+      lutro_unzip(mainfile, extr_dir);
+      fill_pathname_join(mainfile, extr_dir, "main.lua",
+                         PATH_MAX_LENGTH*sizeof(char));
    }
 
    char package_path[PATH_MAX_LENGTH];
    package_path[0] = ';';
-   strlcpy(package_path+1, path, sizeof(package_path)-1);
+   strlcpy(package_path+1, mainfile, sizeof(package_path)-1);
    path_basedir(package_path+1);
    strlcat(package_path, "?.lua;", sizeof(package_path));
    lutro_set_package_path(L, package_path);
 
-   if(luaL_dofile(L, path))
+   if(luaL_dofile(L, mainfile))
    {
        fprintf(stderr, "%s\n", lua_tostring(L, -1));
        lua_pop(L, 1);
@@ -235,8 +238,7 @@ int lutro_load(const char *path)
 
    lua_getglobal(L, "lutro");
 
-   strlcpy(settings.mainfile, path, PATH_MAX_LENGTH);
-   strlcpy(settings.gamedir, path, PATH_MAX_LENGTH);
+   strlcpy(settings.gamedir, mainfile, PATH_MAX_LENGTH);
    path_basedir(settings.gamedir);
 
    lua_pushnumber(L, 0);

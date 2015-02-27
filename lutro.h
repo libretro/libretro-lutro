@@ -28,6 +28,6 @@ void lutro_deinit();
 
 int lutro_load(const char *path);
 
-int lutro_run(double delta);
+void lutro_run(double delta);
 
 #endif // LUTRO_H

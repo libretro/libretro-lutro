@@ -313,7 +313,7 @@ int lutro_load(const char *path)
    return 1;
 }
 
-int lutro_run(double delta)
+void lutro_run(double delta)
 {
    if (settings.live_enable)
       lutro_live_update(L);
@@ -329,8 +329,6 @@ int lutro_run(double delta)
       {
          fprintf(stderr, "%s\n", lua_tostring(L, -1));
          lua_pop(L, 1);
-
-         return 0;
       }
    } else {
       lua_pop(L, 1);
@@ -343,14 +341,10 @@ int lutro_run(double delta)
       {
          fprintf(stderr, "%s\n", lua_tostring(L, -1));
          lua_pop(L, 1);
-
-         return 0;
       }
    } else {
       lua_pop(L, 1);
    }
 
    lua_pop(L, 1);
-
-   return 1;
 }

@@ -275,6 +275,7 @@ void lutro_live_update(lua_State *L)
 {
    char buf[sizeof(struct inotify_event) + PATH_MAX_LENGTH + 1]; // this ought to be enough for a single event
    int rdsize = 0;
+   int swapped = 0;
 
    // read all events
    while ((rdsize = read(live.ifd, buf, sizeof(buf))) >= 0)
@@ -293,6 +294,7 @@ void lutro_live_update(lua_State *L)
             {
                printf("Swapped %s in %.3fs\n", ev->name,
                       ((double)clock() - (double)start)* 1.0e-6);
+               swapped = 1;
             }
             else
                printf("Swapping of %s failed.\n", ev->name);
@@ -305,6 +307,9 @@ void lutro_live_update(lua_State *L)
       perror("Could not read inotify event");
       return;
    }
+
+   if (swapped)
+      lua_gc(L, LUA_GCCOLLECT, 0);
 }
 
 

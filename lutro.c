@@ -210,22 +210,21 @@ int lutro_unzip(const char *path, const char *extraction_directory)
 int lutro_load(const char *path)
 {
    char mainfile[PATH_MAX_LENGTH];
+   char gamedir[PATH_MAX_LENGTH];
    strlcpy(mainfile, path, PATH_MAX_LENGTH);
+   strlcpy(gamedir, path, PATH_MAX_LENGTH);
+   path_basedir(gamedir);
 
    if (!strcmp(path_get_extension(mainfile), "lutro"))
    {
-      char extr_dir[PATH_MAX_LENGTH];
-      fill_pathname(extr_dir, mainfile, "", sizeof(extr_dir));
-      lutro_unzip(mainfile, extr_dir);
-      fill_pathname_join(mainfile, extr_dir, "main.lua",
+      fill_pathname(gamedir, mainfile, "", sizeof(gamedir));
+      lutro_unzip(mainfile, gamedir);
+      fill_pathname_join(mainfile, gamedir, "main.lua",
                          PATH_MAX_LENGTH*sizeof(char));
    }
 
    char package_path[PATH_MAX_LENGTH];
-   package_path[0] = ';';
-   strlcpy(package_path+1, mainfile, sizeof(package_path)-1);
-   path_basedir(package_path+1);
-   strlcat(package_path, "?.lua;", sizeof(package_path));
+   snprintf(package_path, PATH_MAX_LENGTH, ";%s?.lua;%s?/init.lua", gamedir, gamedir);
    lutro_set_package_path(L, package_path);
 
    if(luaL_dofile(L, mainfile))
@@ -238,8 +237,7 @@ int lutro_load(const char *path)
 
    lua_getglobal(L, "lutro");
 
-   strlcpy(settings.gamedir, mainfile, PATH_MAX_LENGTH);
-   path_basedir(settings.gamedir);
+   strlcpy(settings.gamedir, gamedir, PATH_MAX_LENGTH);
 
    lua_pushnumber(L, 0);
    lua_setfield(L, -2, "camera_x");

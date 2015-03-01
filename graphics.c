@@ -33,6 +33,8 @@ int lutro_graphics_preload(lua_State *L)
       { "setLineStyle", gfx_setLineStyle },
       { "setLineWidth", gfx_setLineWidth },
       { "scale",        gfx_scale },
+      { "getWidth",     gfx_getWidth },
+      { "getHeight",    gfx_getHeight },
       {NULL, NULL}
    };
 
@@ -743,4 +745,16 @@ int gfx_setLineWidth(lua_State *L)
 int gfx_scale(lua_State *L)
 {
    return 0;
+}
+
+int gfx_getWidth(lua_State *L)
+{
+   lua_pushnumber(L, settings.width);
+   return 1;
+}
+
+int gfx_getHeight(lua_State *L)
+{
+   lua_pushnumber(L, settings.height);
+   return 1;
 }

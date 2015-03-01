@@ -60,6 +60,8 @@ int gfx_setDefaultFilter(lua_State *L);
 int gfx_setLineStyle(lua_State *L);
 int gfx_setLineWidth(lua_State *L);
 int gfx_scale(lua_State *L);
+int gfx_getWidth(lua_State *L);
+int gfx_getHeight(lua_State *L);
 
 int img_getData(lua_State *L);
 int img_getWidth(lua_State *L);

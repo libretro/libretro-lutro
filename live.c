@@ -223,7 +223,7 @@ static int live_hotswap(lua_State *L, const char *filename)
       lua_pop(L, 1);
 
       lua_pushglobaltable(L);
-      shallow_update(L, -2, -1);
+      shallow_update(L, -3, -1);
       lua_pop(L, 1); // error and backups
 
       success = 0;

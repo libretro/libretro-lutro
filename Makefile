@@ -19,12 +19,20 @@ endif
 TARGET_NAME := lutro
 LUA_MYCFLAGS :=
 LUA_SYSCFLAGS :=
+LIBM := -lm
 
 ifeq ($(platform), unix)
    TARGET := $(TARGET_NAME)_libretro.so
    fpic := -fPIC
    SHARED := -shared -Wl,--no-undefined
    LUA_SYSCFLAGS := -DLUA_USE_POSIX
+else ifeq ($(platform), linux-portable)
+   TARGET := $(TARGET_NAME)_libretro.so
+   fpic := -fPIC -nostdlib
+   SHARED := -shared -Wl,--no-undefined
+   LUA_SYSCFLAGS := -DLUA_USE_POSIX
+	LIBM :=
+	LDFLAGS += -L. -lmusl
 else ifeq ($(platform), osx)
    TARGET := $(TARGET_NAME)_libretro.dylib
    fpic := -fPIC
@@ -58,6 +66,8 @@ else
    LUA_MYCFLAGS += -O3
 endif
 
+LDFLAGS += $(LIBM)
+
 OBJECTS := libretro.o lutro.o runtime.o live.o \
            graphics.o input.o audio.o filesystem.o \
            libretro-sdk/formats/png/rpng.o \
@@ -69,7 +79,7 @@ OBJECTS := libretro.o lutro.o runtime.o live.o \
 CFLAGS += -Wall -pedantic $(fpic) -I./libretro-sdk/include
 
 LFLAGS := $(shell pkg-config --libs-only-L --libs-only-other $(packages)) -Wl,-E
-LIBS := lua/src/liblua.a $(shell pkg-config --libs-only-l $(packages)) -lm -lz
+LIBS := lua/src/liblua.a $(shell pkg-config --libs-only-l $(packages)) $(LDFLAGS) -lz
 
 ifeq ($(platform), qnx)
    CFLAGS += -Wc,-std=gnu99

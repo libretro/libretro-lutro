@@ -217,7 +217,7 @@ int lutro_load(const char *path)
 
    if (!strcmp(path_get_extension(mainfile), "lutro"))
    {
-      fill_pathname(gamedir, mainfile, "", sizeof(gamedir));
+      fill_pathname(gamedir, mainfile, "/", sizeof(gamedir));
       lutro_unzip(mainfile, gamedir);
       fill_pathname_join(mainfile, gamedir, "main.lua",
                          PATH_MAX_LENGTH*sizeof(char));

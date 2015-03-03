@@ -22,6 +22,7 @@ typedef struct lutro_settings_t {
 } lutro_settings_t;
 
 extern lutro_settings_t settings;
+struct retro_perf_callback perf_cb;
 
 void lutro_init();
 void lutro_deinit();

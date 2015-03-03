@@ -44,7 +44,14 @@ static void fallback_log(enum retro_log_level level, const char *fmt, ...)
 
 void retro_init(void)
 {
-    lutro_init();
+   lutro_init();
+
+   // Always get the perf interface because we need it for the timers
+   if (!environ_cb( RETRO_ENVIRONMENT_GET_PERF_INTERFACE, &perf_cb))
+   {
+      perf_cb.get_time_usec = NULL;
+      logging.log(RETRO_LOG_WARN, "Could not get the perf interface\n");
+   }
 }
 
 void retro_deinit(void)
@@ -167,6 +174,12 @@ bool retro_load_game(const struct retro_game_info *info)
 
    struct retro_audio_callback audio_cb = { emit_audio, audio_set_state };
    use_audio_cb = environ_cb(RETRO_ENVIRONMENT_SET_AUDIO_CALLBACK, &audio_cb);
+
+   if (!perf_cb.get_time_usec)
+   {
+      logging.log(RETRO_LOG_ERROR, "Core needs the perf interface\n");
+      return false;
+   }
 
    int success = lutro_load(info->path);
 

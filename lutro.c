@@ -8,6 +8,7 @@
 #include "input.h"
 #include "audio.h"
 #include "filesystem.h"
+#include "timer.h"
 #include "live.h"
 
 #include <stdio.h>
@@ -67,6 +68,7 @@ void lutro_init()
    lutro_preload(L, lutro_audio_preload, "lutro.audio");
    lutro_preload(L, lutro_input_preload, "lutro.input");
    lutro_preload(L, lutro_filesystem_preload, "lutro.filesystem");
+   lutro_preload(L, lutro_timer_preload, "lutro.timer");
    lutro_preload(L, lutro_live_preload, "lutro.live");
 
    // if any of these requires fail, the checked stack assertion at the end will
@@ -76,6 +78,7 @@ void lutro_init()
    lutro_require(L, "lutro.audio", 1);
    lutro_require(L, "lutro.input", 1);
    lutro_require(L, "lutro.filesystem", 1);
+   lutro_require(L, "lutro.timer", 1);
    lutro_require(L, "lutro.live", 1);
 
    lutro_checked_stack_assert(0);

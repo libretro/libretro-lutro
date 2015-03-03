@@ -69,7 +69,7 @@ endif
 LDFLAGS += $(LIBM)
 
 OBJECTS := libretro.o lutro.o runtime.o live.o \
-           graphics.o input.o audio.o filesystem.o \
+           graphics.o input.o audio.o filesystem.o timer.o \
            libretro-sdk/formats/png/rpng.o \
            libretro-sdk/file/file_path.o \
            libretro-sdk/compat/compat.o \

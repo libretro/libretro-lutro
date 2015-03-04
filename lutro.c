@@ -82,7 +82,9 @@ void lutro_init()
    lutro_require(L, "lutro.input", 1);
    lutro_require(L, "lutro.filesystem", 1);
    lutro_require(L, "lutro.timer", 1);
+#ifdef HAVE_INOTIFY
    lutro_require(L, "lutro.live", 1);
+#endif
 
    lutro_checked_stack_assert(0);
 }

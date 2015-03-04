@@ -50,10 +50,10 @@ void mixer_render(int16_t *buffer)
 int lutro_audio_preload(lua_State *L)
 {
    static luaL_Reg gfx_funcs[] =  {
-      { "newSource",    audio_newSource },
-      { "setVolume",    audio_setVolume },
       { "getVolume",    audio_getVolume },
+      { "newSource",    audio_newSource },
       { "play",         audio_play },
+      { "setVolume",    audio_setVolume },
       {NULL, NULL}
    };
 

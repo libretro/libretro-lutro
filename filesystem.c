@@ -9,8 +9,8 @@
 int lutro_filesystem_preload(lua_State *L)
 {
    static luaL_Reg gfx_funcs[] =  {
-      { "read",   fs_read },
       { "exists", fs_exists },
+      { "read",   fs_read },
       {NULL, NULL}
    };
 

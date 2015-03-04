@@ -20,6 +20,7 @@
 #include <unistd.h>
 
 static lua_State *L;
+
 lutro_settings_t settings = {
    .width = 320,
    .height = 240,
@@ -214,16 +215,20 @@ int lutro_load(const char *path)
 {
    char mainfile[PATH_MAX_LENGTH];
    char gamedir[PATH_MAX_LENGTH];
+
    strlcpy(mainfile, path, PATH_MAX_LENGTH);
    strlcpy(gamedir, path, PATH_MAX_LENGTH);
-   path_basedir(gamedir);
+
+   if (path_is_directory(mainfile))
+      fill_pathname_join(mainfile, gamedir, "main.lua", sizeof(mainfile));
+   else
+      path_basedir(gamedir);
 
    if (!strcmp(path_get_extension(mainfile), "lutro"))
    {
       fill_pathname(gamedir, mainfile, "/", sizeof(gamedir));
       lutro_unzip(mainfile, gamedir);
-      fill_pathname_join(mainfile, gamedir, "main.lua",
-                         PATH_MAX_LENGTH*sizeof(char));
+      fill_pathname_join(mainfile, gamedir, "main.lua", sizeof(mainfile));
    }
 
    char package_path[PATH_MAX_LENGTH];

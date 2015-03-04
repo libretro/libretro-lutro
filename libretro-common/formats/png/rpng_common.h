@@ -1,7 +1,7 @@
 /* Copyright  (C) 2010-2015 The RetroArch team
  *
  * ---------------------------------------------------------------------------------------
- * The following license statement only applies to this file (rpng.h).
+ * The following license statement only applies to this file (rpng.c).
  * ---------------------------------------------------------------------------------------
  *
  * Permission is hereby granted, free of charge,
@@ -20,34 +20,63 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef __LIBRETRO_SDK_FORMAT_RPNG_H__
-#define __LIBRETRO_SDK_FORMAT_RPNG_H__
+#ifndef _RPNG_COMMON_H
+#define _RPNG_COMMON_H
 
-#include <stdint.h>
+#include <retro_inline.h>
 
-#include <boolean.h>
+#undef GOTO_END_ERROR
+#define GOTO_END_ERROR() do { \
+   fprintf(stderr, "[RPNG]: Error in line %d.\n", __LINE__); \
+   ret = false; \
+   goto end; \
+} while(0)
 
-#ifdef HAVE_CONFIG_H
-#include "../../config.h"
+#ifndef ARRAY_SIZE
+#define ARRAY_SIZE(a) (sizeof(a) / sizeof((a)[0]))
 #endif
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+static const uint8_t png_magic[8] = {
+   0x89, 'P', 'N', 'G', 0x0d, 0x0a, 0x1a, 0x0a,
+};
 
-bool rpng_load_image_argb(const char *path, uint32_t **data,
-      unsigned *width, unsigned *height);
+enum png_chunk_type
+{
+   PNG_CHUNK_NOOP = 0,
+   PNG_CHUNK_ERROR,
+   PNG_CHUNK_IHDR,
+   PNG_CHUNK_IDAT,
+   PNG_CHUNK_PLTE,
+   PNG_CHUNK_IEND
+};
 
-#ifdef HAVE_ZLIB_DEFLATE
-bool rpng_save_image_argb(const char *path, const uint32_t *data,
-      unsigned width, unsigned height, unsigned pitch);
-bool rpng_save_image_bgr24(const char *path, const uint8_t *data,
-      unsigned width, unsigned height, unsigned pitch);
-#endif
+struct adam7_pass
+{
+   unsigned x;
+   unsigned y;
+   unsigned stride_x;
+   unsigned stride_y;
+};
 
-#ifdef __cplusplus
+/* Paeth prediction filter. */
+static INLINE int paeth(int a, int b, int c)
+{
+   int p  = a + b - c;
+   int pa = abs(p - a);
+   int pb = abs(p - b);
+   int pc = abs(p - c);
+
+   if (pa <= pb && pa <= pc)
+      return a;
+   else if (pb <= pc)
+      return b;
+   return c;
 }
-#endif
+
+static INLINE uint32_t dword_be(const uint8_t *buf)
+{
+   return (buf[0] << 24) | (buf[1] << 16) | (buf[2] << 8) | (buf[3] << 0);
+}
+
 
 #endif
-

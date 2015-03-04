@@ -70,13 +70,13 @@ LDFLAGS += $(LIBM)
 
 OBJECTS := libretro.o lutro.o runtime.o live.o \
            graphics.o input.o audio.o filesystem.o timer.o \
-           libretro-sdk/formats/png/rpng.o \
-           libretro-sdk/file/file_path.o \
-           libretro-sdk/compat/compat.o \
+           libretro-common/formats/png/rpng_decode_fbio.o \
+           libretro-common/file/file_path.o \
+           libretro-common/compat/compat.o \
            ioapi.o \
            unzip.o
 
-CFLAGS += -Wall -pedantic $(fpic) -I./libretro-sdk/include
+CFLAGS += -Wall -pedantic $(fpic) -I./libretro-common/include
 
 LFLAGS := $(shell pkg-config --libs-only-L --libs-only-other $(packages)) -Wl,-E
 LIBS := lua/src/liblua.a $(shell pkg-config --libs-only-l $(packages)) $(LDFLAGS) -lz

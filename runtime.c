@@ -1,5 +1,6 @@
 #include "runtime.h"
 #include "compat/strl.h"
+#include "file/file_path.h"
 #include <assert.h>
 
 int lutro_preload(lua_State *L, lua_CFunction f, const char *name)

@@ -1,5 +1,6 @@
 #include "input.h"
 #include "lutro.h"
+#include <string.h>
 
 static const struct int_const_map {
    long value;
@@ -25,7 +26,7 @@ static const struct int_const_map {
 };
 
 // TODO: ask somebody to add a hash table to libretro-common
-unsigned find_value(struct int_const_map *map, const char *name, int *value)
+int find_value(const struct int_const_map *map, const char *name, unsigned *value)
 {
    for (; map->name; ++map)
    {

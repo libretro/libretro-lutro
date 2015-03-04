@@ -1,8 +1,10 @@
 Sample games:
 
- * https://github.com/Kivutar/lutro-platformer
- * https://github.com/Niouby/lutro-game-of-life
- * https://github.com/Kivutar/lutro-snake
+ * https://github.com/libretro/lutro-platformer
+ * https://github.com/libretro/lutro-game-of-life
+ * https://github.com/libretro/lutro-snake
+ * https://github.com/libretro/lutro-tetris
+ * https://github.com/libretro/lutro-iyfct
 
 Usage:
 

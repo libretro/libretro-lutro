@@ -1,3 +1,4 @@
+HAVE_INOTIFY=0
 
 ifneq ($(EMSCRIPTEN),)
    platform = emscripten
@@ -26,13 +27,15 @@ ifeq ($(platform), unix)
    fpic := -fPIC
    SHARED := -shared -Wl,--no-undefined
    LUA_SYSCFLAGS := -DLUA_USE_POSIX
+   HAVE_INOTIFY=1
 else ifeq ($(platform), linux-portable)
    TARGET := $(TARGET_NAME)_libretro.so
    fpic := -fPIC -nostdlib
    SHARED := -shared -Wl,--no-undefined
+   HAVE_INOTIFY=1
    LUA_SYSCFLAGS := -DLUA_USE_POSIX
-	LIBM :=
-	LDFLAGS += -L. -lmusl
+   LIBM :=
+LDFLAGS += -L. -lmusl
 else ifeq ($(platform), osx)
    TARGET := $(TARGET_NAME)_libretro.dylib
    fpic := -fPIC
@@ -66,15 +69,21 @@ else
    LUA_MYCFLAGS += -O3
 endif
 
+
 LDFLAGS += $(LIBM)
 
-OBJECTS := libretro.o lutro.o runtime.o live.o \
+OBJECTS := libretro.o lutro.o runtime.o \
            graphics.o input.o audio.o filesystem.o timer.o \
            libretro-common/formats/png/rpng_decode_fbio.o \
            libretro-common/file/file_path.o \
            libretro-common/compat/compat.o \
            ioapi.o \
            unzip.o
+
+ifeq ($(HAVE_INOTIFY),1)
+   CFLAGS += -DHAVE_INOTIFY
+   OBJECTS += live.o
+endif
 
 CFLAGS += -Wall -pedantic $(fpic) -I./libretro-common/include
 

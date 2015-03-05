@@ -238,6 +238,8 @@ int lutro_load(const char *path)
       fill_pathname_join(mainfile, gamedir, "main.lua", sizeof(mainfile));
    }
 
+   fill_pathname_slash(gamedir, sizeof(gamedir));
+
    char package_path[PATH_MAX_LENGTH];
    snprintf(package_path, PATH_MAX_LENGTH, ";%s?.lua;%s?/init.lua", gamedir, gamedir);
    lutro_set_package_path(L, package_path);

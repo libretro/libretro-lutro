@@ -30,8 +30,8 @@ void mixer_render(int16_t *buffer)
       
       for (unsigned j = 0; j < AUDIO_FRAMES; j++)
       {
-         int16_t left;
-         int16_t right;
+         int16_t left = 0;
+         int16_t right = 0;
          if (sources[i]->head.NumChannels == 1 && sources[i]->head.BitsPerSample ==  8) { left = right = rawsamples8[j]*64; }
          if (sources[i]->head.NumChannels == 2 && sources[i]->head.BitsPerSample ==  8) { left = rawsamples8[j*2+0]*64; right=rawsamples8[j*2+1]*64; }
          if (sources[i]->head.NumChannels == 1 && sources[i]->head.BitsPerSample == 16) { left = right = rawsamples16[j]; }

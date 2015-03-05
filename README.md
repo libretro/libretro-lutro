@@ -8,4 +8,8 @@ Sample games:
 
 Usage:
 
-    retroarch -L libretro_lutro.so path/to/main.lua
+    retroarch -L libretro_lutro.so path/to/gamedir/
+
+or
+
+    retroarch -L libretro_lutro.so game.lutro

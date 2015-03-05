@@ -71,7 +71,9 @@ void lutro_init()
    lutro_preload(L, lutro_input_preload, "lutro.input");
    lutro_preload(L, lutro_filesystem_preload, "lutro.filesystem");
    lutro_preload(L, lutro_timer_preload, "lutro.timer");
+#ifdef HAVE_INOTIFY
    lutro_preload(L, lutro_live_preload, "lutro.live");
+#endif
 
    // if any of these requires fail, the checked stack assertion at the end will
    // be triggered. remember that assertions are only avaialable in debug mode.
@@ -81,15 +83,19 @@ void lutro_init()
    lutro_require(L, "lutro.input", 1);
    lutro_require(L, "lutro.filesystem", 1);
    lutro_require(L, "lutro.timer", 1);
+#ifdef HAVE_INOTIFY
    lutro_require(L, "lutro.live", 1);
+#endif
 
    lutro_checked_stack_assert(0);
 }
 
 void lutro_deinit()
 {
+#ifdef HAVE_INOTIFY
    if (settings.live_enable)
       lutro_live_deinit();
+#endif
 
    lua_close(L);
 }
@@ -295,8 +301,10 @@ int lutro_load(const char *path)
 
    lutro_graphics_init();
 
+#ifdef HAVE_INOTIFY
    if (settings.live_enable)
       lutro_live_init();
+#endif
 
    lua_getfield(L, -1, "load");
 
@@ -350,8 +358,10 @@ void lutro_gamepadevent(lua_State* L)
 
 void lutro_run(double delta)
 {
+#ifdef HAVE_INOTIFY
    if (settings.live_enable)
       lutro_live_update(L);
+#endif
 
    lua_getglobal(L, "lutro");
 

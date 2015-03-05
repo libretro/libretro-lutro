@@ -20,6 +20,7 @@
 #include <unistd.h>
 
 static lua_State *L;
+static int input_cache[16];
 
 lutro_settings_t settings = {
    .width = 320,
@@ -319,6 +320,34 @@ int lutro_load(const char *path)
    return 1;
 }
 
+void lutro_gamepadevent(lua_State* L)
+{
+   unsigned i;
+   for (i = 0; i < 16; i++)
+   {
+      int16_t is_down = settings.input_cb(0, RETRO_DEVICE_JOYPAD, 0, i);
+      if (is_down != input_cache[i])
+      {
+         lua_getfield(L, -1, is_down ? "gamepadpressed" : "gamepadreleased");
+         if (lua_isfunction(L, -1))
+         {
+            lua_pushnumber(L, 0);
+            lua_pushnumber(L, i);
+            if (lua_pcall(L, 2, 0, 0))
+            {
+               fprintf(stderr, "%s\n", lua_tostring(L, -1));
+               lua_pop(L, 1);
+            }
+            input_cache[i] = is_down;
+         }
+         else
+         {
+            lua_pop(L, 1);
+         }
+      }
+   }
+}
+
 void lutro_run(double delta)
 {
    if (settings.live_enable)
@@ -351,6 +380,8 @@ void lutro_run(double delta)
    } else {
       lua_pop(L, 1);
    }
+
+   lutro_gamepadevent(L);
 
    lua_pop(L, 1);
 }

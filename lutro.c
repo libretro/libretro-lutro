@@ -340,7 +340,7 @@ void lutro_gamepadevent(lua_State* L)
          if (lua_isfunction(L, -1))
          {
             lua_pushnumber(L, 0);
-            lua_pushnumber(L, i);
+            lua_pushstring(L, input_find_name(joystick_enum, i));
             if (lua_pcall(L, 2, 0, 0))
             {
                fprintf(stderr, "%s\n", lua_tostring(L, -1));

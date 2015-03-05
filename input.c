@@ -2,10 +2,7 @@
 #include "lutro.h"
 #include <string.h>
 
-static const struct int_const_map {
-   long value;
-   const char *name;
-} joystick_enum[] = {
+const struct int_const_map joystick_enum[17] = {
    {RETRO_DEVICE_ID_JOYPAD_B, "b"},
    {RETRO_DEVICE_ID_JOYPAD_Y, "y"},
    {RETRO_DEVICE_ID_JOYPAD_SELECT, "select"},
@@ -26,7 +23,7 @@ static const struct int_const_map {
 };
 
 // TODO: ask somebody to add a hash table to libretro-common
-int find_value(const struct int_const_map *map, const char *name, unsigned *value)
+int input_find_value(const struct int_const_map *map, const char *name, unsigned *value)
 {
    for (; map->name; ++map)
    {
@@ -38,6 +35,14 @@ int find_value(const struct int_const_map *map, const char *name, unsigned *valu
    }
 
    return 0;
+}
+
+const char* input_find_name(const struct int_const_map *map, unsigned value)
+{
+   for (; map->name; ++map)
+      if (map->value == value)
+         return map->name;
+   return "";
 }
 
 int lutro_input_preload(lua_State *L)
@@ -66,7 +71,7 @@ int input_joypad(lua_State *L)
    const char *idstr = luaL_checkstring(L, 1);
    unsigned id;
 
-   if (!find_value(joystick_enum, idstr, &id))
+   if (!input_find_value(joystick_enum, idstr, &id))
       return luaL_error(L, "invalid button");
 
    unsigned port = 0;

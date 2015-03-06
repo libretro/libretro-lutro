@@ -79,8 +79,8 @@ OBJS += $(SOURCES_C:.c=.o) $(SOURCES_CXX:.cpp=.o)
 
 CFLAGS += -Wall -pedantic $(fpic) $(INCFLAGS)
 
-LFLAGS := $(shell pkg-config --libs-only-L --libs-only-other $(packages)) -Wl,-E
-LIBS := deps/lua/src/liblua.a $(shell pkg-config --libs-only-l $(packages)) $(LDFLAGS)
+LFLAGS := -Wl,-E
+LIBS := deps/lua/src/liblua.a $(LDFLAGS)
 
 ifeq ($(platform), qnx)
    CFLAGS += -Wc,-std=gnu99

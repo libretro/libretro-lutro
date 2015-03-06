@@ -32,11 +32,10 @@ ifeq ($(platform), unix)
 else ifeq ($(platform), linux-portable)
    TARGET := $(TARGET_NAME)_libretro.so
    fpic := -fPIC -nostdlib
-   SHARED := -shared -Wl,--no-undefined
+   SHARED := -shared
    HAVE_INOTIFY=1
    LUA_SYSCFLAGS := -DLUA_USE_POSIX
    LIBM :=
-LDFLAGS += -L. -lmusl
 else ifeq ($(platform), osx)
    TARGET := $(TARGET_NAME)_libretro.dylib
    fpic := -fPIC

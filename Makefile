@@ -1,4 +1,5 @@
 HAVE_INOTIFY=0
+WANT_ZLIB=1
 
 ifneq ($(EMSCRIPTEN),)
    platform = emscripten
@@ -69,26 +70,18 @@ else
    LUA_MYCFLAGS += -O3
 endif
 
+CORE_DIR := .
 
 LDFLAGS += $(LIBM)
 
-OBJECTS := libretro.o lutro.o runtime.o \
-           graphics.o input.o audio.o filesystem.o timer.o \
-           libretro-common/formats/png/rpng_decode_fbio.o \
-           libretro-common/file/file_path.o \
-           libretro-common/compat/compat.o \
-           ioapi.o \
-           unzip.o
+include Makefile.common
 
-ifeq ($(HAVE_INOTIFY),1)
-   CFLAGS += -DHAVE_INOTIFY
-   OBJECTS += live.o
-endif
+OBJS += $(SOURCES_C:.c=.o) $(SOURCES_CXX:.cpp=.o)
 
-CFLAGS += -Wall -pedantic $(fpic) -I./libretro-common/include
+CFLAGS += -Wall -pedantic $(fpic) $(INCFLAGS)
 
 LFLAGS := $(shell pkg-config --libs-only-L --libs-only-other $(packages)) -Wl,-E
-LIBS := lua/src/liblua.a $(shell pkg-config --libs-only-l $(packages)) $(LDFLAGS) -lz
+LIBS := lua/src/liblua.a $(shell pkg-config --libs-only-l $(packages)) $(LDFLAGS)
 
 ifeq ($(platform), qnx)
    CFLAGS += -Wc,-std=gnu99
@@ -98,8 +91,8 @@ endif
 
 all: $(TARGET)
 
-$(TARGET): $(OBJECTS) lua/src/liblua.a
-	$(CC) $(fpic) $(SHARED) $(INCLUDES) $(LFLAGS) -o $@ $(OBJECTS) $(LIBS)
+$(TARGET): $(OBJS) lua/src/liblua.a
+	$(CC) $(fpic) $(SHARED) $(INCLUDES) $(LFLAGS) -o $@ $(OBJS) $(LIBS)
 
 lua/src/liblua.a:
 	$(MAKE) -C lua/src/ CC=$(CC) CXX=$(CXX) MYCFLAGS="$(LUA_MYCFLAGS) -w -g" MYLDFLAGS="$(LFLAGS)" SYSCFLAGS="$(LUA_SYSCFLAGS) $(fpic)" a
@@ -108,6 +101,6 @@ lua/src/liblua.a:
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 clean:
-	rm -f $(OBJECTS) $(TARGET)
+	rm -f $(OBJS) $(TARGET)
 
 .PHONY: clean

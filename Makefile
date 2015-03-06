@@ -80,7 +80,7 @@ OBJS += $(SOURCES_C:.c=.o) $(SOURCES_CXX:.cpp=.o)
 CFLAGS += -Wall -pedantic $(fpic) $(INCFLAGS)
 
 LFLAGS := $(shell pkg-config --libs-only-L --libs-only-other $(packages)) -Wl,-E
-LIBS := lua/src/liblua.a $(shell pkg-config --libs-only-l $(packages)) $(LDFLAGS)
+LIBS := deps/lua/src/liblua.a $(shell pkg-config --libs-only-l $(packages)) $(LDFLAGS)
 
 ifeq ($(platform), qnx)
    CFLAGS += -Wc,-std=gnu99
@@ -90,16 +90,17 @@ endif
 
 all: $(TARGET)
 
-$(TARGET): $(OBJS) lua/src/liblua.a
+$(TARGET): $(OBJS) deps/lua/src/liblua.a
 	$(CC) $(fpic) $(SHARED) $(INCLUDES) $(LFLAGS) -o $@ $(OBJS) $(LIBS)
 
-lua/src/liblua.a:
-	$(MAKE) -C lua/src/ CC=$(CC) CXX=$(CXX) MYCFLAGS="$(LUA_MYCFLAGS) -w -g" MYLDFLAGS="$(LFLAGS)" SYSCFLAGS="$(LUA_SYSCFLAGS) $(fpic)" a
+deps/lua/src/liblua.a:
+	$(MAKE) -C deps/lua/src/ CC=$(CC) CXX=$(CXX) MYCFLAGS="$(LUA_MYCFLAGS) -w -g" MYLDFLAGS="$(LFLAGS)" SYSCFLAGS="$(LUA_SYSCFLAGS) $(fpic)" a
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 clean:
-	rm -f $(OBJS) $(TARGET)
+	-make clean -C deps/lua/src clean
+	-rm -f $(OBJS) $(TARGET)
 
 .PHONY: clean

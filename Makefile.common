@@ -1,6 +1,7 @@
 INCFLAGS := -I$(CORE_DIR) \
 				-I$(CORE_DIR)/libretro-common/include \
-				-I$(CORE_DIR)/deps/zlib
+				-I$(CORE_DIR)/deps/zlib \
+				-I$(CORE_DIR)/deps
 
 SOURCES_C += $(CORE_DIR)/libretro.c \
 	$(CORE_DIR)/lutro.c \

@@ -2,13 +2,16 @@
 #include "lutro.h"
 #include "compat/strl.h"
 #include "retro_miscellaneous.h"
+#include "painter.h"
 
 #include <stdlib.h>
 #include <string.h>
 
 static gfx_Font *current_font;
-static uint32_t current_color;
-static uint32_t background_color;
+static painter_t painter;
+static bitmap_t  fbbmp;
+//static uint32_t current_color;
+//static uint32_t background_color;
 
 int lutro_graphics_preload(lua_State *L)
 {
@@ -53,8 +56,19 @@ void lutro_graphics_init()
    settings.pitch_pixels = settings.width;
    settings.pitch        = settings.pitch_pixels * sizeof(uint32_t);
    settings.framebuffer  = calloc(1, settings.pitch * settings.height);
-   current_color = 0xffffffff;
-   background_color = 0xff000000;
+
+   memset(&painter, 0, sizeof(painter));
+   memset(&fbbmp, 0, sizeof(fbbmp));
+
+   fbbmp.data   = settings.framebuffer;
+   fbbmp.height = settings.height;
+   fbbmp.width  = settings.width;
+   fbbmp.pitch  = settings.pitch;
+
+   painter.target = fbbmp;
+   pntr_reset(&painter);
+//   current_color = 0xffffffff;
+//   background_color = 0xff000000;
 }
 
 // calculates the intersection and sets x1, y1, w1, h1 if non-null
@@ -347,7 +361,8 @@ int gfx_setColor(lua_State *L)
 
    lua_pop(L, n);
 
-   current_color = (c.a<<24) | (c.r<<16) | (c.g<<8) | c.b;
+   painter.foreground = (c.a<<24) | (c.r<<16) | (c.g<<8) | c.b;
+//   current_color = (c.a<<24) | (c.r<<16) | (c.g<<8) | c.b;
 
    return 0;
 }
@@ -362,10 +377,10 @@ int gfx_getColor(lua_State *L)
    lua_pop(L, n);
 
    gfx_Color c;
-   c.a = (current_color >> 24) & 0xff;
-   c.r = (current_color >> 16) & 0xff;
-   c.g = (current_color >>  8) & 0xff;
-   c.b = (current_color >>  0) & 0xff;
+   c.a = (painter.foreground >> 24) & 0xff;
+   c.r = (painter.foreground >> 16) & 0xff;
+   c.g = (painter.foreground >>  8) & 0xff;
+   c.b = (painter.foreground >>  0) & 0xff;
 
    lua_pushnumber(L, c.r);
    lua_pushnumber(L, c.g);
@@ -406,7 +421,8 @@ int gfx_setBackgroundColor(lua_State *L)
 
    lua_pop(L, n);
 
-   background_color = (c.a<<24) | (c.r<<16) | (c.g<<8) | c.b;
+//   background_color = (c.a<<24) | (c.r<<16) | (c.g<<8) | c.b;
+   painter.background = (c.a<<24) | (c.r<<16) | (c.g<<8) | c.b;
 
    return 0;
 }
@@ -421,10 +437,10 @@ int gfx_getBackgroundColor(lua_State *L)
    lua_pop(L, n);
 
    gfx_Color c;
-   c.a = (background_color >> 24) & 0xff;
-   c.r = (background_color >> 16) & 0xff;
-   c.g = (background_color >>  8) & 0xff;
-   c.b = (background_color >>  0) & 0xff;
+   c.a = (painter.background >> 24) & 0xff;
+   c.r = (painter.background >> 16) & 0xff;
+   c.g = (painter.background >>  8) & 0xff;
+   c.b = (painter.background >>  0) & 0xff;
 
    lua_pushnumber(L, c.r);
    lua_pushnumber(L, c.g);
@@ -443,12 +459,7 @@ int gfx_clear(lua_State *L)
 
    lua_pop(L, n);
 
-   unsigned i;
-   unsigned size = settings.pitch_pixels * settings.height;
-   uint32_t *framebuffer = settings.framebuffer;
-
-   for (i = 0; i < size; ++i)
-      framebuffer[i] = background_color;
+   pntr_clear(&painter);
 
    return 0;
 }
@@ -468,31 +479,14 @@ int gfx_rectangle(lua_State *L)
 
    lua_pop(L, n);
 
-   int i, j;
-   int pitch_pixels = settings.pitch_pixels;
-   uint32_t *framebuffer = settings.framebuffer;
-
-   if (!intersect(&x, &y, &w, &h, 0, 0, settings.width, settings.height))
-      return 0;
-
+   rect_t r  = { x, y, w, h };
    if (!strcmp(mode, "fill"))
    {
-      for (j = y; j < y + h; j++)
-         for (i = x; i < x + w; i++)
-            framebuffer[j * pitch_pixels + i] = current_color;
+      pntr_fill_rect(&painter, &r);
    }
    else if (!strcmp(mode, "line"))
    {
-      for (j = y; j < y + h; j++)
-      {
-         framebuffer[j * pitch_pixels + x] = current_color;
-         framebuffer[j * pitch_pixels + x+w-1] = current_color;
-      }
-      for (i = x; i < x + w; i++)
-      {
-         framebuffer[y * pitch_pixels + i] = current_color;
-         framebuffer[(y+h-1) * pitch_pixels + i] = current_color;
-      }
+      pntr_strike_rect(&painter, &r);
    }
    else
    {
@@ -514,10 +508,10 @@ int gfx_point(lua_State *L)
 
    lua_pop(L, n);
 
-   int pitch_pixels = settings.pitch_pixels;
-   uint32_t *framebuffer = settings.framebuffer;
+   if (x > painter.target.width || x < 0 || y > painter.target.height || y < 0)
+      return 0;
 
-   framebuffer[y * pitch_pixels + x] = current_color;
+   painter.target.data[y * (painter.target.pitch >> 2) + x] = painter.foreground;
 
    return 0;
 }
@@ -546,7 +540,8 @@ int gfx_line(lua_State *L)
    for (;;) {
       if (y1 >= 0 && y1 < settings.height)
          if (x1 >= 0 && x1 < settings.width)
-            framebuffer[y1 * pitch_pixels + x1] = current_color;
+//            framebuffer[y1 * pitch_pixels + x1] = current_color;
+            framebuffer[y1 * pitch_pixels + x1] = painter.foreground;
       if (x1==x2 && y1==y2) break;
       e2 = err;
       if (e2 >-dx) { err -= dy; x1 += sx; }

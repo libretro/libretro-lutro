@@ -505,32 +505,6 @@ int gfx_line(lua_State *L)
    return 0;
 }
 
-static void blit(int dest_x, int dest_y, int w, int h,
-      int total_w, int total_h, uint32_t *data, int orig_x, int orig_y)
-{
-   int i, j;
-   int jj = orig_y;
-   int imgpitch = total_w * sizeof(uint16_t);
-
-   int pitch_pixels = settings.pitch_pixels;
-   uint32_t *framebuffer = settings.framebuffer;
-
-   for (j = dest_y; j < dest_y + h; j++) {
-      int ii = orig_x;
-      if (j >= 0 && j < settings.height) {
-         for (i = dest_x; i < dest_x + w; i++) {
-            if (i >= 0 && i < settings.width) {
-               uint32_t c = data[jj * (imgpitch >> 1) + ii];
-               if (0xff000000 & c)
-                  framebuffer[j * pitch_pixels + i] = c;
-            }
-            ii++;
-         }
-      }
-      jj++;
-   }
-}
-
 int gfx_drawt(lua_State *L)
 {
    int camera_x = 0, camera_y = 0;
@@ -611,16 +585,19 @@ int gfx_draw(lua_State *L)
 
    lua_pop(L, n);
 
+   rect_t drect = { x + ox, y + oy, painter->target->width, painter->target->height };
    if (quad == NULL)
    {
-      rect_t rect = { x + ox, y + oy, painter->target->width, painter->target->height };
-      pntr_draw(painter, img, NULL, &rect);
+      pntr_draw(painter, img, NULL, &drect);
    }
    else
-      blit(x + ox, y + oy,
-         quad->w, quad->h,
-         quad->sw, quad->sh,
-         img->data, quad->x, quad->y);
+   {
+      rect_t srect = {
+         quad->x, quad->y,
+         quad->sw, quad->sh
+      };
+      pntr_draw(painter, img, &srect, &drect);
+   }
 
    return 0;
 }

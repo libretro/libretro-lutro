@@ -23,6 +23,7 @@ TARGET_NAME := lutro
 LUA_MYCFLAGS :=
 LUA_SYSCFLAGS :=
 LIBM := -lm
+STATIC_LINKING := 0
 
 ifeq ($(platform), unix)
    TARGET := $(TARGET_NAME)_libretro.so
@@ -58,6 +59,19 @@ else ifeq ($(platform), emscripten)
    TARGET := $(TARGET_NAME)_libretro_emscripten.so
    fpic := -fPIC
    SHARED := -shared -Wl,--no-undefined
+else ifeq ($(platform), psp1)
+   TARGET := $(TARGET_NAME)_libretro_psp1.a
+   fpic :=
+   CC = psp-gcc$(EXE_EXT)
+   CXX = psp-g++$(EXE_EXT)
+   AR = psp-ar$(EXE_EXT)
+   DEFINES := -DPSP -G0 -DLSB_FIRST -DHAVE_ASPRINTF
+   CFLAGS += -march=allegrex -mfp32 -mgp32 -mlong32 -mabi=eabi
+   CFLAGS += -fomit-frame-pointer -fstrict-aliasing
+   CFLAGS += -falign-functions=32 -falign-loops -falign-labels -falign-jumps
+   CFLAGS += -I$(shell psp-config --pspsdk-path)/include
+   LUA_MYCFLAGS := $(DEFINES) $(CFLAGS)
+   STATIC_LINKING = 1
 else
    CC = gcc
    TARGET := $(TARGET_NAME)_retro.dll
@@ -93,7 +107,11 @@ endif
 all: $(TARGET)
 
 $(TARGET): $(OBJS) deps/lua/src/liblua.a
+ifeq ($(STATIC_LINKING), 1)
+	$(AR) rcs $@ $(OBJS) deps/lua/src/*.o
+else
 	$(CC) $(fpic) $(SHARED) $(INCLUDES) $(LFLAGS) -o $@ $(OBJS) $(LIBS)
+endif
 
 deps/lua/src/liblua.a:
 	$(MAKE) -C deps/lua/src CC="$(CC)" CXX="$(CXX)" MYCFLAGS="$(LUA_MYCFLAGS) -w -g" MYLDFLAGS="$(LFLAGS)" SYSCFLAGS="$(LUA_SYSCFLAGS) $(fpic)" a

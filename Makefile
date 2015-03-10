@@ -95,7 +95,7 @@ $(TARGET): $(OBJS) deps/lua/src/liblua.a
 	$(CC) $(fpic) $(SHARED) $(INCLUDES) $(LFLAGS) -o $@ $(OBJS) $(LIBS)
 
 deps/lua/src/liblua.a:
-	$(MAKE) -C deps/lua/src/ CC=$(CC) CXX=$(CXX) MYCFLAGS="$(LUA_MYCFLAGS) -w -g" MYLDFLAGS="$(LFLAGS)" SYSCFLAGS="$(LUA_SYSCFLAGS) $(fpic)" a
+	$(MAKE) -C deps/lua/src CC="$(CC)" CXX="$(CXX)" MYCFLAGS="$(LUA_MYCFLAGS) -w -g" MYLDFLAGS="$(LFLAGS)" SYSCFLAGS="$(LUA_SYSCFLAGS) $(fpic)" a
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c -o $@ $<

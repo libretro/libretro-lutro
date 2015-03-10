@@ -79,7 +79,6 @@ OBJS += $(SOURCES_C:.c=.o) $(SOURCES_CXX:.cpp=.o)
 
 CFLAGS += -Wall -pedantic $(fpic) $(INCFLAGS)
 
-LFLAGS := -Wl,-E
 LIBS := deps/lua/src/liblua.a $(LDFLAGS)
 
 ifeq ($(platform), qnx)

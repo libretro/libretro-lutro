@@ -100,6 +100,9 @@ void pntr_fill_rect(painter_t *p, const rect_t *rect)
    uint32_t *row  = p->target.data + drect.y * row_size;
    uint32_t *end  = row + row_size * drect.height;
 
+   if ((color & 0xff000000) == 0)
+      return;
+
    do
    {
       for (x = drect.x; x < xend; ++x)
@@ -152,10 +155,21 @@ void pntr_draw(painter_t *p, const bitmap_t *bmp, const rect_t *src_rect, const 
    drect.width = p->target.width;
    drect.height = p->target.height;
 
-   drect = rect_intersect(&drect, &p->clip);
-   drect.width = min(drect.width, srect.width);
-   drect.height = min(drect.height, srect.height);
+   if (drect.x < 0)
+   {
+      srect.x     += -drect.x;
+      srect.width += drect.x;
+   }
 
+   if (drect.y < 0)
+   {
+      srect.y     += -drect.y;
+      srect.height += drect.y;
+   }
+
+   drect        = rect_intersect(&drect, &p->clip);
+   drect.width  = min(drect.width, srect.width);
+   drect.height = min(drect.height, srect.height);
 
    if (rect_is_null(&drect) || rect_is_null(&srect))
       return;
@@ -170,7 +184,8 @@ void pntr_draw(painter_t *p, const bitmap_t *bmp, const rect_t *src_rect, const 
    int cols = drect.width;
    int x = 0;
 
-   while (rows_left--) {
+   while (rows_left--)
+   {
       for (x = 0; x < cols; ++x)
       {
          uint32_t c = src[x];

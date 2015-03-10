@@ -560,20 +560,6 @@ static void blit(int dest_x, int dest_y, int w, int h,
    }
 }
 
-static void drawt(int dest_x, int dest_y, int w, int h,
-      int total_w, int total_h, uint32_t *data, int id)
-{
-   if (dest_x + w < 0 || dest_y + h < 0
-   || dest_x > settings.width || dest_y > settings.height)
-      return;
-
-   int orig_x = ((id-1)%(total_w/w))*w;
-   int orig_y = ((id-1)/(total_w/w))*w;
-
-   blit(dest_x, dest_y, w, h,
-         total_w, total_h, data, orig_x, orig_y);
-}
-
 int gfx_drawt(lua_State *L)
 {
    int camera_x = 0, camera_y = 0;
@@ -613,12 +599,7 @@ int gfx_drawt(lua_State *L)
       tw, th
    };
 
-//   pntr_draw(&painter, img, &srect, &drect);
-
-   drawt(
-      dest_x + camera_x,
-      dest_y + camera_y,
-      tw, th, img->width, img->height, img->data, id);
+   pntr_draw(&painter, img, &srect, &drect);
 
    return 0;
 }

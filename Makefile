@@ -41,12 +41,14 @@ else ifeq ($(platform), osx)
    fpic := -fPIC
    SHARED := -dynamiclib
    LUA_SYSCFLAGS := -DLUA_USE_MACOSX
+	CFLAGS += -DHAVE_STRL
 else ifeq ($(platform), ios)
    TARGET := $(TARGET_NAME)_libretro_ios.dylib
    fpic := -fPIC
    SHARED := -dynamiclib
    DEFINES := -DIOS
    CC = clang -arch armv7 -isysroot $(IOSSDK)
+	CFLAGS += -DHAVE_STRL
 else ifeq ($(platform), qnx)
    TARGET := $(TARGET_NAME)_libretro_qnx.so
    fpic := -fPIC

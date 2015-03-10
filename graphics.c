@@ -40,6 +40,7 @@ int lutro_graphics_preload(lua_State *L)
       { "setFont",      gfx_setFont },
       { "setLineStyle", gfx_setLineStyle },
       { "setLineWidth", gfx_setLineWidth },
+      { "setScissor",   gfx_setScissor },
       {NULL, NULL}
    };
 
@@ -674,3 +675,31 @@ int gfx_push(lua_State *L)
    painter = pntr_push(painter);
    return 0;
 }
+
+int gfx_setScissor(lua_State *L)
+{
+   int n = lua_gettop(L);
+
+   if (n != 0 && n != 4)
+      return luaL_error(L, "lutro.graphics.setScissor requires 0 or 4 arguments, %d given.", n);
+
+   rect_t r = {
+      0, 0, painter->target->width, painter->target->height
+   };
+
+   if (n > 0)
+   {
+      r.x = luaL_checknumber(L, 1);
+      r.y = luaL_checknumber(L, 2);
+      r.width  = luaL_checknumber(L, 3);
+      r.height = luaL_checknumber(L, 4);
+
+      lua_pop(L, n);
+   }
+
+   painter->clip = r;
+   pntr_sanitize_clip(painter);
+
+   return 0;
+}
+

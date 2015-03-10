@@ -118,7 +118,7 @@ rect_t rect_intersect(const rect_t *a, const rect_t *b)
    int bottom = min(a->y + a->height, b->y + b->height);
    int width  = right - left;
    int height = bottom - top;
-   rect_t c = { left, top, width, height };
+   rect_t c = { left, top, max(width, 0), max(height, 0) };
 
    return c;
 }
@@ -127,4 +127,58 @@ rect_t rect_intersect(const rect_t *a, const rect_t *b)
 int rect_is_null(const rect_t *r)
 {
    return r->width <= 0 || r->height <= 0;
+}
+
+
+void pntr_draw(painter_t *p, const bitmap_t *bmp, const rect_t *src_rect, const rect_t *dst_rect)
+{
+   rect_t srect, drect;
+
+   if (dst_rect)
+      drect = *dst_rect;
+   else
+      drect.x = drect.y = 0;
+
+   if (src_rect)
+      srect = *src_rect;
+   else
+   {
+      srect.x = srect.y = 0;
+      srect.width  = bmp->width;
+      srect.height = bmp->height;
+   }
+
+   /* until we are able to scale. */
+   drect.width = p->target.width;
+   drect.height = p->target.height;
+
+   drect = rect_intersect(&drect, &p->clip);
+   drect.width = min(drect.width, srect.width);
+   drect.height = min(drect.height, srect.height);
+
+
+   if (rect_is_null(&drect) || rect_is_null(&srect))
+      return;
+
+   size_t dst_skip = p->target.pitch >> 2;
+   size_t src_skip = bmp->pitch >> 2;
+
+   uint32_t *dst = p->target.data + dst_skip * drect.y + drect.x;
+   uint32_t *src = bmp->data + src_skip * srect.y + srect.x;
+
+   int rows_left = drect.height;
+   int cols = drect.width;
+   int x = 0;
+
+   while (rows_left--) {
+      for (x = 0; x < cols; ++x)
+      {
+         uint32_t c = src[x];
+         if (c & 0xff000000)
+            dst[x] = c;
+      }
+
+      dst += dst_skip;
+      src += src_skip;
+   }
 }

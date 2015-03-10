@@ -7,13 +7,6 @@
 
 typedef struct
 {
-   uint32_t *data;
-   unsigned width;
-   unsigned height;
-} gfx_Image;
-
-typedef struct
-{
    unsigned x;
    unsigned y;
    unsigned w;
@@ -30,12 +23,12 @@ typedef struct
    int a;
 } gfx_Color;
 
-typedef struct
-{
-   gfx_Image image;
-   int *separators;
-   const char *characters;
-} gfx_Font;
+//typedef struct
+//{
+//   bitmap_t image;
+//   int *separators;
+//   const char *characters;
+//} gfx_Font;
 
 void lutro_graphics_init();
 int lutro_graphics_preload(lua_State *L);

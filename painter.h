@@ -43,6 +43,7 @@ void pntr_clear(painter_t *p);
 void pntr_sanitize_clip(painter_t *p);
 void pntr_strike_rect(painter_t *p, const rect_t *rect);
 void pntr_fill_rect(painter_t *p, const rect_t *rect);
+void pntr_draw(painter_t *p, const bitmap_t *bmp, const rect_t *src_rect, const rect_t *dst_rect);
 
 rect_t rect_intersect(const rect_t *a, const rect_t *b);
 int rect_is_null(const rect_t *r);

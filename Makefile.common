@@ -40,3 +40,7 @@ ifeq ($(HAVE_INOTIFY),1)
    CFLAGS += -DHAVE_INOTIFY
    SOURCES_C += $(CORE_DIR)/live.c
 endif
+
+ifeq ($(HAVE_COMPOSITION),1)
+	CFLAGS += -DHAVE_COMPOSITION
+endif

@@ -17,6 +17,16 @@
 #define min(a, b) ((a) < (b) ? (a) : (b))
 #endif
 
+
+#ifdef HAVE_COMPOSITION
+/* from http://www.codeguru.com/cpp/cpp/algorithms/general/article.php/c15989/Tip-An-Optimized-Formula-for-Alpha-Blending-Pixels.htm */
+#define COMPOSE_FAST(S, D, A) (((S * A) + (D * (255U - A))) >> 8U)
+#define DISASSEMBLE_RGB(COLOR, R, G, B) \
+   R = ((COLOR & 0xff0000)>>16);\
+   G = ((COLOR & 0xff00)>>8);\
+   B = (COLOR & 0xff);
+#endif
+
 static int strpos(const char *haystack, char needle)
 {
    char *p = strchr(haystack, needle);
@@ -205,11 +215,31 @@ void pntr_draw(painter_t *p, const bitmap_t *bmp, const rect_t *src_rect, const 
    int cols = drect.width;
    int x = 0;
 
+#ifdef HAVE_COMPOSITION
+   uint32_t sa, sr, sg, sb, da, dr, dg, db, s, d;
    while (rows_left--)
    {
       for (x = 0; x < cols; ++x)
       {
-         uint32_t c = src[x];
+         s = src[x];
+         d = dst[x];
+         sa = s >> 24;
+         da = d >> 24;
+         DISASSEMBLE_RGB(s, sr, sg, sb);
+         DISASSEMBLE_RGB(d, dr, dg, db);
+         dst[x] = ((sa + da * (255 - sa)) << 24) | (COMPOSE_FAST(sr, dr, sa) << 16) | (COMPOSE_FAST(sg, dg, sa) << 8) | (COMPOSE_FAST(sb, db, sa));
+      }
+
+      dst += dst_skip;
+      src += src_skip;
+   }
+#else
+   uint32_t c;
+   while (rows_left--)
+   {
+      for (x = 0; x < cols; ++x)
+      {
+         c = src[x];
          if (c & 0xff000000)
             dst[x] = c;
       }
@@ -217,6 +247,7 @@ void pntr_draw(painter_t *p, const bitmap_t *bmp, const rect_t *src_rect, const 
       dst += dst_skip;
       src += src_skip;
    }
+#endif
 }
 
 

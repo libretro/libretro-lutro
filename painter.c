@@ -1,8 +1,29 @@
-#include "painter.h"
-#include <retro_miscellaneous.h>
+#define _GNU_SOURCE
 
+#include "painter.h"
+#include "formats/rpng.h"
+
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdarg.h>
+#include <assert.h>
+
+#ifndef max
+#define max(a, b) ((a) > (b) ? (a) : (b))
+#endif
+
+#ifndef min
+#define min(a, b) ((a) < (b) ? (a) : (b))
+#endif
+
+static int strpos(const char *haystack, char needle)
+{
+   char *p = strchr(haystack, needle);
+   if (p)
+      return p - haystack;
+   return -1;
+}
 
 painter_t *pntr_push(painter_t *p)
 {
@@ -34,15 +55,15 @@ void pntr_reset(painter_t *p)
 
    p->clip.x = 0;
    p->clip.y = 0;
-   p->clip.width  = p->target.width;
-   p->clip.height = p->target.height;
+   p->clip.width  = p->target->width;
+   p->clip.height = p->target->height;
 }
 
 
 void pntr_clear(painter_t *p)
 {
-   uint32_t *begin = p->target.data;
-   uint32_t *end   = p->target.data + p->target.height * (p->target.pitch >> 2);
+   uint32_t *begin = p->target->data;
+   uint32_t *end   = p->target->data + p->target->height * (p->target->pitch >> 2);
    uint32_t color  = p->background;
 
    while (begin < end)
@@ -54,7 +75,7 @@ void pntr_clear(painter_t *p)
 void pntr_sanitize_clip(painter_t *p)
 {
    rect_t target_rect = {
-      0, 0, p->target.width, p->target.height
+      0, 0, p->target->width, p->target->height
    };
 
    p->clip = rect_intersect(&p->clip,  &target_rect);
@@ -64,7 +85,7 @@ void pntr_sanitize_clip(painter_t *p)
 void pntr_strike_rect(painter_t *p, const rect_t *rect)
 {
 //   int x1, y1, x2, y2, i;
-//   uint32_t *fb = p->target.data + (p->target.pitch >> 2)
+//   uint32_t *fb = p->target->data + (p->target->pitch >> 2)
 
 //   x1 = rect->x;
 //   y1 = rect->y;
@@ -88,7 +109,7 @@ void pntr_strike_rect(painter_t *p, const rect_t *rect)
 
 void pntr_fill_rect(painter_t *p, const rect_t *rect)
 {
-   size_t row_size = p->target.pitch >> 2;
+   size_t row_size = p->target->pitch >> 2;
    rect_t drect = rect_intersect(&p->clip, rect);
    uint32_t color = p->foreground;
 
@@ -97,7 +118,7 @@ void pntr_fill_rect(painter_t *p, const rect_t *rect)
 
    int x;
    int xend = drect.x + drect.width;
-   uint32_t *row  = p->target.data + drect.y * row_size;
+   uint32_t *row  = p->target->data + drect.y * row_size;
    uint32_t *end  = row + row_size * drect.height;
 
    if ((color & 0xff000000) == 0)
@@ -152,8 +173,8 @@ void pntr_draw(painter_t *p, const bitmap_t *bmp, const rect_t *src_rect, const 
    }
 
    /* until we are able to scale. */
-   drect.width = p->target.width;
-   drect.height = p->target.height;
+   drect.width = p->target->width;
+   drect.height = p->target->height;
 
    if (drect.x < 0)
    {
@@ -174,10 +195,10 @@ void pntr_draw(painter_t *p, const bitmap_t *bmp, const rect_t *src_rect, const 
    if (rect_is_null(&drect) || rect_is_null(&srect))
       return;
 
-   size_t dst_skip = p->target.pitch >> 2;
+   size_t dst_skip = p->target->pitch >> 2;
    size_t src_skip = bmp->pitch >> 2;
 
-   uint32_t *dst = p->target.data + dst_skip * drect.y + drect.x;
+   uint32_t *dst = p->target->data + dst_skip * drect.y + drect.x;
    uint32_t *src = bmp->data + src_skip * srect.y + srect.x;
 
    int rows_left = drect.height;
@@ -196,4 +217,86 @@ void pntr_draw(painter_t *p, const bitmap_t *bmp, const rect_t *src_rect, const 
       dst += dst_skip;
       src += src_skip;
    }
+}
+
+
+void pntr_print(painter_t *p, int x, int y, const char *text)
+{
+   assert(p->font != NULL);
+
+   if (p->font->flags & FONT_FREETYPE)
+   {
+
+   }
+   else
+   {
+      bitmap_t *atlas = &p->font->atlas;
+      font_t *font = p->font;
+
+      rect_t drect = {
+         x, y, p->target->width, atlas->height
+      };
+
+      rect_t srect = {
+         0, 0, 0, atlas->height
+      };
+
+      while (*text)
+      {
+         int c = *text++;
+         int pos = strpos(font->characters, c);
+
+         srect.x = font->separators[pos] + 1;
+         drect.width = srect.width = font->separators[pos+1] - srect.x;
+
+         pntr_draw(p, atlas, &srect, &drect);
+
+         drect.x += srect.width + 1;
+      }
+   }
+}
+
+
+void pntr_printf(painter_t *p, int x, int y, const char *format, ...)
+{
+   char *buf;
+   va_list v;
+   va_start(v, format);
+   vasprintf(&buf,  format, v);
+   va_end(v);
+   pntr_print(p, x, y, buf);
+   free(buf);
+}
+
+
+font_t *font_load_bitmap(const char *filename, const char *characters, unsigned flags)
+{
+   font_t *font = calloc(1, sizeof(font_t));
+
+   flags &= ~FONT_FREETYPE;
+
+   if (font->atlas.data)
+      free(font->atlas.data);
+
+   font->pxsize = 0;
+   font->flags  = flags;
+
+   bitmap_t *atlas = &font->atlas;
+
+   rpng_load_image_argb(filename, &atlas->data, &atlas->width, &atlas->height);
+   atlas->pitch = atlas->width << 2;
+
+   uint32_t separator = atlas->data[0];
+   int max_separators = 256;
+
+   int i, char_counter = 0;
+   for (i = 0; i < atlas->width && char_counter < max_separators; i++)
+   {
+      if (separator == atlas->data[i])
+         font->separators[char_counter++] = i;
+   }
+
+   strcpy(font->characters, characters);
+
+   return font;
 }

@@ -4,6 +4,13 @@
 #include <stddef.h>
 #include <stdint.h>
 
+enum {
+   FONT_FREETYPE = 1 << 1,
+   FONT_BOLD     = 1 << 2,
+   FONT_ITALICS  = 1 << 3,
+   FONT_STRIKE   = 1 << 4
+};
+
 typedef struct
 {
    uint32_t *data;
@@ -13,7 +20,10 @@ typedef struct
 
 typedef struct
 {
-   bitmap_t image;
+   bitmap_t atlas; /* atlas.data is owned by the font */
+   unsigned flags;
+   unsigned pxsize;
+
    int  separators[256];
    char characters[256];
 } font_t;
@@ -25,12 +35,13 @@ typedef struct
 
 typedef struct painter_s painter_t;
 
-struct painter_s {
+struct painter_s
+{
    uint32_t foreground;
    uint32_t background;
 
-   bitmap_t target;
-   font_t   font;
+   bitmap_t *target;
+   font_t   *font;
    rect_t   clip;
 
    painter_t *parent;
@@ -44,6 +55,10 @@ void pntr_sanitize_clip(painter_t *p);
 void pntr_strike_rect(painter_t *p, const rect_t *rect);
 void pntr_fill_rect(painter_t *p, const rect_t *rect);
 void pntr_draw(painter_t *p, const bitmap_t *bmp, const rect_t *src_rect, const rect_t *dst_rect);
+void pntr_print(painter_t *p, int x, int y, const char *text);
+void pntr_printf(painter_t *p, int x, int y, const char *format, ...);
+
+font_t *font_load_bitmap(const char *filename, const char *characters, unsigned flags);
 
 rect_t rect_intersect(const rect_t *a, const rect_t *b);
 int rect_is_null(const rect_t *r);

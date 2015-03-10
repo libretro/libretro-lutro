@@ -8,8 +8,8 @@
 #include <string.h>
 
 //static gfx_Font *current_font;
-static painter_t painter;
-static bitmap_t  fbbmp;
+static painter_t *painter;
+static bitmap_t  *fbbmp;
 //static uint32_t current_color;
 //static uint32_t background_color;
 
@@ -57,18 +57,16 @@ void lutro_graphics_init()
    settings.pitch        = settings.pitch_pixels * sizeof(uint32_t);
    settings.framebuffer  = calloc(1, settings.pitch * settings.height);
 
-   memset(&painter, 0, sizeof(painter));
-   memset(&fbbmp, 0, sizeof(fbbmp));
+   painter = calloc(1, sizeof(painter_t));
+   fbbmp = calloc(1, sizeof(bitmap_t));
 
-   fbbmp.data   = settings.framebuffer;
-   fbbmp.height = settings.height;
-   fbbmp.width  = settings.width;
-   fbbmp.pitch  = settings.pitch;
+   fbbmp->data   = settings.framebuffer;
+   fbbmp->height = settings.height;
+   fbbmp->width  = settings.width;
+   fbbmp->pitch  = settings.pitch;
 
-   painter.target = fbbmp;
-   pntr_reset(&painter);
-//   current_color = 0xffffffff;
-//   background_color = 0xff000000;
+   painter->target = fbbmp;
+   pntr_reset(painter);
 }
 
 int gfx_newImage(lua_State *L)
@@ -248,39 +246,15 @@ int gfx_newImageFont(lua_State *L)
 
    lua_pop(L, n);
 
-   bitmap_t img;
-
    char fullpath[PATH_MAX_LENGTH];
    strlcpy(fullpath, settings.gamedir, sizeof(fullpath));
    strlcat(fullpath, path, sizeof(fullpath));
 
-   rpng_load_image_argb(fullpath, &img.data, &img.width, &img.height);
+   font_t *font = font_load_bitmap(fullpath, characters, 0);
 
-   img.pitch = img.width << 2;
+   lua_pushlightuserdata(L, font);
 
-   uint32_t separator = img.data[0];
-
-   int max_separators = strlen(characters);
-   int *separators = calloc(max_separators, sizeof(int));
-
-   int i, char_counter = 0;
-   for (i = 0; i < img.width && char_counter < max_separators; i++)
-   {
-      uint32_t c = img.data[i];
-      if (c == separator)
-         separators[char_counter++] = i;
-   }
-
-//   gfx_Font *font = calloc(1, sizeof(gfx_Font));
-//   font->image = img;
-//   font->separators = separators;
-//   font->characters = characters;
-
-//   lua_pushlightuserdata(L, font);
-
-//   return 1;
-
-   return 0;
+   return 1;
 }
 
 int gfx_setFont(lua_State *L)
@@ -290,11 +264,10 @@ int gfx_setFont(lua_State *L)
    if (n != 1)
       return luaL_error(L, "lutro.graphics.setFont requires 1 arguments, %d given.", n);
 
-//   gfx_Font *font = lua_touserdata(L, 1);
-
+   font_t *font = lua_touserdata(L, 1);
    lua_pop(L, n);
+   painter->font = font;
 
-//   current_font = font;
 
    return 0;
 }
@@ -308,7 +281,7 @@ int gfx_getFont(lua_State *L)
 
    lua_pop(L, n);
 
-//   lua_pushlightuserdata(L, current_font);
+   lua_pushlightuserdata(L, painter->font);
 
    return 1;
 }
@@ -344,8 +317,7 @@ int gfx_setColor(lua_State *L)
 
    lua_pop(L, n);
 
-   painter.foreground = (c.a<<24) | (c.r<<16) | (c.g<<8) | c.b;
-//   current_color = (c.a<<24) | (c.r<<16) | (c.g<<8) | c.b;
+   painter->foreground = (c.a<<24) | (c.r<<16) | (c.g<<8) | c.b;
 
    return 0;
 }
@@ -360,10 +332,10 @@ int gfx_getColor(lua_State *L)
    lua_pop(L, n);
 
    gfx_Color c;
-   c.a = (painter.foreground >> 24) & 0xff;
-   c.r = (painter.foreground >> 16) & 0xff;
-   c.g = (painter.foreground >>  8) & 0xff;
-   c.b = (painter.foreground >>  0) & 0xff;
+   c.a = (painter->foreground >> 24) & 0xff;
+   c.r = (painter->foreground >> 16) & 0xff;
+   c.g = (painter->foreground >>  8) & 0xff;
+   c.b = (painter->foreground >>  0) & 0xff;
 
    lua_pushnumber(L, c.r);
    lua_pushnumber(L, c.g);
@@ -405,7 +377,7 @@ int gfx_setBackgroundColor(lua_State *L)
    lua_pop(L, n);
 
 //   background_color = (c.a<<24) | (c.r<<16) | (c.g<<8) | c.b;
-   painter.background = (c.a<<24) | (c.r<<16) | (c.g<<8) | c.b;
+   painter->background = (c.a<<24) | (c.r<<16) | (c.g<<8) | c.b;
 
    return 0;
 }
@@ -420,10 +392,10 @@ int gfx_getBackgroundColor(lua_State *L)
    lua_pop(L, n);
 
    gfx_Color c;
-   c.a = (painter.background >> 24) & 0xff;
-   c.r = (painter.background >> 16) & 0xff;
-   c.g = (painter.background >>  8) & 0xff;
-   c.b = (painter.background >>  0) & 0xff;
+   c.a = (painter->background >> 24) & 0xff;
+   c.r = (painter->background >> 16) & 0xff;
+   c.g = (painter->background >>  8) & 0xff;
+   c.b = (painter->background >>  0) & 0xff;
 
    lua_pushnumber(L, c.r);
    lua_pushnumber(L, c.g);
@@ -442,7 +414,7 @@ int gfx_clear(lua_State *L)
 
    lua_pop(L, n);
 
-   pntr_clear(&painter);
+   pntr_clear(painter);
 
    return 0;
 }
@@ -465,11 +437,11 @@ int gfx_rectangle(lua_State *L)
    rect_t r  = { x, y, w, h };
    if (!strcmp(mode, "fill"))
    {
-      pntr_fill_rect(&painter, &r);
+      pntr_fill_rect(painter, &r);
    }
    else if (!strcmp(mode, "line"))
    {
-      pntr_strike_rect(&painter, &r);
+      pntr_strike_rect(painter, &r);
    }
    else
    {
@@ -491,10 +463,10 @@ int gfx_point(lua_State *L)
 
    lua_pop(L, n);
 
-   if (x > painter.target.width || x < 0 || y > painter.target.height || y < 0)
+   if (x > painter->target->width || x < 0 || y > painter->target->height || y < 0)
       return 0;
 
-   painter.target.data[y * (painter.target.pitch >> 2) + x] = painter.foreground;
+   painter->target->data[y * (painter->target->pitch >> 2) + x] = painter->foreground;
 
    return 0;
 }
@@ -523,8 +495,7 @@ int gfx_line(lua_State *L)
    for (;;) {
       if (y1 >= 0 && y1 < settings.height)
          if (x1 >= 0 && x1 < settings.width)
-//            framebuffer[y1 * pitch_pixels + x1] = current_color;
-            framebuffer[y1 * pitch_pixels + x1] = painter.foreground;
+            framebuffer[y1 * pitch_pixels + x1] = painter->foreground;
       if (x1==x2 && y1==y2) break;
       e2 = err;
       if (e2 >-dx) { err -= dy; x1 += sx; }
@@ -599,7 +570,7 @@ int gfx_drawt(lua_State *L)
       tw, th
    };
 
-   pntr_draw(&painter, img, &srect, &drect);
+   pntr_draw(painter, img, &srect, &drect);
 
    return 0;
 }
@@ -642,13 +613,9 @@ int gfx_draw(lua_State *L)
 
    if (quad == NULL)
    {
-      rect_t rect = { x + ox, y + oy, painter.target.width, painter.target.height };
-      pntr_draw(&painter, img, NULL, &rect);
+      rect_t rect = { x + ox, y + oy, painter->target->width, painter->target->height };
+      pntr_draw(painter, img, NULL, &rect);
    }
-//      blit(x + ox, y + oy,
-//         img->width, img->height,
-//         img->width, img->height,
-//         img->data, 0, 0);
    else
       blit(x + ox, y + oy,
          quad->w, quad->h,
@@ -658,14 +625,6 @@ int gfx_draw(lua_State *L)
    return 0;
 }
 
-static int strpos(const char *haystack, char needle)
-{
-   char *p = strchr(haystack, needle);
-   if (p)
-      return p - haystack;
-   return -1;
-}
-
 int gfx_print(lua_State *L)
 {
    int n = lua_gettop(L);
@@ -673,33 +632,17 @@ int gfx_print(lua_State *L)
    if (n != 3)
       return luaL_error(L, "lutro.graphics.print requires 3 arguments, %d given.", n);
 
-//   if (current_font == NULL)
-//      return luaL_error(L, "lutro.graphics.print requires a font to be set.");
+   if (painter->font == NULL)
+      return luaL_error(L, "lutro.graphics.print requires a font to be set.");
 
-//   gfx_Font *font = current_font;
-//   const char* message = luaL_checkstring(L, 1);
-//   int dest_x = luaL_checknumber(L, 2);
-//   int dest_y = luaL_checknumber(L, 3);
 
-//   lua_pop(L, n);
+   const char* message = luaL_checkstring(L, 1);
+   int dest_x = luaL_checknumber(L, 2);
+   int dest_y = luaL_checknumber(L, 3);
 
-//   int i;
-//   for (i = 0; i < strlen(message); i++)
-//   {
-//      char c = message[i];
+   pntr_print(painter, dest_x, dest_y, message);
 
-//      int pos = strpos(font->characters, c);
-
-//      int orig_x = font->separators[pos] + 1;
-//      int w = font->separators[pos+1] - orig_x;
-//      int h = font->image.height;
-//      int total_w = font->image.width;
-//      int total_h = font->image.height;
-
-//      blit(dest_x, dest_y, w, h, total_w, total_h, font->image.data, orig_x, 0);
-
-//      dest_x += w + 1;
-//   }
+   lua_pop(L, n);
 
    return 0;
 }

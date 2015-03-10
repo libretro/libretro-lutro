@@ -29,7 +29,9 @@ int lutro_graphics_preload(lua_State *L)
       { "newImageFont", gfx_newImageFont },
       { "newQuad",      gfx_newQuad },
       { "point",        gfx_point },
+      { "pop",          gfx_pop },
       { "print",        gfx_print },
+      { "push",         gfx_push },
       { "rectangle",    gfx_rectangle },
       { "scale",        gfx_scale },
       { "setBackgroundColor", gfx_setBackgroundColor },
@@ -654,4 +656,21 @@ int gfx_getHeight(lua_State *L)
 {
    lua_pushnumber(L, settings.height);
    return 1;
+}
+
+
+int gfx_pop(lua_State *L)
+{
+   lua_pop(L, lua_gettop(L));
+
+   painter = pntr_pop(painter);
+   return 0;
+}
+
+int gfx_push(lua_State *L)
+{
+   lua_pop(L, lua_gettop(L));
+
+   painter = pntr_push(painter);
+   return 0;
 }

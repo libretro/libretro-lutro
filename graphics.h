@@ -23,13 +23,6 @@ typedef struct
    int a;
 } gfx_Color;
 
-//typedef struct
-//{
-//   bitmap_t image;
-//   int *separators;
-//   const char *characters;
-//} gfx_Font;
-
 void lutro_graphics_init();
 int lutro_graphics_preload(lua_State *L);
 
@@ -55,6 +48,8 @@ int gfx_setLineWidth(lua_State *L);
 int gfx_scale(lua_State *L);
 int gfx_getWidth(lua_State *L);
 int gfx_getHeight(lua_State *L);
+int gfx_pop(lua_State *L);
+int gfx_push(lua_State *L);
 
 int img_getData(lua_State *L);
 int img_getWidth(lua_State *L);

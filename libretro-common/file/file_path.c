@@ -820,7 +820,7 @@ void fill_pathname_abbreviate_special(char *out_path,
    rarch_assert(strlcpy(out_path, in_path, size) < size);
 }
 
-#ifndef RARCH_CONSOLE
+#if !defined(RARCH_CONSOLE) && defined(RARCH_INTERNAL)
 void fill_pathname_application_path(char *buf, size_t size)
 {
    size_t i;

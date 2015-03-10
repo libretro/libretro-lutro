@@ -31,6 +31,7 @@ ifeq ($(platform), unix)
    SHARED := -shared -Wl,--no-undefined
    LUA_SYSCFLAGS := -DLUA_USE_POSIX
    HAVE_INOTIFY=1
+   LDFLAGS += -Wl,-E
 else ifeq ($(platform), linux-portable)
    TARGET := $(TARGET_NAME)_libretro.so
    fpic := -fPIC -nostdlib
@@ -43,7 +44,7 @@ else ifeq ($(platform), osx)
    fpic := -fPIC
    SHARED := -dynamiclib
    LUA_SYSCFLAGS := -DLUA_USE_MACOSX
-	CFLAGS += -DHAVE_STRL
+   CFLAGS += -DHAVE_STRL
 else ifeq ($(platform), ios)
    TARGET := $(TARGET_NAME)_libretro_ios.dylib
    fpic := -fPIC
@@ -88,15 +89,13 @@ endif
 
 CORE_DIR := .
 
-LDFLAGS += $(LIBM)
-
 include Makefile.common
 
 OBJS += $(SOURCES_C:.c=.o) $(SOURCES_CXX:.cpp=.o)
 
 CFLAGS += -Wall -pedantic $(fpic) $(INCFLAGS)
 
-LIBS := deps/lua/src/liblua.a $(LDFLAGS)
+LIBS += deps/lua/src/liblua.a $(LIBM)
 
 ifeq ($(platform), qnx)
    CFLAGS += -Wc,-std=gnu99
@@ -110,7 +109,7 @@ $(TARGET): $(OBJS) deps/lua/src/liblua.a
 ifeq ($(STATIC_LINKING), 1)
 	$(AR) rcs $@ $(OBJS) deps/lua/src/*.o
 else
-	$(CC) $(fpic) $(SHARED) $(INCLUDES) $(LFLAGS) -o $@ $(OBJS) $(LIBS)
+	$(CC) $(fpic) $(SHARED) $(INCLUDES) $(LDFLAGS) -o $@ $(OBJS) $(LIBS)
 endif
 
 deps/lua/src/liblua.a:

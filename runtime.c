@@ -1,8 +1,14 @@
 #include "runtime.h"
 #include "compat/strl.h"
 #include "file/file_path.h"
-#include "lstate.h"
 #include <assert.h>
+#if LUA_VERSION_NUM < 502
+#ifdef HAVE_JIT
+#include "lj_obj.h"
+#else
+#include "lstate.h"
+#endif
+#endif
 
 int lutro_preload(lua_State *L, lua_CFunction f, const char *name)
 {
@@ -102,7 +108,9 @@ void lutro_relpath_to_modname(char *outmod, const char *relpath)
 
 #if LUA_VERSION_NUM < 502
 
+#ifndef G
 #define G(L)	(L->l_G)
+#endif
 #define api_check2(l,e,msg)	luai_apicheck(l,(e) && msg)
 
 LUA_API const lua_Number *lua_version (lua_State *L)
@@ -146,12 +154,8 @@ LUALIB_API void luaL_setfuncs (lua_State *L, const luaL_Reg *l, int nup)
    lua_pop(L, nup);
 }
 
-#define ispseudo(i)		((i) <= LUA_REGISTRYINDEX)
-LUA_API int lua_absindex (lua_State *L, int idx)
-{
-   return (idx > 0 || ispseudo(idx))
-         ? idx
-         : cast_int(L->top - L->ci->func + idx);
+LUA_API int lua_absindex (lua_State *L, int idx) {
+   return (idx > 0 || idx <= LUA_REGISTRYINDEX)? idx : lua_gettop(L) + idx + 1;
 }
 
 LUA_API int lua_compare (lua_State *L, int index1, int index2, int op)
@@ -160,7 +164,6 @@ LUA_API int lua_compare (lua_State *L, int index1, int index2, int op)
    int b = lua_absindex(L, index2);
    int i = 0;
 
-  lua_lock(L);  /* may call tag method */
   if (!lua_isnil(L, a) && !lua_isnil(L, b)) {
     switch (op) {
       case LUA_OPEQ: i = lua_equal(L, a, b); break;
@@ -169,7 +172,6 @@ LUA_API int lua_compare (lua_State *L, int index1, int index2, int op)
       default: api_check2(L, 0, "invalid option");
     }
   }
-  lua_unlock(L);
   return i;
 }
 

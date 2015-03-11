@@ -107,6 +107,7 @@ ifeq ($(WANT_JIT),1)
    LUADIR := deps/luajit/src
    LUALIB := $(LUADIR)/libluajit.a
    LIBS += -ldl
+   CFLAGS += -DHAVE_JIT
 endif
 
 CFLAGS += -I$(LUADIR)

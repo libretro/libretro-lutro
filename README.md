@@ -5,6 +5,7 @@ Sample games:
  * https://github.com/libretro/lutro-snake
  * https://github.com/libretro/lutro-tetris
  * https://github.com/libretro/lutro-iyfct
+ * https://github.com/libretro/lutro-pong
 
 Usage:
 

@@ -1,9 +1,9 @@
 #ifndef RUNTIME_H
 #define RUNTIME_H
 
-#include "lua/src/lua.h"
-#include "lua/src/lauxlib.h"
-#include "lua/src/lualib.h"
+#include "lua.h"
+#include "lauxlib.h"
+#include "lualib.h"
 
 /* functions to help check the stack size in a function call or block of code */
 #ifndef NDEBUG

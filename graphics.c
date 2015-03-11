@@ -597,7 +597,7 @@ int gfx_draw(lua_State *L)
    {
       rect_t srect = {
          quad->x, quad->y,
-         quad->sw, quad->sh
+         quad->w, quad->h
       };
       pntr_draw(painter, img, &srect, &drect);
    }

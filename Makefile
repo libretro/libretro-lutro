@@ -122,16 +122,15 @@ endif
 
 all: $(TARGET)
 
-$(TARGET): $(OBJS) deps/lua/src/liblua.a
+$(TARGET): $(OBJS) $(LUALIB)
 ifeq ($(STATIC_LINKING), 1)
-	$(AR) rcs $@ $(OBJS) deps/lua/src/*.o
+	$(AR) rcs $@ $(OBJS) $(LUADIR)/*.o
 else
 	$(CC) $(fpic) $(SHARED) $(INCLUDES) $(LDFLAGS) -o $@ $(OBJS) $(LIBS)
 endif
 
 deps/lua/src/liblua.a:
 	$(MAKE) -C deps/lua/src CC="$(CC)" CXX="$(CXX)" MYCFLAGS="$(LUA_MYCFLAGS) -w -g" MYLDFLAGS="$(LFLAGS)" SYSCFLAGS="$(LUA_SYSCFLAGS) $(fpic)" a
-
 
 deps/luajit/src/libluajit.a:
 	$(MAKE) -C deps/luajit/src BUILDMODE=static CFLAGS="$(LUA_MYCFLAGS) $(fpic)" Q= LDFLAGS="$(fpic)"

@@ -1,6 +1,7 @@
 #include "runtime.h"
 #include "compat/strl.h"
 #include "file/file_path.h"
+#include "lstate.h"
 #include <assert.h>
 
 int lutro_preload(lua_State *L, lua_CFunction f, const char *name)
@@ -71,7 +72,7 @@ int lutro_require(lua_State *L, const char *modname, int pop_result)
    lua_getglobal(L, "require");
    lua_pushstring(L, modname);
 
-   int success = lua_pcall(L, 1, 1, 0) == LUA_OK;
+   int success = lua_pcall(L, 1, 1, 0) == 0;
 
    if (success && pop_result)
       lua_pop(L, 1);
@@ -98,3 +99,98 @@ void lutro_relpath_to_modname(char *outmod, const char *relpath)
       outmod[i] = c;
    }
 }
+
+#if LUA_VERSION_NUM < 502
+
+#define G(L)	(L->l_G)
+#define api_check2(l,e,msg)	luai_apicheck(l,(e) && msg)
+
+LUA_API const lua_Number *lua_version (lua_State *L)
+{
+   static const lua_Number version = LUA_VERSION_NUM;
+
+//   if (L == NULL) return &version;
+//   else return G(L)->version;
+   return &version;
+}
+
+#define luaL_checkversion(L)	luaL_checkversion_(L, LUA_VERSION_NUM)
+LUALIB_API void luaL_checkversion_ (lua_State *L, lua_Number ver)
+{
+   const lua_Number *v = lua_version(L);
+   if (v != lua_version(NULL))
+      luaL_error(L, "multiple Lua VMs detected");
+   else if (*v != ver)
+      luaL_error(L, "version mismatch: app. needs %f, Lua core provides %f",
+                 ver, *v);
+   lua_pushnumber(L, -(lua_Number)0x1234);
+   if (lua_tointeger(L, -1) != -0x1234 /*||
+       lua_tounsigned(L, -1) != (unsigned int)-0x1234*/)
+      luaL_error(L, "bad conversion number->int;"
+                    " must recompile Lua with proper settings");
+   lua_pop(L, 1);
+}
+
+LUALIB_API void luaL_setfuncs (lua_State *L, const luaL_Reg *l, int nup)
+{
+   luaL_checkversion(L);
+   luaL_checkstack(L, nup, "too many upvalues");
+   for (; l->name != NULL; l++)
+   {
+      int i;
+      for (i = 0; i < nup; i++)
+         lua_pushvalue(L, -nup);
+      lua_pushcclosure(L, l->func, nup);
+      lua_setfield(L, -(nup + 2), l->name);
+   }
+   lua_pop(L, nup);
+}
+
+#define ispseudo(i)		((i) <= LUA_REGISTRYINDEX)
+LUA_API int lua_absindex (lua_State *L, int idx)
+{
+   return (idx > 0 || ispseudo(idx))
+         ? idx
+         : cast_int(L->top - L->ci->func + idx);
+}
+
+LUA_API int lua_compare (lua_State *L, int index1, int index2, int op)
+{
+   int a = lua_absindex(L, index1);
+   int b = lua_absindex(L, index2);
+   int i = 0;
+
+  lua_lock(L);  /* may call tag method */
+  if (!lua_isnil(L, a) && !lua_isnil(L, b)) {
+    switch (op) {
+      case LUA_OPEQ: i = lua_equal(L, a, b); break;
+      case LUA_OPLT: i = lua_lessthan(L, a, b); break;
+      case LUA_OPLE: i = lua_lessthan(L, a, b) || lua_equal(L, a, b); break;
+      default: api_check2(L, 0, "invalid option");
+    }
+  }
+  lua_unlock(L);
+  return i;
+}
+
+static int typeerror (lua_State *L, int narg, const char *tname)
+{
+   const char *msg = lua_pushfstring(L, "%s expected, got %s",
+                                     tname, luaL_typename(L, narg));
+   return luaL_argerror(L, narg, msg);
+}
+
+
+static void tag_error (lua_State *L, int narg, int tag)
+{
+   typeerror(L, narg, lua_typename(L, tag));
+}
+
+LUALIB_API unsigned luaL_checkunsigned (lua_State *L, int narg)
+{
+   if (!lua_isnumber(L, narg))
+      tag_error(L, narg, LUA_TNUMBER);
+   return lua_tointeger(L, narg);
+}
+
+#endif

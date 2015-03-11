@@ -102,7 +102,7 @@ OBJS += $(SOURCES_C:.c=.o) $(SOURCES_CXX:.cpp=.o)
 CFLAGS += -Wall -pedantic $(fpic) $(INCFLAGS)
 
 LUADIR := deps/lua/src
-LUALIB := $(LUALIB)/liblua.a
+LUALIB := $(LUADIR)/liblua.a
 ifeq ($(WANT_JIT),1)
    LUADIR := deps/luajit/src
    LUALIB := $(LUADIR)/libluajit.a
@@ -130,7 +130,7 @@ else
 endif
 
 deps/lua/src/liblua.a:
-	$(MAKE) -C deps/lua/src CC="$(CC)" CXX="$(CXX)" MYCFLAGS="$(LUA_MYCFLAGS) -w -g" MYLDFLAGS="$(LFLAGS)" SYSCFLAGS="$(LUA_SYSCFLAGS) $(fpic)" a
+	$(MAKE) -C deps/lua/src CC="$(CC)" CXX="$(CXX)" MYCFLAGS="$(LUA_MYCFLAGS) -w -g $(fpic)" MYLDFLAGS="$(LFLAGS) $(fpic)" SYSCFLAGS="$(LUA_SYSCFLAGS) $(fpic)" a
 
 deps/luajit/src/libluajit.a:
 	$(MAKE) -C deps/luajit/src BUILDMODE=static CFLAGS="$(LUA_MYCFLAGS) $(fpic)" Q= LDFLAGS="$(fpic)"

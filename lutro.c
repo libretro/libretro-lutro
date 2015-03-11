@@ -11,6 +11,10 @@
 #include "timer.h"
 #include "live.h"
 
+#ifdef HAVE_JIT
+#include "luajit.h"
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -60,6 +64,10 @@ void lutro_init()
 {
    L = luaL_newstate();
    luaL_openlibs(L);
+
+#ifdef HAVE_JIT
+   luaJIT_setmode(L, -1, LUAJIT_MODE_WRAPCFUNC|LUAJIT_MODE_ON);
+#endif
 
    lutro_checked_stack_begin();
 

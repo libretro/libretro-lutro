@@ -1,5 +1,6 @@
 HAVE_INOTIFY=0
 HAVE_COMPOSITION=0
+WANT_JIT=0
 WANT_ZLIB=1
 
 ifneq ($(EMSCRIPTEN),)
@@ -31,6 +32,7 @@ ifeq ($(platform), unix)
    SHARED := -shared -Wl,--no-undefined
    LUA_SYSCFLAGS := -DLUA_USE_POSIX
    HAVE_INOTIFY=1
+   LDFLAGS += -Wl,-E
 else ifeq ($(platform), linux-portable)
    TARGET := $(TARGET_NAME)_libretro.so
    fpic := -fPIC -nostdlib
@@ -38,19 +40,24 @@ else ifeq ($(platform), linux-portable)
    HAVE_INOTIFY=1
    LUA_SYSCFLAGS := -DLUA_USE_POSIX
    LIBM :=
+   LDFLAGS += -Wl,-E
 else ifeq ($(platform), osx)
    TARGET := $(TARGET_NAME)_libretro.dylib
    fpic := -fPIC
    SHARED := -dynamiclib
    LUA_SYSCFLAGS := -DLUA_USE_MACOSX
-	CFLAGS += -DHAVE_STRL
+   CFLAGS += -DHAVE_STRL
+   # for 64bit osx:
+   #ifeq ($(WANT_JIT))
+   #   LDFLAGS += -Wl,-pagezero_size,10000 -Wl,-image_base,100000000
+   #endif
 else ifeq ($(platform), ios)
    TARGET := $(TARGET_NAME)_libretro_ios.dylib
    fpic := -fPIC
    SHARED := -dynamiclib
    DEFINES := -DIOS
    CC = clang -arch armv7 -isysroot $(IOSSDK)
-	CFLAGS += -DHAVE_STRL
+   CFLAGS += -DHAVE_STRL
 else ifeq ($(platform), qnx)
    TARGET := $(TARGET_NAME)_libretro_qnx.so
    fpic := -fPIC
@@ -88,15 +95,24 @@ endif
 
 CORE_DIR := .
 
-LDFLAGS += $(LIBM)
-
 include Makefile.common
 
 OBJS += $(SOURCES_C:.c=.o) $(SOURCES_CXX:.cpp=.o)
 
 CFLAGS += -Wall -pedantic $(fpic) $(INCFLAGS)
 
-LIBS := deps/lua/src/liblua.a $(LDFLAGS)
+LUADIR := deps/lua/src
+LUALIB := $(LUADIR)/liblua.a
+ifeq ($(WANT_JIT),1)
+   LUADIR := deps/luajit/src
+   LUALIB := $(LUADIR)/libluajit.a
+   LIBS += -ldl
+   CFLAGS += -DHAVE_JIT
+endif
+
+CFLAGS += -I$(LUADIR)
+
+LIBS += $(LUALIB) $(LIBM)
 
 ifeq ($(platform), qnx)
    CFLAGS += -Wc,-std=gnu99
@@ -104,23 +120,27 @@ else
    CFLAGS += -std=gnu99
 endif
 
+
 all: $(TARGET)
 
-$(TARGET): $(OBJS) deps/lua/src/liblua.a
+$(TARGET): $(OBJS) $(LUALIB)
 ifeq ($(STATIC_LINKING), 1)
-	$(AR) rcs $@ $(OBJS) deps/lua/src/*.o
+	$(AR) rcs $@ $(OBJS) $(LUADIR)/*.o
 else
-	$(CC) $(fpic) $(SHARED) $(INCLUDES) $(LFLAGS) -o $@ $(OBJS) $(LIBS)
+	$(CC) $(fpic) $(SHARED) $(INCLUDES) $(LDFLAGS) -o $@ $(OBJS) $(LIBS)
 endif
 
 deps/lua/src/liblua.a:
-	$(MAKE) -C deps/lua/src CC="$(CC)" CXX="$(CXX)" MYCFLAGS="$(LUA_MYCFLAGS) -w -g" MYLDFLAGS="$(LFLAGS)" SYSCFLAGS="$(LUA_SYSCFLAGS) $(fpic)" a
+	$(MAKE) -C deps/lua/src CC="$(CC)" CXX="$(CXX)" MYCFLAGS="$(LUA_MYCFLAGS) -w -g $(fpic)" MYLDFLAGS="$(LFLAGS) $(fpic)" SYSCFLAGS="$(LUA_SYSCFLAGS) $(fpic)" a
+
+deps/luajit/src/libluajit.a:
+	$(MAKE) -C deps/luajit/src BUILDMODE=static CFLAGS="$(LUA_MYCFLAGS) $(fpic)" Q= LDFLAGS="$(fpic)"
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 clean:
-	-make clean -C deps/lua/src clean
+	-make -C $(LUADIR) clean
 	-rm -f $(OBJS) $(TARGET)
 
 .PHONY: clean

@@ -2,7 +2,8 @@
 local availableStates = {
 	"graphics/print",
 	"graphics/rectangle",
-	"graphics/line"
+	"graphics/line",
+	"audio/play"
 }
 local states = {}
 local currentState = 1
@@ -26,8 +27,8 @@ function lutro.load()
 
 	-- Load all states.
 	for i, state in ipairs(states) do
-		if states[currentState]['load'] then
-			states[currentState]['load']()
+		if states[i]['load'] then
+			states[i]['load']()
 		end
 	end
 end
@@ -52,7 +53,9 @@ end
 function lutro.draw()
 	-- Draw the current state.
 	lutro.graphics.clear()
-	states[currentState]['draw']()
+	if states[currentState]['draw'] then
+		states[currentState]['draw']()
+	end
 
 	local status = 'Test ' .. currentState .. ' - ' .. states[currentState]['name']
 	lutro.graphics.print(status, 10, 5)

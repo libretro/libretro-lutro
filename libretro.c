@@ -13,6 +13,8 @@ static bool use_audio_cb;
 int16_t audio_buffer[2 * AUDIO_FRAMES];
 
 static struct retro_log_callback logging;
+
+static retro_log_printf_t log_cb;
 static retro_video_refresh_t video_cb;
 static retro_audio_sample_t audio_cb;
 static retro_audio_sample_batch_t audio_batch_cb;
@@ -50,7 +52,7 @@ void retro_init(void)
    if (!environ_cb( RETRO_ENVIRONMENT_GET_PERF_INTERFACE, &perf_cb))
    {
       perf_cb.get_time_usec = NULL;
-      logging.log(RETRO_LOG_WARN, "Could not get the perf interface\n");
+      log_cb(RETRO_LOG_WARN, "Could not get the perf interface\n");
    }
 }
 
@@ -103,8 +105,10 @@ void retro_set_environment(retro_environment_t cb)
    bool no_rom = false;
    cb(RETRO_ENVIRONMENT_SET_SUPPORT_NO_GAME, &no_rom);
 
-   if (!cb(RETRO_ENVIRONMENT_GET_LOG_INTERFACE, &logging))
-      logging.log = fallback_log;
+   if (cb(RETRO_ENVIRONMENT_GET_LOG_INTERFACE, &logging))
+      log_cb = logging.log;
+   else
+      log_cb = fallback_log;
 }
 
 void retro_set_audio_sample(retro_audio_sample_t cb)
@@ -165,7 +169,7 @@ bool retro_load_game(const struct retro_game_info *info)
    enum retro_pixel_format fmt = RETRO_PIXEL_FORMAT_XRGB8888;
    if (!environ_cb(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &fmt))
    {
-      logging.log(RETRO_LOG_INFO, "XRGB_8888 is not supported.\n");
+      log_cb(RETRO_LOG_INFO, "XRGB_8888 is not supported.\n");
       return false;
    }
 
@@ -177,7 +181,7 @@ bool retro_load_game(const struct retro_game_info *info)
 
    if (!perf_cb.get_time_usec)
    {
-      logging.log(RETRO_LOG_ERROR, "Core needs the perf interface\n");
+      log_cb(RETRO_LOG_ERROR, "Core needs the perf interface\n");
       return false;
    }
 

@@ -261,3 +261,18 @@ void retro_cheat_set(unsigned index, bool enabled, const char *code)
    (void)code;
 }
 
+#ifdef __QNX__
+/* QNX doesn't have this */
+int vasprintf(char **strp, const char *fmt, va_list ap)
+{
+   /* measure the string */
+   int len = vsnprintf(NULL,0,fmt,ap);
+   /* try allocating some memory */
+   if((len < 0) || ((*strp = malloc(++len)) == NULL)) return -1;
+   /* print the string */
+   len = vsnprintf(*strp,len,fmt,ap);
+   /* handle failure */
+   if(len < 0) free(*strp);
+   return len;
+}
+#endif

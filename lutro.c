@@ -20,7 +20,9 @@
 #include <string.h>
 
 #include <assert.h>
+#ifndef __CELLOS_LV2__
 #include <libgen.h>
+#endif
 #include <unistd.h>
 
 static lua_State *L;

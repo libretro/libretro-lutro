@@ -97,6 +97,27 @@ else ifeq ($(platform), wii)
 	DEFINES += -DGEKKO -DHW_RVL -mrvl -mcpu=750 -meabi -mhard-float
    LUA_MYCFLAGS := $(DEFINES) $(CFLAGS)
 	STATIC_LINKING = 1
+# PS3
+else ifeq ($(platform), ps3)
+	TARGET := $(TARGET_NAME)_libretro_ps3.a
+	CC = $(CELL_SDK)/host-win32/ppu/bin/ppu-lv2-gcc.exe
+	CC_AS = $(CELL_SDK)/host-win32/ppu/bin/ppu-lv2-gcc.exe
+	CXX = $(CELL_SDK)/host-win32/ppu/bin/ppu-lv2-g++.exe
+	AR = $(CELL_SDK)/host-win32/ppu/bin/ppu-lv2-ar.exe
+	DEFINES := -D__CELLOS_LV2__
+   LUA_MYCFLAGS := $(DEFINES) $(CFLAGS)
+	STATIC_LINKING = 1
+
+# sncps3
+else ifeq ($(platform), sncps3)
+	TARGET := $(TARGET_NAME)_libretro_ps3.a
+	CC = $(CELL_SDK)/host-win32/sn/bin/ps3ppusnc.exe
+	CC_AS = $(CELL_SDK)/host-win32/sn/bin/ps3ppusnc.exe
+	CXX = $(CELL_SDK)/host-win32/sn/bin/ps3ppusnc.exe
+	AR = $(CELL_SDK)/host-win32/sn/bin/ps3snarl.exe
+	DEFINES := -D__CELLOS_LV2__
+   LUA_MYCFLAGS := $(DEFINES) $(CFLAGS)
+	STATIC_LINKING = 1
 else
    CC = gcc
    TARGET := $(TARGET_NAME)_retro.dll
@@ -134,7 +155,7 @@ LIBS += $(LUALIB) $(LIBM)
 
 ifeq ($(platform), qnx)
    CFLAGS += -Wc,-std=gnu99
-else
+else ifneq ($(platform), sncps3)
    CFLAGS += -std=gnu99
 endif
 

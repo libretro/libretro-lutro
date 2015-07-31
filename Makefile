@@ -79,6 +79,24 @@ else ifeq ($(platform), psp1)
    CFLAGS += -I$(shell psp-config --pspsdk-path)/include
    LUA_MYCFLAGS := $(DEFINES) $(CFLAGS)
    STATIC_LINKING = 1
+else ifeq ($(platform), ngc)
+	TARGET := $(TARGET_NAME)_libretro_ngc.a
+	CC = $(DEVKITPPC)/bin/powerpc-eabi-gcc$(EXE_EXT)
+	CC_AS = $(DEVKITPPC)/bin/powerpc-eabi-gcc$(EXE_EXT)
+	CXX = $(DEVKITPPC)/bin/powerpc-eabi-g++$(EXE_EXT)
+	AR = $(DEVKITPPC)/bin/powerpc-eabi-ar$(EXE_EXT)
+	DEFINES += -DGEKKO -DHW_DOL -mrvl -mcpu=750 -meabi -mhard-float
+   LUA_MYCFLAGS := $(DEFINES) $(CFLAGS)
+	STATIC_LINKING = 1
+else ifeq ($(platform), wii)
+	TARGET := $(TARGET_NAME)_libretro_wii.a
+	CC = $(DEVKITPPC)/bin/powerpc-eabi-gcc$(EXE_EXT)
+	CC_AS = $(DEVKITPPC)/bin/powerpc-eabi-gcc$(EXE_EXT)
+	CXX = $(DEVKITPPC)/bin/powerpc-eabi-g++$(EXE_EXT)
+	AR = $(DEVKITPPC)/bin/powerpc-eabi-ar$(EXE_EXT)
+	DEFINES += -DGEKKO -DHW_RVL -mrvl -mcpu=750 -meabi -mhard-float
+   LUA_MYCFLAGS := $(DEFINES) $(CFLAGS)
+	STATIC_LINKING = 1
 else
    CC = gcc
    TARGET := $(TARGET_NAME)_retro.dll

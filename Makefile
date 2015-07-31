@@ -20,6 +20,21 @@ else ifneq ($(findstring win,$(shell uname -a)),)
 endif
 endif
 
+# system platform
+system_platform = unix
+ifeq ($(shell uname -a),)
+	EXE_EXT = .exe
+	system_platform = win
+else ifneq ($(findstring Darwin,$(shell uname -a)),)
+	system_platform = osx
+	arch = intel
+ifeq ($(shell uname -p),powerpc)
+	arch = ppc
+endif
+else ifneq ($(findstring MINGW,$(shell uname -a)),)
+	system_platform = win
+endif
+
 TARGET_NAME := lutro
 LUA_MYCFLAGS :=
 LUA_SYSCFLAGS :=
@@ -33,6 +48,10 @@ ifeq ($(platform), unix)
    LUA_SYSCFLAGS := -DLUA_USE_POSIX
    HAVE_INOTIFY=1
    LDFLAGS += -Wl,-E
+
+ifeq ($(ARCH), $(filter $(ARCH), intel))
+	WANT_JIT = 1
+endif
 else ifeq ($(platform), linux-portable)
    TARGET := $(TARGET_NAME)_libretro.so
    fpic := -fPIC -nostdlib
@@ -47,6 +66,11 @@ else ifeq ($(platform), osx)
    SHARED := -dynamiclib
    LUA_SYSCFLAGS := -DLUA_USE_MACOSX
    CFLAGS += -DHAVE_STRL
+
+ifeq ($(ARCH), $(filter $(ARCH), intel))
+	WANT_JIT = 1
+endif
+
    # for 64bit osx:
    #ifeq ($(WANT_JIT))
    #   LDFLAGS += -Wl,-pagezero_size,10000 -Wl,-image_base,100000000

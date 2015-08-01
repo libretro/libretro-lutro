@@ -32,7 +32,7 @@
 #include "lj_arch.h"
 #include "lj_alloc.h"
 
-#ifndef LUAJIT_USE_SYSMALLOC
+#if !defined(LUAJIT_USE_SYSMALLOC) && !defined(GEKKO)
 
 #define MAX_SIZE_T		(~(size_t)0)
 #define MALLOC_ALIGNMENT	((size_t)8U)

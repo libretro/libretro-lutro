@@ -110,6 +110,7 @@ int audio_newSource(lua_State *L)
          { "isLooping",  source_isLooping },
          { "isStopped",  source_isStopped },
          { "isPaused",   source_isPaused },
+         { "isPlaying",  source_isPlaying },
          { "setVolume",  source_setVolume },
          { "getVolume",  source_getVolume },
          { "setPitch",   source_setPitch },
@@ -186,6 +187,13 @@ int source_isPaused(lua_State *L)
    return 1;
 }
 
+int source_isPlaying(lua_State *L)
+{
+   audio_Source* self = (audio_Source*)luaL_checkudata(L, 1, "Source");
+   lua_pushboolean(L, (self->state == AUDIO_PLAYING));
+   return 1;
+}
+
 int source_setVolume(lua_State *L)
 {
    int n = lua_gettop(L);
@@ -237,6 +245,8 @@ int audio_play(lua_State *L)
 {
    audio_Source* self = (audio_Source*)luaL_checkudata(L, 1, "Source");
    bool success = fseek(self->fp, WAV_HEADER_SIZE, SEEK_SET) == 0;
+   if (success)
+      self->state = AUDIO_PLAYING;
    lua_pushboolean(L, success);
    return 1;
 }

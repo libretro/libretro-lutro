@@ -9,8 +9,9 @@
 int lutro_filesystem_preload(lua_State *L)
 {
    static luaL_Reg gfx_funcs[] =  {
-      { "exists", fs_exists },
-      { "read",   fs_read },
+      { "exists",      fs_exists },
+      { "read",        fs_read },
+      { "setIdentity", fs_setIdentity },
       {NULL, NULL}
    };
 
@@ -67,4 +68,13 @@ int fs_exists(lua_State *L)
    lua_pushboolean(L, exists);
 
    return 1;
+}
+
+int fs_setIdentity(lua_State *L)
+{
+   const char *name = luaL_checkstring(L, 1);
+
+   strlcpy(settings.identity, name, sizeof(settings.identity));
+
+   return 0;
 }

@@ -10,6 +10,13 @@
 #define AUDIO_FRAMES (44100 / 60)
 #define WAV_HEADER_SIZE 44
 
+typedef enum
+{
+   AUDIO_STOPPED = 0,
+   AUDIO_PAUSED,
+   AUDIO_PLAYING
+} audio_source_state;
+
 typedef struct
 {
    char ChunkID[4];
@@ -35,6 +42,7 @@ typedef struct
    bool loop;
    float volume;
    float pitch;
+   audio_source_state state;
 } audio_Source;
 
 void lutro_audio_init();
@@ -48,6 +56,7 @@ int audio_play(lua_State *L);
 
 int source_setLooping(lua_State *L);
 int source_isLooping(lua_State *L);
+int source_isStopped(lua_State *L);
 int source_getVolume(lua_State *L);
 int source_setVolume(lua_State *L);
 int source_getPitch(lua_State *L);

@@ -96,6 +96,7 @@ int audio_newSource(lua_State *L)
    self->fp = fp;
    self->loop = false;
    self->volume = 1.0;
+   self->state = AUDIO_STOPPED;
    fseek(self->fp, 0, SEEK_END);
 
    num_sources++;
@@ -107,6 +108,7 @@ int audio_newSource(lua_State *L)
       static luaL_Reg audio_funcs[] = {
          { "setLooping", source_setLooping },
          { "isLooping",  source_isLooping },
+         { "isStopped",  source_isStopped },
          { "setVolume",  source_setVolume },
          { "getVolume",  source_getVolume },
          { "setPitch",   source_setPitch },
@@ -166,6 +168,13 @@ int source_isLooping(lua_State *L)
 {
    audio_Source* self = (audio_Source*)luaL_checkudata(L, 1, "Source");
    lua_pushboolean(L, self->loop);
+   return 1;
+}
+
+int source_isStopped(lua_State *L)
+{
+   audio_Source* self = (audio_Source*)luaL_checkudata(L, 1, "Source");
+   lua_pushboolean(L, (self->state == AUDIO_STOPPED));
    return 1;
 }
 

@@ -31,6 +31,7 @@ int lutro_graphics_preload(lua_State *L)
       { "point",        gfx_point },
       { "pop",          gfx_pop },
       { "print",        gfx_print },
+      { "printf",       gfx_printf },
       { "push",         gfx_push },
       { "rectangle",    gfx_rectangle },
       { "scale",        gfx_scale },
@@ -621,6 +622,34 @@ int gfx_print(lua_State *L)
    int dest_y = luaL_checknumber(L, 3);
 
    pntr_print(painter, dest_x, dest_y, message);
+
+   lua_pop(L, n);
+
+   return 0;
+}
+
+int gfx_printf(lua_State *L)
+{
+   int n = lua_gettop(L);
+
+   if (n != 5)
+      return luaL_error(L, "lutro.graphics.printf requires 5 arguments, %d given.", n);
+
+   if (painter->font == NULL)
+      return luaL_error(L, "lutro.graphics.printf requires a font to be set.");
+
+   const char* message = luaL_checkstring(L, 1);
+   int dest_x = luaL_checknumber(L, 2);
+   int dest_y = luaL_checknumber(L, 3);
+   int limit  = luaL_checknumber(L, 4);
+   const char* align = luaL_checkstring(L, 5);
+
+   if (!strcmp(align, "right"))
+      pntr_print(painter, dest_x + limit - pntr_text_width(painter, message), dest_y, message);
+   else if (!strcmp(align, "center"))
+      pntr_print(painter, dest_x + limit/2 - pntr_text_width(painter, message)/2, dest_y, message);
+   else
+      pntr_print(painter, dest_x, dest_y, message);
 
    lua_pop(L, n);
 

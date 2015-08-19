@@ -288,6 +288,37 @@ void pntr_print(painter_t *p, int x, int y, const char *text)
 }
 
 
+int pntr_text_width(painter_t *p, const char *text)
+{
+   int width = 0;
+   assert(p->font != NULL);
+
+   if (p->font->flags & FONT_FREETYPE)
+   {
+
+   }
+   else
+   {
+      font_t *font = p->font;
+
+      int glyph_x, glyph_width;
+
+      while (*text)
+      {
+         int c = *text++;
+         int pos = strpos(font->characters, c);
+
+         glyph_x = font->separators[pos] + 1;
+         glyph_width = font->separators[pos+1] - glyph_x;
+
+         width += glyph_width + 1;
+      }
+   }
+
+   return width;
+}
+
+
 void pntr_printf(painter_t *p, int x, int y, const char *format, ...)
 {
    char *buf;

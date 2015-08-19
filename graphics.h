@@ -42,6 +42,7 @@ int gfx_getBackgroundColor(lua_State *L);
 int gfx_draw(lua_State *L);
 int gfx_drawt(lua_State *L);
 int gfx_print(lua_State *L);
+int gfx_printf(lua_State *L);
 int gfx_setDefaultFilter(lua_State *L);
 int gfx_setLineStyle(lua_State *L);
 int gfx_setLineWidth(lua_State *L);

@@ -109,6 +109,7 @@ int audio_newSource(lua_State *L)
          { "setLooping", source_setLooping },
          { "isLooping",  source_isLooping },
          { "isStopped",  source_isStopped },
+         { "isPaused",   source_isPaused },
          { "setVolume",  source_setVolume },
          { "getVolume",  source_getVolume },
          { "setPitch",   source_setPitch },
@@ -175,6 +176,13 @@ int source_isStopped(lua_State *L)
 {
    audio_Source* self = (audio_Source*)luaL_checkudata(L, 1, "Source");
    lua_pushboolean(L, (self->state == AUDIO_STOPPED));
+   return 1;
+}
+
+int source_isPaused(lua_State *L)
+{
+   audio_Source* self = (audio_Source*)luaL_checkudata(L, 1, "Source");
+   lua_pushboolean(L, (self->state == AUDIO_PAUSED));
    return 1;
 }
 

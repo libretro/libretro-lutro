@@ -11,5 +11,6 @@ void lutro_window_init();
 int lutro_window_preload(lua_State *L);
 
 int win_setTitle(lua_State *L);
+int win_setMode(lua_State *L);
 
 #endif // WINDOW_H

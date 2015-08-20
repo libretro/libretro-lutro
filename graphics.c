@@ -80,15 +80,27 @@ int gfx_newImage(lua_State *L)
    if (n != 1)
       return luaL_error(L, "lutro.graphics.newImage requires 1 arguments, %d given.", n);
 
-   const char* path = luaL_checkstring(L, 1);
+   bitmap_t *self;
 
-   char fullpath[PATH_MAX_LENGTH];
-   strlcpy(fullpath, settings.gamedir, sizeof(fullpath));
-   strlcat(fullpath, path, sizeof(fullpath));
+   if (lua_isuserdata(L, 1))
+   {
+      self = (bitmap_t*)luaL_checkudata(L, 1, "ImageData");
+   }
+   else
+   {
+      const char* path = luaL_checkstring(L, 1);
 
-   bitmap_t *self = (bitmap_t*)lua_newuserdata(L, sizeof(bitmap_t));
+      char fullpath[PATH_MAX_LENGTH];
+      strlcpy(fullpath, settings.gamedir, sizeof(fullpath));
+      strlcat(fullpath, path, sizeof(fullpath));
 
-   rpng_load_image_argb(fullpath, &self->data, &self->width, &self->height);
+      self = (bitmap_t*)lua_newuserdata(L, sizeof(bitmap_t));
+
+      rpng_load_image_argb(fullpath, &self->data, &self->width, &self->height);
+   }
+
+   if (!self)
+      return 0;
 
    self->pitch = self->width << 2;
 

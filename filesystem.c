@@ -13,6 +13,7 @@ int lutro_filesystem_preload(lua_State *L)
       { "read",        fs_read },
       { "setIdentity", fs_setIdentity },
       { "isDirectory", fs_isDirectory },
+      { "createDirectory", fs_createDirectory },
       {NULL, NULL}
    };
 
@@ -93,4 +94,23 @@ int fs_isDirectory(lua_State *L)
    lua_pushboolean(L, exists);
 
    return 1;
+}
+
+int fs_createDirectory(lua_State *L)
+{
+   const char *path = luaL_checkstring(L, 1);
+
+   char fullpath[PATH_MAX_LENGTH];
+   strlcpy(fullpath, settings.gamedir, sizeof(fullpath));
+   strlcat(fullpath, path, sizeof(fullpath));
+
+   if (path_mkdir(fullpath))
+   {
+      lua_pushboolean(L, 1);
+      return 1;
+   }
+   else
+   {
+      return 0;
+   }
 }

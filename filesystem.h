@@ -13,5 +13,6 @@ int lutro_filesystem_preload(lua_State *L);
 int fs_read(lua_State *L);
 int fs_exists(lua_State *L);
 int fs_setIdentity(lua_State *L);
+int fs_isDirectory(lua_State *L);
 
 #endif // FILESYSTEM_H

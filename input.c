@@ -86,9 +86,13 @@ int input_joypad(lua_State *L)
 
    lua_pop(L, n);
 
-   int value = settings.input_cb(port, RETRO_DEVICE_JOYPAD, index, id);
-
-   lua_pushinteger(L, value);
-
-   return 1;
+   if (settings.input_cb(port, RETRO_DEVICE_JOYPAD, index, id))
+   {
+      lua_pushinteger(L, 1);
+      return 1;
+   }
+   else
+   {
+      return 0;
+   }
 }

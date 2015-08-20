@@ -4,6 +4,7 @@
 #include "compat/strl.h"
 #include "unzip.h"
 
+#include "image.h"
 #include "graphics.h"
 #include "input.h"
 #include "audio.h"
@@ -77,6 +78,7 @@ void lutro_init()
    init_settings(L);
 
    lutro_preload(L, lutro_core_preload, "lutro");
+   lutro_preload(L, lutro_image_preload, "lutro.image");
    lutro_preload(L, lutro_graphics_preload, "lutro.graphics");
    lutro_preload(L, lutro_audio_preload, "lutro.audio");
    lutro_preload(L, lutro_input_preload, "lutro.input");
@@ -90,6 +92,7 @@ void lutro_init()
    // if any of these requires fail, the checked stack assertion at the end will
    // be triggered. remember that assertions are only avaialable in debug mode.
    lutro_require(L, "lutro", 1);
+   lutro_require(L, "lutro.image", 1);
    lutro_require(L, "lutro.graphics", 1);
    lutro_require(L, "lutro.audio", 1);
    lutro_require(L, "lutro.input", 1);

@@ -76,21 +76,21 @@ int img_newImageData(lua_State *L)
 
 int imgdata_getWidth(lua_State *L) 
 {
-   bitmap_t* self = (bitmap_t*)luaL_checkudata(L, 1, "Image");
+   bitmap_t* self = (bitmap_t*)luaL_checkudata(L, 1, "ImageData");
    lua_pushnumber(L, self->width);
    return 1;
 }
 
 int imgdata_getHeight(lua_State *L) 
 {
-   bitmap_t* self = (bitmap_t*)luaL_checkudata(L, 1, "Image");
+   bitmap_t* self = (bitmap_t*)luaL_checkudata(L, 1, "ImageData");
    lua_pushnumber(L, self->height);
    return 1;
 }
 
 int imgdata_getDimensions(lua_State *L) 
 {
-   bitmap_t* self = (bitmap_t*)luaL_checkudata(L, 1, "Image");
+   bitmap_t* self = (bitmap_t*)luaL_checkudata(L, 1, "ImageData");
    lua_pushnumber(L, self->width);
    lua_pushnumber(L, self->height);
    return 2;

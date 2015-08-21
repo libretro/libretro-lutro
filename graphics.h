@@ -4,6 +4,13 @@
 #include <stdlib.h>
 #include "runtime.h"
 #include "formats/rpng.h"
+#include "painter.h"
+
+typedef struct
+{
+   bitmap_t* data;
+   int ref;
+} gfx_Image;
 
 typedef struct
 {

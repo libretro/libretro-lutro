@@ -2,7 +2,6 @@
 #include "lutro.h"
 #include "compat/strl.h"
 #include "retro_miscellaneous.h"
-#include "painter.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -80,11 +79,14 @@ int gfx_newImage(lua_State *L)
    if (n != 1)
       return luaL_error(L, "lutro.graphics.newImage requires 1 arguments, %d given.", n);
 
-   bitmap_t *self;
+   gfx_Image *self = (gfx_Image*)lua_newuserdata(L, sizeof(gfx_Image));;
 
    if (lua_isuserdata(L, 1))
    {
-      self = (bitmap_t*)luaL_checkudata(L, 1, "ImageData");
+      self->data = (bitmap_t*)luaL_checkudata(L, 1, "ImageData");
+
+      lua_pushvalue(L, 1);
+      self->ref = luaL_ref(L, LUA_REGISTRYINDEX);
    }
    else
    {
@@ -94,15 +96,17 @@ int gfx_newImage(lua_State *L)
       strlcpy(fullpath, settings.gamedir, sizeof(fullpath));
       strlcat(fullpath, path, sizeof(fullpath));
 
-      self = (bitmap_t*)lua_newuserdata(L, sizeof(bitmap_t));
+      self->data = (bitmap_t*)lua_newuserdata(L, sizeof(bitmap_t));
 
-      rpng_load_image_argb(fullpath, &self->data, &self->width, &self->height);
+      rpng_load_image_argb(fullpath, &self->data->data, &self->data->width, &self->data->height);
+
+      self->ref = luaL_ref(L, LUA_REGISTRYINDEX);
    }
 
    if (!self)
       return 0;
 
-   self->pitch = self->width << 2;
+   self->data->pitch = self->data->width << 2;
 
    if (luaL_newmetatable(L, "Image") != 0)
    {
@@ -133,30 +137,30 @@ int gfx_newImage(lua_State *L)
 
 int img_getData(lua_State *L)
 {
-   bitmap_t* self = (bitmap_t*)luaL_checkudata(L, 1, "Image");
+   gfx_Image* self = (gfx_Image*)luaL_checkudata(L, 1, "Image");
    lua_pushlightuserdata(L, self->data);
    return 1;
 }
 
 int img_getWidth(lua_State *L)
 {
-   bitmap_t* self = (bitmap_t*)luaL_checkudata(L, 1, "Image");
-   lua_pushnumber(L, self->width);
+   gfx_Image* self = (gfx_Image*)luaL_checkudata(L, 1, "Image");
+   lua_pushnumber(L, self->data->width);
    return 1;
 }
 
 int img_getHeight(lua_State *L)
 {
-   bitmap_t* self = (bitmap_t*)luaL_checkudata(L, 1, "Image");
-   lua_pushnumber(L, self->height);
+   gfx_Image* self = (gfx_Image*)luaL_checkudata(L, 1, "Image");
+   lua_pushnumber(L, self->data->height);
    return 1;
 }
 
 int img_getDimensions(lua_State *L)
 {
-   bitmap_t* self = (bitmap_t*)luaL_checkudata(L, 1, "Image");
-   lua_pushnumber(L, self->width);
-   lua_pushnumber(L, self->height);
+   gfx_Image* self = (gfx_Image*)luaL_checkudata(L, 1, "Image");
+   lua_pushnumber(L, self->data->width);
+   lua_pushnumber(L, self->data->height);
    return 2;
 }
 
@@ -167,8 +171,16 @@ int img_setFilter(lua_State *L)
 
 int img_gc(lua_State *L)
 {
-   bitmap_t* self = (bitmap_t*)luaL_checkudata(L, 1, "Image");
-   (void)self;
+   gfx_Image* self = (gfx_Image*)luaL_checkudata(L, 1, "Image");
+
+   if (self->ref != LUA_NOREF )
+   {
+      luaL_unref( L, LUA_REGISTRYINDEX, self->ref );
+   }
+
+   /* FIXME */
+   /* free((void*)self); */
+
    return 0;
 }
 
@@ -529,7 +541,7 @@ int gfx_drawt(lua_State *L)
    if (n != 6)
       return luaL_error(L, "lutro.graphics.drawt requires 6 arguments, %d given.", n);
 
-   bitmap_t* img = (bitmap_t*)luaL_checkudata(L, 1, "Image");
+   gfx_Image* img = (gfx_Image*)luaL_checkudata(L, 1, "Image");
    int dest_x = luaL_checknumber(L, 2);
    int dest_y = luaL_checknumber(L, 3);
    int tw = luaL_checknumber(L, 4);
@@ -555,12 +567,12 @@ int gfx_drawt(lua_State *L)
    };
 
    rect_t srect = {
-      ((id-1)%(img->width/tw))*tw,
-      ((id-1)/(img->width/tw))*tw,
+      ((id-1)%(img->data->width/tw))*tw,
+      ((id-1)/(img->data->width/tw))*tw,
       tw, th
    };
 
-   pntr_draw(painter, img, &srect, &drect);
+   pntr_draw(painter, img->data, &srect, &drect);
 
    return 0;
 }
@@ -573,18 +585,18 @@ int gfx_draw(lua_State *L)
       return luaL_error(L, "lutro.graphics.draw requires at least 3 arguments, %d given.", n);
 
    int start = 0;
-   bitmap_t* img = NULL;
+   gfx_Image* img = NULL;
    gfx_Quad* quad = NULL;
 
    void *p = lua_touserdata(L, 2);
    if (p == NULL)
    {
-      img = (bitmap_t*)luaL_checkudata(L, 1, "Image");
+      img = (gfx_Image*)luaL_checkudata(L, 1, "Image");
       start = 1;
    }
    else
    {
-      img = (bitmap_t*)luaL_checkudata(L, 1, "Image");
+      img = (gfx_Image*)luaL_checkudata(L, 1, "Image");
       quad = (gfx_Quad*)luaL_checkudata(L, 2, "Quad");
       start = 2;
    }
@@ -604,7 +616,7 @@ int gfx_draw(lua_State *L)
    rect_t drect = { x + ox, y + oy, painter->target->width, painter->target->height };
    if (quad == NULL)
    {
-      pntr_draw(painter, img, NULL, &drect);
+      pntr_draw(painter, img->data, NULL, &drect);
    }
    else
    {
@@ -612,7 +624,7 @@ int gfx_draw(lua_State *L)
          quad->x, quad->y,
          quad->w, quad->h
       };
-      pntr_draw(painter, img, &srect, &drect);
+      pntr_draw(painter, img->data, &srect, &drect);
    }
 
    return 0;

@@ -264,6 +264,36 @@ int quad_gc(lua_State *L)
    return 0;
 }
 
+static void push_font(lua_State *L, font_t *font)
+{
+   font_t* self = (font_t*)lua_newuserdata(L, sizeof(font_t));
+   self->atlas = font->atlas;
+   self->flags = font->flags;
+   self->pxsize = font->pxsize;
+   memcpy(self->separators, font->separators, sizeof(font->separators));
+   memcpy(self->characters, font->characters, sizeof(font->characters));
+
+   if (luaL_newmetatable(L, "Font") != 0)
+   {
+      static luaL_Reg font_funcs[] = {
+         { "type", font_type },
+         { "__gc", font_gc },
+         {NULL, NULL}
+      };
+
+      lua_pushvalue(L, -1);
+
+      lua_setfield(L, -2, "__index");
+
+      lua_pushcfunction( L, font_gc );
+      lua_setfield( L, -2, "__gc" );
+
+      luaL_setfuncs(L, font_funcs, 0);
+   }
+
+   lua_setmetatable(L, -2);
+}
+
 int gfx_newImageFont(lua_State *L)
 {
    int n = lua_gettop(L);
@@ -282,9 +312,24 @@ int gfx_newImageFont(lua_State *L)
 
    font_t *font = font_load_bitmap(fullpath, characters, 0);
 
-   lua_pushlightuserdata(L, font);
+   push_font(L, font);
 
    return 1;
+}
+
+int font_type(lua_State *L)
+{
+   font_t* self = (font_t*)luaL_checkudata(L, 1, "Font");
+   (void) self;
+   lua_pushstring(L, "Font");
+   return 1;
+}
+
+int font_gc(lua_State *L)
+{
+   font_t* self = (font_t*)luaL_checkudata(L, 1, "Font");
+   (void)self;
+   return 0;
 }
 
 int gfx_setFont(lua_State *L)
@@ -294,10 +339,9 @@ int gfx_setFont(lua_State *L)
    if (n != 1)
       return luaL_error(L, "lutro.graphics.setFont requires 1 arguments, %d given.", n);
 
-   font_t *font = lua_touserdata(L, 1);
+   font_t* font = (font_t*)luaL_checkudata(L, 1, "Font");
    lua_pop(L, n);
    painter->font = font;
-
 
    return 0;
 }
@@ -311,7 +355,7 @@ int gfx_getFont(lua_State *L)
 
    lua_pop(L, n);
 
-   lua_pushlightuserdata(L, painter->font);
+   push_font(L, painter->font);
 
    return 1;
 }

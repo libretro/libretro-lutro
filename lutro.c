@@ -412,4 +412,6 @@ void lutro_run(double delta)
    lutro_gamepadevent(L);
 
    lua_pop(L, 1);
+
+   lua_gc(L, LUA_GCSTEP, 0);
 }

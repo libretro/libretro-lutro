@@ -66,12 +66,10 @@ int fs_exists(lua_State *L)
    strlcpy(fullpath, settings.gamedir, sizeof(fullpath));
    strlcat(fullpath, path, sizeof(fullpath));
 
-   if (path_file_exists(fullpath) || path_is_directory(fullpath));
-   {
-      lua_pushboolean(L, 1);
-      return 1;
-   }
-   return 0;
+   bool exists = path_file_exists(fullpath);
+
+   lua_pushboolean(L, exists);
+   return 1;
 }
 
 int fs_setIdentity(lua_State *L)
@@ -91,12 +89,10 @@ int fs_isDirectory(lua_State *L)
    strlcpy(fullpath, settings.gamedir, sizeof(fullpath));
    strlcat(fullpath, path, sizeof(fullpath));
 
-   if (path_is_directory(fullpath))
-   {
-      lua_pushboolean(L, 1);
-      return 1;
-   }
-   return 0;
+   bool res = path_is_directory(fullpath);
+
+   lua_pushboolean(L, res);
+   return 1;
 }
 
 int fs_isFile(lua_State *L)
@@ -107,12 +103,10 @@ int fs_isFile(lua_State *L)
    strlcpy(fullpath, settings.gamedir, sizeof(fullpath));
    strlcat(fullpath, path, sizeof(fullpath));
 
-   if (path_file_exists(fullpath))
-   {
-      lua_pushboolean(L, 1);
-      return 1;
-   }
-   return 0;
+   bool res = path_file_exists(fullpath) && !path_is_directory(fullpath);
+
+   lua_pushboolean(L, res);
+   return 1;
 }
 
 int fs_createDirectory(lua_State *L)
@@ -123,10 +117,8 @@ int fs_createDirectory(lua_State *L)
    strlcpy(fullpath, settings.gamedir, sizeof(fullpath));
    strlcat(fullpath, path, sizeof(fullpath));
 
-   if (path_mkdir(fullpath))
-   {
-      lua_pushboolean(L, 1);
-      return 1;
-   }
-   return 0;
+   bool res = path_mkdir(fullpath);
+
+   lua_pushboolean(L, res);
+   return 1;
 }

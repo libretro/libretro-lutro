@@ -11,6 +11,7 @@ static painter_t *painter;
 static bitmap_t  *fbbmp;
 //static uint32_t current_color;
 //static uint32_t background_color;
+static int camera_x = 0, camera_y = 0;
 
 int lutro_graphics_preload(lua_State *L)
 {
@@ -32,6 +33,7 @@ int lutro_graphics_preload(lua_State *L)
       { "print",        gfx_print },
       { "printf",       gfx_printf },
       { "push",         gfx_push },
+      { "translate",    gfx_translate },
       { "rectangle",    gfx_rectangle },
       { "scale",        gfx_scale },
       { "setBackgroundColor", gfx_setBackgroundColor },
@@ -535,7 +537,6 @@ int gfx_line(lua_State *L)
 
 int gfx_drawt(lua_State *L)
 {
-   int camera_x = 0, camera_y = 0;
    int n = lua_gettop(L);
 
    if (n != 6)
@@ -549,16 +550,6 @@ int gfx_drawt(lua_State *L)
    int id = luaL_checknumber(L, 6);
 
    lua_pop(L, n);
-
-   lua_getglobal(L, "lutro");
-
-   lua_getfield(L, -1, "camera_x");
-   camera_x = lua_tointeger(L, -1);
-   lua_remove(L, -1);
-
-   lua_getfield(L, -1, "camera_y");
-   camera_y = lua_tointeger(L, -1);
-   lua_remove(L, -1);
 
    rect_t drect = {
       dest_x + camera_x,
@@ -613,7 +604,7 @@ int gfx_draw(lua_State *L)
 
    lua_pop(L, n);
 
-   rect_t drect = { x + ox, y + oy, painter->target->width, painter->target->height };
+   rect_t drect = { x + ox + camera_x, y + oy + camera_y, painter->target->width, painter->target->height };
    if (quad == NULL)
    {
       pntr_draw(painter, img->data, NULL, &drect);
@@ -726,6 +717,21 @@ int gfx_push(lua_State *L)
    lua_pop(L, lua_gettop(L));
 
    painter = pntr_push(painter);
+   return 0;
+}
+
+int gfx_translate(lua_State *L)
+{
+   int n = lua_gettop(L);
+
+   if (n != 2)
+      return luaL_error(L, "lutro.graphics.translate requires 2 arguments, %d given.", n);
+
+   camera_x = luaL_checknumber(L, 1);
+   camera_y = luaL_checknumber(L, 2);
+
+   lua_pop(L, n);
+
    return 0;
 }
 

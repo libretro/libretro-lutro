@@ -58,6 +58,7 @@ int gfx_getWidth(lua_State *L);
 int gfx_getHeight(lua_State *L);
 int gfx_pop(lua_State *L);
 int gfx_push(lua_State *L);
+int gfx_translate(lua_State *L);
 int gfx_setScissor(lua_State *L);
 
 int img_getData(lua_State *L);

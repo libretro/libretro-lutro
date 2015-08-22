@@ -276,8 +276,9 @@ static void push_font(lua_State *L, font_t *font)
    if (luaL_newmetatable(L, "Font") != 0)
    {
       static luaL_Reg font_funcs[] = {
-         { "type", font_type },
-         { "__gc", font_gc },
+         { "type",     font_type },
+         { "getWidth", font_getWidth },
+         { "__gc",     font_gc },
          {NULL, NULL}
       };
 
@@ -322,6 +323,15 @@ int font_type(lua_State *L)
    font_t* self = (font_t*)luaL_checkudata(L, 1, "Font");
    (void) self;
    lua_pushstring(L, "Font");
+   return 1;
+}
+
+int font_getWidth(lua_State *L)
+{
+   font_t* font = (font_t*)luaL_checkudata(L, 1, "Font");
+   const char* text = luaL_checkstring(L, 1);
+
+   lua_pushnumber(L, pntr_text_width(painter, text));
    return 1;
 }
 

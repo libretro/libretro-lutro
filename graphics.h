@@ -73,6 +73,7 @@ int quad_setViewport(lua_State *L);
 int quad_gc(lua_State *L);
 
 int font_type(lua_State *L);
+int font_getWidth(lua_State *L);
 int font_gc(lua_State *L);
 
 #endif // GRAPHICS_H

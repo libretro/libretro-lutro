@@ -18,7 +18,6 @@ int lutro_graphics_preload(lua_State *L)
    static luaL_Reg gfx_funcs[] =  {
       { "clear",        gfx_clear },
       { "draw",         gfx_draw },
-      { "drawt",        gfx_drawt },
       { "getBackgroundColor", gfx_getBackgroundColor },
       { "getColor",     gfx_getColor },
       { "getFont",      gfx_getFont },
@@ -585,39 +584,6 @@ int gfx_line(lua_State *L)
       if (e2 >-dx) { err -= dy; x1 += sx; }
       if (e2 < dy) { err += dx; y1 += sy; }
    }
-
-   return 0;
-}
-
-int gfx_drawt(lua_State *L)
-{
-   int n = lua_gettop(L);
-
-   if (n != 6)
-      return luaL_error(L, "lutro.graphics.drawt requires 6 arguments, %d given.", n);
-
-   gfx_Image* img = (gfx_Image*)luaL_checkudata(L, 1, "Image");
-   int dest_x = luaL_checknumber(L, 2);
-   int dest_y = luaL_checknumber(L, 3);
-   int tw = luaL_checknumber(L, 4);
-   int th = luaL_checknumber(L, 5);
-   int id = luaL_checknumber(L, 6);
-
-   lua_pop(L, n);
-
-   rect_t drect = {
-      dest_x + camera_x,
-      dest_y + camera_y,
-      tw, th
-   };
-
-   rect_t srect = {
-      ((id-1)%(img->data->width/tw))*tw,
-      ((id-1)/(img->data->width/tw))*tw,
-      tw, th
-   };
-
-   pntr_draw(painter, img->data, &srect, &drect);
 
    return 0;
 }

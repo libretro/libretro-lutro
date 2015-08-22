@@ -8,7 +8,7 @@ int lutro_window_preload(lua_State *L)
 {
    static luaL_Reg win_funcs[] =  {
       { "setTitle", win_setTitle },
-      { "setMode", win_setMode },
+      { "setMode",  win_setMode },
       {NULL, NULL}
    };
 

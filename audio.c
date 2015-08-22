@@ -52,10 +52,10 @@ void mixer_render(int16_t *buffer)
 int lutro_audio_preload(lua_State *L)
 {
    static luaL_Reg gfx_funcs[] =  {
-      { "getVolume",    audio_getVolume },
-      { "newSource",    audio_newSource },
-      { "play",         audio_play },
-      { "setVolume",    audio_setVolume },
+      { "getVolume", audio_getVolume },
+      { "newSource", audio_newSource },
+      { "play",      audio_play },
+      { "setVolume", audio_setVolume },
       {NULL, NULL}
    };
 
@@ -199,7 +199,7 @@ int source_setVolume(lua_State *L)
    int n = lua_gettop(L);
 
    if (n != 2)
-      return luaL_error(L, "Source.setVolume requires 2 arguments, %d given.", n);
+      return luaL_error(L, "Source:setVolume requires 2 arguments, %d given.", n);
 
    audio_Source* self = (audio_Source*)luaL_checkudata(L, 1, "Source");
    self->volume = (float)luaL_checknumber(L, 2);
@@ -219,7 +219,7 @@ int source_setPitch(lua_State *L)
    int n = lua_gettop(L);
 
    if (n != 2)
-      return luaL_error(L, "Source.setPitch requires 2 arguments, %d given.", n);
+      return luaL_error(L, "Source:setPitch requires 2 arguments, %d given.", n);
 
    audio_Source* self = (audio_Source*)luaL_checkudata(L, 1, "Source");
    self->pitch = (float)luaL_checknumber(L, 2);

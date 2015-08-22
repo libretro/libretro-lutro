@@ -12,6 +12,7 @@ void lutro_image_init();
 int lutro_image_preload(lua_State *L);
 
 int img_newImageData(lua_State *L);
+
 int imgdata_getWidth(lua_State *L);
 int imgdata_getHeight(lua_State *L);
 int imgdata_getDimensions(lua_State *L);

@@ -230,7 +230,7 @@ int quad_setViewport(lua_State *L)
    int n = lua_gettop(L);
 
    if (n != 4 && n != 6)
-      return luaL_error(L, "lutro.graphics.setViewport requires 4 or 6 arguments, %d given.", n);
+      return luaL_error(L, "Guad:setViewport requires 4 or 6 arguments, %d given.", n);
 
    gfx_Quad* self = (gfx_Quad*)luaL_checkudata(L, 1, "Quad");
    self->x = luaL_checknumber(L, 2);
@@ -328,7 +328,7 @@ int font_type(lua_State *L)
 
 int font_getWidth(lua_State *L)
 {
-   font_t* font = (font_t*)luaL_checkudata(L, 1, "Font");
+   font_t* self = (font_t*)luaL_checkudata(L, 1, "Font");
    const char* text = luaL_checkstring(L, 1);
 
    lua_pushnumber(L, pntr_text_width(painter, text));

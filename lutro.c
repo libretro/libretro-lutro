@@ -28,7 +28,7 @@
 #include <unistd.h>
 
 static lua_State *L;
-static int input_cache[16];
+static int16_t input_cache[16];
 
 lutro_settings_t settings = {
    .width = 320,
@@ -272,12 +272,6 @@ int lutro_load(const char *path)
 
    strlcpy(settings.gamedir, gamedir, PATH_MAX_LENGTH);
 
-   lua_pushnumber(L, 0);
-   lua_setfield(L, -2, "camera_x");
-
-   lua_pushnumber(L, 0);
-   lua_setfield(L, -2, "camera_y");
-
    lua_getfield(L, -1, "conf");
 
    if (lua_isnoneornil(L, -1))
@@ -357,7 +351,7 @@ void lutro_gamepadevent(lua_State* L)
          lua_getfield(L, -1, is_down ? "gamepadpressed" : "gamepadreleased");
          if (lua_isfunction(L, -1))
          {
-            lua_pushnumber(L, 0);
+            lua_pushnumber(L, i);
             lua_pushstring(L, input_find_name(joystick_enum, i));
             if (lua_pcall(L, 2, 0, 0))
             {

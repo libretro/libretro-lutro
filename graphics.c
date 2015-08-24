@@ -279,6 +279,7 @@ static void push_font(lua_State *L, font_t *font)
       static luaL_Reg font_funcs[] = {
          { "type",     font_type },
          { "getWidth", font_getWidth },
+         { "setFilter",font_setFilter },
          { "__gc",     font_gc },
          {NULL, NULL}
       };
@@ -347,6 +348,11 @@ int font_getWidth(lua_State *L)
 
    lua_pushnumber(L, pntr_text_width(painter, text));
    return 1;
+}
+
+int font_setFilter(lua_State *L)
+{
+   return 0;
 }
 
 int font_gc(lua_State *L)

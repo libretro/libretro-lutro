@@ -34,12 +34,11 @@ int win_setMode(lua_State *L)
 {
    int n = lua_gettop(L);
 
-   if (n != 3)
-      return luaL_error(L, "lutro.window.setMode requires 3 arguments, %d given.", n);
+   if (n != 2)
+      return luaL_error(L, "lutro.window.setMode requires 2 arguments, %d given.", n);
 
    settings.width = luaL_checknumber(L, 1);
    settings.height = luaL_checknumber(L, 2);
-   luaL_checktype(L, 3, LUA_TTABLE);
 
    lua_pop(L, n);
 

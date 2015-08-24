@@ -12,6 +12,7 @@ int lutro_filesystem_preload(lua_State *L)
       { "exists",      fs_exists },
       { "read",        fs_read },
       { "write",       fs_write },
+      { "load",        fs_load },
       { "setIdentity", fs_setIdentity },
       { "isDirectory", fs_isDirectory },
       { "isFile",      fs_isFile },
@@ -78,6 +79,41 @@ int fs_write(lua_State *L)
 
    lua_pushboolean(L, 1);
    return 1;
+}
+
+int fs_load(lua_State *L)
+{
+   const char *path = luaL_checkstring(L, 1);
+
+   char fullpath[PATH_MAX_LENGTH];
+   strlcpy(fullpath, settings.gamedir, sizeof(fullpath));
+   strlcat(fullpath, path, sizeof(fullpath));
+
+   FILE *fp = fopen(fullpath, "r");
+   if (!fp)
+      return -1;
+
+   fseek(fp, 0, SEEK_END);
+   long fsize = ftell(fp);
+   fseek(fp, 0, SEEK_SET);
+
+   char *string = malloc(fsize + 1);
+   fread(string, fsize, 1, fp);
+   fclose(fp);
+
+   string[fsize] = 0;
+
+   int status = luaL_loadbuffer(L, string, fsize, path);
+
+   switch (status)
+   {
+   case LUA_ERRMEM:
+      return luaL_error(L, "Memory allocation error: %s\n", lua_tostring(L, -1));
+   case LUA_ERRSYNTAX:
+      return luaL_error(L, "Syntax error: %s\n", lua_tostring(L, -1));
+   default:
+      return 1;
+   }
 }
 
 int fs_exists(lua_State *L)

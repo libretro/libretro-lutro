@@ -6,7 +6,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-//static gfx_Font *current_font;
 static painter_t *painter;
 static bitmap_t  *fbbmp;
 //static uint32_t current_color;
@@ -301,16 +300,29 @@ int gfx_newImageFont(lua_State *L)
    if (n != 2)
       return luaL_error(L, "lutro.graphics.newImageFont requires 2 arguments, %d given.", n);
 
-   const char* path = luaL_checkstring(L, 1);
-   const char* characters = luaL_checkstring(L, 2);
+   font_t *font;
+
+   void *p = lua_touserdata(L, 1);
+   if (p == NULL)
+   {
+      const char* path = luaL_checkstring(L, 1);
+      const char* characters = luaL_checkstring(L, 2);
+
+      char fullpath[PATH_MAX_LENGTH];
+      strlcpy(fullpath, settings.gamedir, sizeof(fullpath));
+      strlcat(fullpath, path, sizeof(fullpath));
+
+      font = font_load_filename(fullpath, characters, 0);
+   }
+   else
+   {
+      gfx_Image* img = (gfx_Image*)luaL_checkudata(L, 1, "Image");
+      const char* characters = luaL_checkstring(L, 2);
+
+      font = font_load_bitmap(img->data, characters, 0);
+   }
 
    lua_pop(L, n);
-
-   char fullpath[PATH_MAX_LENGTH];
-   strlcpy(fullpath, settings.gamedir, sizeof(fullpath));
-   strlcat(fullpath, path, sizeof(fullpath));
-
-   font_t *font = font_load_bitmap(fullpath, characters, 0);
 
    push_font(L, font);
 

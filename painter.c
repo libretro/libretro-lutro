@@ -331,7 +331,7 @@ void pntr_printf(painter_t *p, int x, int y, const char *format, ...)
 }
 
 
-font_t *font_load_bitmap(const char *filename, const char *characters, unsigned flags)
+font_t *font_load_filename(const char *filename, const char *characters, unsigned flags)
 {
    font_t *font = calloc(1, sizeof(font_t));
 
@@ -355,6 +355,35 @@ font_t *font_load_bitmap(const char *filename, const char *characters, unsigned 
    for (i = 0; i < atlas->width && char_counter < max_separators; i++)
    {
       if (separator == atlas->data[i])
+         font->separators[char_counter++] = i;
+   }
+
+   strcpy(font->characters, characters);
+
+   return font;
+}
+
+font_t *font_load_bitmap(const bitmap_t *atlas, const char *characters, unsigned flags)
+{
+   font_t *font = calloc(1, sizeof(font_t));
+
+   flags &= ~FONT_FREETYPE;
+
+   if (font->atlas.data)
+      free(font->atlas.data);
+
+   font->pxsize = 0;
+   font->flags  = flags;
+
+   font->atlas = *atlas;
+
+   uint32_t separator = font->atlas.data[0];
+   int max_separators = 256;
+
+   int i, char_counter = 0;
+   for (i = 0; i < font->atlas.width && char_counter < max_separators; i++)
+   {
+      if (separator == font->atlas.data[i])
          font->separators[char_counter++] = i;
    }
 

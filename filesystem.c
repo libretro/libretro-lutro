@@ -11,6 +11,7 @@ int lutro_filesystem_preload(lua_State *L)
    static luaL_Reg gfx_funcs[] =  {
       { "exists",      fs_exists },
       { "read",        fs_read },
+      { "write",       fs_write },
       { "setIdentity", fs_setIdentity },
       { "isDirectory", fs_isDirectory },
       { "isFile",      fs_isFile },
@@ -55,6 +56,27 @@ int fs_read(lua_State *L)
 
    lua_pushstring(L, string);
 
+   return 1;
+}
+
+int fs_write(lua_State *L)
+{
+   const char *path = luaL_checkstring(L, 1);
+   const char *data = luaL_checkstring(L, 2);
+
+   char fullpath[PATH_MAX_LENGTH];
+   strlcpy(fullpath, settings.gamedir, sizeof(fullpath));
+   strlcat(fullpath, path, sizeof(fullpath));
+
+   FILE *fp = fopen(fullpath, "w");
+   if (!fp)
+      return -1;
+
+   fprintf(fp, data);
+
+   fclose(fp);
+
+   lua_pushboolean(L, 1);
    return 1;
 }
 

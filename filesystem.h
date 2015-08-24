@@ -11,6 +11,7 @@ void lutro_filesystem_init();
 int lutro_filesystem_preload(lua_State *L);
 
 int fs_read(lua_State *L);
+int fs_write(lua_State *L);
 int fs_exists(lua_State *L);
 int fs_setIdentity(lua_State *L);
 int fs_isFile(lua_State *L);

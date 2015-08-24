@@ -202,9 +202,10 @@ int gfx_newQuad(lua_State *L)
    if (luaL_newmetatable(L, "Quad") != 0)
    {
       static luaL_Reg quad_funcs[] = {
-         { "getViewport",      quad_getViewport },
-         { "quad_setViewport", quad_setViewport },
-         { "__gc",             quad_gc },
+         { "type",        quad_type },
+         { "getViewport", quad_getViewport },
+         { "setViewport", quad_setViewport },
+         { "__gc",        quad_gc },
          {NULL, NULL}
       };
 
@@ -223,12 +224,20 @@ int gfx_newQuad(lua_State *L)
    return 1;
 }
 
+int quad_type(lua_State *L)
+{
+   gfx_Quad* self = (gfx_Quad*)luaL_checkudata(L, 1, "Quad");
+   (void) self;
+   lua_pushstring(L, "Quad");
+   return 1;
+}
+
 int quad_setViewport(lua_State *L)
 {
    int n = lua_gettop(L);
 
-   if (n != 4 && n != 6)
-      return luaL_error(L, "Guad:setViewport requires 4 or 6 arguments, %d given.", n);
+   if (n != 5)
+      return luaL_error(L, "Quad:setViewport requires 5 arguments, %d given.", n);
 
    gfx_Quad* self = (gfx_Quad*)luaL_checkudata(L, 1, "Quad");
    self->x = luaL_checknumber(L, 2);
@@ -236,13 +245,7 @@ int quad_setViewport(lua_State *L)
    self->w = luaL_checknumber(L, 4);
    self->h = luaL_checknumber(L, 5);
 
-   if (!lua_isnoneornil(L, 6))
-      self->sw = luaL_checknumber(L, 6);
-
-   if (!lua_isnoneornil(L, 6))
-      self->sh = luaL_checknumber(L, 7);
-
-   return 4;
+   return 0;
 }
 
 int quad_getViewport(lua_State *L)

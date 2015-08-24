@@ -67,6 +67,7 @@ int img_getDimensions(lua_State *L);
 int img_setFilter(lua_State *L);
 int img_gc(lua_State *L);
 
+int quad_type(lua_State *L);
 int quad_getViewport(lua_State *L);
 int quad_setViewport(lua_State *L);
 int quad_gc(lua_State *L);

@@ -10,7 +10,6 @@ static painter_t *painter;
 static bitmap_t  *fbbmp;
 //static uint32_t current_color;
 //static uint32_t background_color;
-static int camera_x = 0, camera_y = 0;
 
 int lutro_graphics_preload(lua_State *L)
 {
@@ -538,7 +537,7 @@ int gfx_rectangle(lua_State *L)
 
    lua_pop(L, n);
 
-   rect_t r  = { x + camera_x, y + camera_y, w, h };
+   rect_t r  = { x + painter->tx, y + painter->ty, w, h };
    if (!strcmp(mode, "fill"))
    {
       pntr_fill_rect(painter, &r);
@@ -645,7 +644,13 @@ int gfx_draw(lua_State *L)
 
    lua_pop(L, n);
 
-   rect_t drect = { x + ox + camera_x, y + oy + camera_y, painter->target->width, painter->target->height };
+   rect_t drect = {
+      x + ox + painter->tx,
+      y + oy + painter->ty,
+      painter->target->width,
+      painter->target->height
+   };
+
    if (quad == NULL)
    {
       pntr_draw(painter, img->data, NULL, &drect);
@@ -768,8 +773,8 @@ int gfx_translate(lua_State *L)
    if (n != 2)
       return luaL_error(L, "lutro.graphics.translate requires 2 arguments, %d given.", n);
 
-   camera_x = luaL_checknumber(L, 1);
-   camera_y = luaL_checknumber(L, 2);
+   painter->tx = luaL_checknumber(L, 1);
+   painter->ty = luaL_checknumber(L, 2);
 
    lua_pop(L, n);
 

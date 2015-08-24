@@ -44,6 +44,15 @@ struct painter_s
    font_t   *font;
    rect_t   clip;
 
+   /* translation */
+   int tx;
+   int ty;
+   /* rotation */
+   float r;
+   /* scale */
+   float sx;
+   float sy;
+
    painter_t *parent;
 };
 

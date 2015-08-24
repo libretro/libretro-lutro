@@ -35,26 +35,27 @@ static int strpos(const char *haystack, char needle)
    return -1;
 }
 
+
 painter_t *pntr_push(painter_t *p)
 {
-   painter_t *painter = calloc(1, sizeof(painter_t));
-   memcpy(painter, p, sizeof(painter_t));
-   painter->parent = p;
+   painter_t *new_painter = calloc(1, sizeof(painter_t));
+   memcpy(new_painter, p, sizeof(painter_t));
+   new_painter->parent = p;
 
-   return painter;
+   return new_painter;
 }
 
 
 painter_t *pntr_pop(painter_t *p)
 {
-   painter_t *painter = p->parent;
+   painter_t *parent = p->parent;
 
-   if (painter)
+   if (parent)
       free(p);
    else
-      painter = p;
+      parent = p;
 
-   return painter;
+   return parent;
 }
 
 

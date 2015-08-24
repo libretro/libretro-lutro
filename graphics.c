@@ -613,8 +613,8 @@ int gfx_draw(lua_State *L)
 {
    int n = lua_gettop(L);
 
-   if (n < 3)
-      return luaL_error(L, "lutro.graphics.draw requires at least 3 arguments, %d given.", n);
+   if (n < 1)
+      return luaL_error(L, "lutro.graphics.draw requires at least 1 arguments, %d given.", n);
 
    int start = 0;
    gfx_Image* img = NULL;

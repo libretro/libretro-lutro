@@ -529,7 +529,7 @@ int gfx_rectangle(lua_State *L)
 
    lua_pop(L, n);
 
-   rect_t r  = { x, y, w, h };
+   rect_t r  = { x + camera_x, y + camera_y, w, h };
    if (!strcmp(mode, "fill"))
    {
       pntr_fill_rect(painter, &r);

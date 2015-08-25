@@ -11,6 +11,7 @@ SOURCES_C += $(CORE_DIR)/libretro.c \
 	$(CORE_DIR)/input.c \
 	$(CORE_DIR)/audio.c \
 	$(CORE_DIR)/filesystem.c \
+	$(CORE_DIR)/system.c \
 	$(CORE_DIR)/timer.c \
 	$(CORE_DIR)/window.c \
 	$(CORE_DIR)/painter.c

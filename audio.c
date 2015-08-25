@@ -26,7 +26,7 @@ void mixer_render(int16_t *buffer)
       bool end = ! fread(rawsamples8,
             sizeof(uint8_t),
             AUDIO_FRAMES * sources[i]->bps,
-            sources[i]->fp);
+            sources[i]->sndta.fp);
 
       int16_t* rawsamples16 = (int16_t*)rawsamples8;
       
@@ -34,16 +34,16 @@ void mixer_render(int16_t *buffer)
       {
          int16_t left = 0;
          int16_t right = 0;
-         if (sources[i]->head.NumChannels == 1 && sources[i]->head.BitsPerSample ==  8) { left = right = rawsamples8[j]*64; }
-         if (sources[i]->head.NumChannels == 2 && sources[i]->head.BitsPerSample ==  8) { left = rawsamples8[j*2+0]*64; right=rawsamples8[j*2+1]*64; }
-         if (sources[i]->head.NumChannels == 1 && sources[i]->head.BitsPerSample == 16) { left = right = rawsamples16[j]; }
-         if (sources[i]->head.NumChannels == 2 && sources[i]->head.BitsPerSample == 16) { left = rawsamples16[j*2+0]; right=rawsamples16[j*2+1]; }
+         if (sources[i]->sndta.head.NumChannels == 1 && sources[i]->sndta.head.BitsPerSample ==  8) { left = right = rawsamples8[j]*64; }
+         if (sources[i]->sndta.head.NumChannels == 2 && sources[i]->sndta.head.BitsPerSample ==  8) { left = rawsamples8[j*2+0]*64; right=rawsamples8[j*2+1]*64; }
+         if (sources[i]->sndta.head.NumChannels == 1 && sources[i]->sndta.head.BitsPerSample == 16) { left = right = rawsamples16[j]; }
+         if (sources[i]->sndta.head.NumChannels == 2 && sources[i]->sndta.head.BitsPerSample == 16) { left = rawsamples16[j*2+0]; right=rawsamples16[j*2+1]; }
          buffer[j*2+0] += left  * sources[i]->volume * volume;
          buffer[j*2+1] += right * sources[i]->volume * volume;
       }
 
       if (end && sources[i]->loop)
-         fseek(sources[i]->fp, WAV_HEADER_SIZE, SEEK_SET);
+         fseek(sources[i]->sndta.fp, WAV_HEADER_SIZE, SEEK_SET);
 
       free(rawsamples8);
    }
@@ -79,25 +79,35 @@ int audio_newSource(lua_State *L)
    if (n != 1 && n != 2)
       return luaL_error(L, "lutro.audio.newSource requires 1 or 2 arguments, %d given.", n);
 
-   const char* path = luaL_checkstring(L, 1);
-
-   char fullpath[PATH_MAX_LENGTH];
-   strlcpy(fullpath, settings.gamedir, sizeof(fullpath));
-   strlcat(fullpath, path, sizeof(fullpath));
-
    audio_Source* self = (audio_Source*)lua_newuserdata(L, sizeof(audio_Source));
 
-   FILE *fp = fopen(fullpath, "rb");
-   if (!fp)
-      return -1;
+   void *p = lua_touserdata(L, 1);
+   if (p == NULL)
+   {
+      const char* path = luaL_checkstring(L, 1);
 
-   fread(&self->head, sizeof(uint8_t), WAV_HEADER_SIZE, fp);
-   self->bps = self->head.NumChannels * self->head.BitsPerSample / 8;
-   self->fp = fp;
+      char fullpath[PATH_MAX_LENGTH];
+      strlcpy(fullpath, settings.gamedir, sizeof(fullpath));
+      strlcat(fullpath, path, sizeof(fullpath));
+
+      FILE *fp = fopen(fullpath, "rb");
+      if (!fp)
+         return -1;
+
+      fread(&self->sndta.head, sizeof(uint8_t), WAV_HEADER_SIZE, fp);
+      self->sndta.fp = fp;
+   }
+   else
+   {
+      snd_SoundData* sndta = (snd_SoundData*)luaL_checkudata(L, 1, "SoundData");
+      self->sndta = *sndta;
+   }
+
+   self->bps = self->sndta.head.NumChannels * self->sndta.head.BitsPerSample / 8;
    self->loop = false;
    self->volume = 1.0;
    self->state = AUDIO_STOPPED;
-   fseek(self->fp, 0, SEEK_END);
+   fseek(self->sndta.fp, 0, SEEK_END);
 
    num_sources++;
    sources = (audio_Source**)realloc(sources, num_sources * sizeof(audio_Source));
@@ -244,7 +254,7 @@ int source_gc(lua_State *L)
 int audio_play(lua_State *L)
 {
    audio_Source* self = (audio_Source*)luaL_checkudata(L, 1, "Source");
-   bool success = fseek(self->fp, WAV_HEADER_SIZE, SEEK_SET) == 0;
+   bool success = fseek(self->sndta.fp, WAV_HEADER_SIZE, SEEK_SET) == 0;
    if (success)
       self->state = AUDIO_PLAYING;
    lua_pushboolean(L, success);

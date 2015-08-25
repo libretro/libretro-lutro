@@ -8,6 +8,7 @@
 #include "graphics.h"
 #include "input.h"
 #include "audio.h"
+#include "sound.h"
 #include "filesystem.h"
 #include "system.h"
 #include "timer.h"
@@ -82,6 +83,7 @@ void lutro_init()
    lutro_preload(L, lutro_image_preload, "lutro.image");
    lutro_preload(L, lutro_graphics_preload, "lutro.graphics");
    lutro_preload(L, lutro_audio_preload, "lutro.audio");
+   lutro_preload(L, lutro_sound_preload, "lutro.sound");
    lutro_preload(L, lutro_input_preload, "lutro.input");
    lutro_preload(L, lutro_filesystem_preload, "lutro.filesystem");
    lutro_preload(L, lutro_system_preload, "lutro.system");
@@ -97,6 +99,7 @@ void lutro_init()
    lutro_require(L, "lutro.image", 1);
    lutro_require(L, "lutro.graphics", 1);
    lutro_require(L, "lutro.audio", 1);
+   lutro_require(L, "lutro.sound", 1);
    lutro_require(L, "lutro.input", 1);
    lutro_require(L, "lutro.filesystem", 1);
    lutro_require(L, "lutro.system", 1);

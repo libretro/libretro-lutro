@@ -6,9 +6,9 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include "runtime.h"
+#include "sound.h"
 
 #define AUDIO_FRAMES (44100 / 60)
-#define WAV_HEADER_SIZE 44
 
 typedef enum
 {
@@ -19,26 +19,8 @@ typedef enum
 
 typedef struct
 {
-   char ChunkID[4];
-   uint32_t ChunkSize;
-   char Format[4];
-   char Subchunk1ID[4];
-   uint32_t Subchunk1Size;
-   uint16_t AudioFormat;
-   uint16_t NumChannels;
-   uint32_t SampleRate;
-   uint32_t ByteRate;
-   uint16_t BlockAlign;
-   uint16_t BitsPerSample;
-   char Subchunk2ID[4];
-   uint32_t Subchunk2Size;
-} wavhead_t;
-
-typedef struct
-{
-   wavhead_t head;
+   snd_SoundData sndta;
    unsigned bps; // bytes per sample
-   void* fp;
    bool loop;
    float volume;
    float pitch;

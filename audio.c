@@ -20,6 +20,9 @@ void mixer_render(int16_t *buffer)
    // Loop over audio sources
    for (unsigned i = 0; i < num_sources; i++)
    {
+      if (sources[i]->state == AUDIO_STOPPED)
+         continue;
+
       uint8_t* rawsamples8 = calloc(
          AUDIO_FRAMES * sources[i]->bps, sizeof(uint8_t));
 
@@ -42,8 +45,12 @@ void mixer_render(int16_t *buffer)
          buffer[j*2+1] += right * sources[i]->volume * volume;
       }
 
-      if (end && sources[i]->loop)
+      if (end)
+      {
+         if (!sources[i]->loop)
+            sources[i]->state = AUDIO_STOPPED;
          fseek(sources[i]->sndta.fp, WAV_HEADER_SIZE, SEEK_SET);
+      }
 
       free(rawsamples8);
    }
@@ -52,9 +59,10 @@ void mixer_render(int16_t *buffer)
 int lutro_audio_preload(lua_State *L)
 {
    static luaL_Reg gfx_funcs[] =  {
-      { "getVolume", audio_getVolume },
-      { "newSource", audio_newSource },
       { "play",      audio_play },
+      { "stop",      audio_stop },
+      { "newSource", audio_newSource },
+      { "getVolume", audio_getVolume },
       { "setVolume", audio_setVolume },
       {NULL, NULL}
    };
@@ -116,6 +124,8 @@ int audio_newSource(lua_State *L)
    if (luaL_newmetatable(L, "Source") != 0)
    {
       static luaL_Reg audio_funcs[] = {
+         { "play",       audio_play }, /* We can reuse audio_play and */
+         { "stop",       audio_stop }, /* audio_stop here. */
          { "setLooping", source_setLooping },
          { "isLooping",  source_isLooping },
          { "isStopped",  source_isStopped },
@@ -257,6 +267,16 @@ int audio_play(lua_State *L)
    bool success = fseek(self->sndta.fp, WAV_HEADER_SIZE, SEEK_SET) == 0;
    if (success)
       self->state = AUDIO_PLAYING;
+   lua_pushboolean(L, success);
+   return 1;
+}
+
+int audio_stop(lua_State *L)
+{
+   audio_Source* self = (audio_Source*)luaL_checkudata(L, 1, "Source");
+   bool success = fseek(self->sndta.fp, WAV_HEADER_SIZE, SEEK_SET) == 0;
+   if (success)
+      self->state = AUDIO_STOPPED;
    lua_pushboolean(L, success);
    return 1;
 }

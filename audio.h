@@ -35,6 +35,7 @@ int audio_newSource(lua_State *L);
 int audio_setVolume(lua_State *L);
 int audio_getVolume(lua_State *L);
 int audio_play(lua_State *L);
+int audio_stop(lua_State *L);
 
 int source_setLooping(lua_State *L);
 int source_isLooping(lua_State *L);
@@ -45,6 +46,7 @@ int source_getVolume(lua_State *L);
 int source_setVolume(lua_State *L);
 int source_getPitch(lua_State *L);
 int source_setPitch(lua_State *L);
+
 int source_gc(lua_State *L);
 
 #endif // AUDIO_H

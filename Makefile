@@ -44,7 +44,7 @@ STATIC_LINKING := 0
 ifeq ($(platform), unix)
    TARGET := $(TARGET_NAME)_libretro.so
    fpic := -fPIC
-   SHARED := -shared -Wl,--no-undefined
+   SHARED := -shared -Wl,--no-as-needed,--no-undefined
    LUA_SYSCFLAGS := -DLUA_USE_POSIX
    HAVE_INOTIFY=1
    LDFLAGS += -Wl,-E

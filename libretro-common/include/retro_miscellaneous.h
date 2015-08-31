@@ -23,6 +23,8 @@
 #ifndef __RARCH_MISCELLANEOUS_H
 #define __RARCH_MISCELLANEOUS_H
 
+#include <stdint.h>
+
 #if defined(__CELLOS_LV2__) && !defined(__PSL1GHT__)
 #include <sys/timer.h>
 #elif defined(XENON)
@@ -30,7 +32,11 @@
 #elif defined(GEKKO) || defined(__PSL1GHT__) || defined(__QNX__)
 #include <unistd.h>
 #elif defined(PSP)
-#include <pspthreadman.h>
+#include <pspthreadman.h> 
+#elif defined(VITA)
+#include <psp2/kernel/threadmgr.h>
+#elif defined(_3DS)
+#include <3ds.h>
 #else
 #include <time.h>
 #endif
@@ -43,10 +49,7 @@
 #endif
 #include <compat/msvc.h>
 
-#if defined(RARCH_INTERNAL) || defined(IS_SALAMANDER)
-/* TODO/FIXME - dirty hack */
-#include "../../retroarch_logger.h"
-#endif
+#include <retro_log.h>
 #include <retro_inline.h>
 #include <retro_endianness.h>
 #include <limits.h>
@@ -85,8 +88,10 @@ static INLINE void rarch_sleep(unsigned msec)
 {
 #if defined(__CELLOS_LV2__) && !defined(__PSL1GHT__)
    sys_timer_usleep(1000 * msec);
-#elif defined(PSP)
+#elif defined(PSP) || defined(VITA)
    sceKernelDelayThread(1000 * msec);
+#elif defined(_3DS)
+   svcSleepThread(1000000 * (s64)msec);
 #elif defined(_WIN32)
    Sleep(msec);
 #elif defined(XENON)
@@ -161,9 +166,9 @@ typedef struct
 #define BIT32_GET(a, bit) (!!((a) &   (1 << ((bit) & 31))))
 #define BIT32_CLEAR_ALL(a)   ((a) = 0)
 
-#define BIT64_SET(a, bit)    ((a) |=  (1ULL << ((bit) & 63)))
-#define BIT64_CLEAR(a, bit)  ((a) &= ~(1ULL << ((bit) & 63)))
-#define BIT64_GET(a, bit) (!!((a) &   (1ULL << ((bit) & 63))))
+#define BIT64_SET(a, bit)    ((a) |=  (UINT64_C(1) << ((bit) & 63)))
+#define BIT64_CLEAR(a, bit)  ((a) &= ~(UINT64_C(1) << ((bit) & 63)))
+#define BIT64_GET(a, bit) (!!((a) &   (UINT64_C(1) << ((bit) & 63))))
 #define BIT64_CLEAR_ALL(a)   ((a) = 0)
 
 #define BIT128_SET(a, bit)   ((a).data[(bit) >> 5] |=  (1 << ((bit) & 31))

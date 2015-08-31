@@ -90,6 +90,8 @@ else ifeq ($(platform), emscripten)
    TARGET := $(TARGET_NAME)_libretro_emscripten.so
    fpic := -fPIC
    SHARED := -shared -Wl,--no-undefined
+
+# PSP
 else ifeq ($(platform), psp1)
    TARGET := $(TARGET_NAME)_libretro_psp1.a
    fpic :=
@@ -103,6 +105,18 @@ else ifeq ($(platform), psp1)
    CFLAGS += -I$(shell psp-config --pspsdk-path)/include
    LUA_MYCFLAGS := $(DEFINES) $(CFLAGS)
    STATIC_LINKING = 1
+
+# Vita
+else ifeq ($(platform), vita)
+   TARGET := $(TARGET_NAME)_libretro_vita.a
+   fpic :=
+	CC = arm-vita-eabi-gcc$(EXE_EXT)
+	CXX = arm-vita-eabi-g++$(EXE_EXT)
+	AR = arm-vita-eabi-ar$(EXE_EXT)
+   DEFINES := -DVITA  -DLSB_FIRST -DHAVE_ASPRINTF
+   LUA_MYCFLAGS := $(DEFINES) $(CFLAGS)
+   STATIC_LINKING = 1
+
 else ifeq ($(platform), ngc)
 	TARGET := $(TARGET_NAME)_libretro_ngc.a
 	CC = $(DEVKITPPC)/bin/powerpc-eabi-gcc$(EXE_EXT)
@@ -173,7 +187,7 @@ ifeq ($(WANT_JIT),1)
    CFLAGS += -DHAVE_JIT
 endif
 
-CFLAGS += -I$(LUADIR)
+CFLAGS += -I$(LUADIR) $(DEFINES)
 
 LIBS += $(LUALIB) $(LIBM)
 

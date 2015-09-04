@@ -77,7 +77,6 @@ int img_newImageData(lua_State *L)
 
 int imgdata_type(lua_State *L)
 {
-   bitmap_t* self = (bitmap_t*)luaL_checkudata(L, 1, "ImageData");
    lua_pushstring(L, "ImageData");
    return 1;
 }

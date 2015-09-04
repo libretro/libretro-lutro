@@ -26,7 +26,7 @@ typedef struct
    uint32_t Subchunk2Size;
 } wavhead_t;
 
-typedef struct $
+typedef struct
 {
    void* fp;
    wavhead_t head;

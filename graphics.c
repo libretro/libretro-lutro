@@ -342,7 +342,6 @@ int font_type(lua_State *L)
 
 int font_getWidth(lua_State *L)
 {
-   font_t* self = (font_t*)luaL_checkudata(L, 1, "Font");
    const char* text = luaL_checkstring(L, 2);
 
    lua_pushnumber(L, pntr_text_width(painter, text));

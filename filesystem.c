@@ -73,7 +73,7 @@ int fs_write(lua_State *L)
    if (!fp)
       return -1;
 
-   fprintf(fp, data);
+   fprintf(fp, "%s", data);
 
    fclose(fp);
 

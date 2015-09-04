@@ -28,6 +28,7 @@ typedef struct
 } audio_Source;
 
 void lutro_audio_init();
+void lutro_audio_deinit();
 int lutro_audio_preload(lua_State *L);
 void mixer_render(int16_t *buffer);
 

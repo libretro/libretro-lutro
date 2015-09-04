@@ -79,6 +79,16 @@ void lutro_audio_init()
 {
 }
 
+void lutro_audio_deinit()
+{
+   if (sources)
+   {
+      free(sources);
+      sources = NULL;
+      num_sources = 0;
+   }
+}
+
 int audio_newSource(lua_State *L)
 {
    int n = lua_gettop(L);

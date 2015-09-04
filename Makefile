@@ -198,6 +198,12 @@ else ifneq ($(platform), sncps3)
 endif
 
 
+ifneq ($(SANITIZER),)
+   CFLAGS += -fsanitize=$(SANITIZER)
+   LDFLAGS += -fsanitize=$(SANITIZER)
+   SHARED := -shared
+endif
+
 all: $(TARGET)
 
 $(TARGET): $(OBJS) $(LUALIB)

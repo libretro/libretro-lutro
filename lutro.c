@@ -119,6 +119,8 @@ void lutro_deinit()
       lutro_live_deinit();
 #endif
 
+   lutro_audio_deinit();
+
    lua_close(L);
 }
 

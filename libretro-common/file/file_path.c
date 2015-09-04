@@ -20,37 +20,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include <file/file_path.h>
 
 #include <stdlib.h>
 #include <boolean.h>
 #include <string.h>
 #include <time.h>
 #include <errno.h>
-
-#ifdef __HAIKU__
-#include <kernel/image.h>
-#endif
-
-#if (defined(__CELLOS_LV2__) && !defined(__PSL1GHT__)) || defined(__QNX__) || defined(PSP)
-#include <unistd.h> /* stat() is defined here */
-#endif
-
-#include <compat/strl.h>
-#include <compat/posix_string.h>
-#include <retro_miscellaneous.h>
-
-#ifdef HAVE_COMPRESSION
-#include <rhash.h>
-#endif
-
-#if defined(__CELLOS_LV2__)
-
-#ifndef S_ISDIR
-#define S_ISDIR(x) (x & 0040000)
-#endif
-
-#endif
 
 #if defined(_WIN32)
 #ifdef _MSC_VER
@@ -68,16 +43,40 @@
 #elif defined(VITA)
 #include <psp2/io/fcntl.h>
 #include <psp2/io/dirent.h>
+#include <sys/stat.h>
 #else
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <dirent.h>
 #include <unistd.h>
 #endif
 
 #if defined(PSP)
 #include <pspkernel.h>
 #endif
+
+#ifdef __HAIKU__
+#include <kernel/image.h>
+#endif
+
+#if (defined(__CELLOS_LV2__) && !defined(__PSL1GHT__)) || defined(__QNX__) || defined(PSP)
+#include <unistd.h> /* stat() is defined here */
+#endif
+
+#include <file/file_path.h>
+
+#include <compat/strl.h>
+#include <compat/posix_string.h>
+#include <retro_assert.h>
+#include <retro_miscellaneous.h>
+
+#if defined(__CELLOS_LV2__)
+
+#ifndef S_ISDIR
+#define S_ISDIR(x) (x & 0040000)
+#endif
+
+#endif
+
 
 /**
  * path_get_extension:
@@ -135,9 +134,6 @@ bool path_contains_compressed_file(const char *path)
    return (strchr(path,'#') != NULL);
 }
 
-#define FILE_EXT_7Z     0x005971d6U
-#define FILE_EXT_ZIP    0x0b88c7d8U
-
 /**
  * path_is_compressed_file:
  * @path               : path
@@ -150,19 +146,16 @@ bool path_is_compressed_file(const char* path)
 {
 #ifdef HAVE_COMPRESSION
    const char* file_ext   = path_get_extension(path);
-   uint32_t file_ext_hash = djb2_calculate(file_ext);
 
-   switch (file_ext_hash)
-   {
-#ifdef HAVE_7ZIP
-      case FILE_EXT_7Z:
-         return true;
-#endif
 #ifdef HAVE_ZLIB
-      case FILE_EXT_ZIP:
-         return true;
+   if (!strcmp(file_ext, "zip"))
+      return true;
 #endif
-   }
+
+#ifdef HAVE_7ZIP
+   if (!strcmp(file_ext, "7z"))
+      return true;
+#endif
 
 #endif
    return false;
@@ -506,13 +499,15 @@ const char *path_basename(const char *path)
  **/
 bool path_is_absolute(const char *path)
 {
+   if (path[0] == '/')
+      return true;
 #ifdef _WIN32
    /* Many roads lead to Rome ... */
-   return path[0] == '/' || (strstr(path, "\\\\") == path)
-      || strstr(path, ":/") || strstr(path, ":\\") || strstr(path, ":\\\\");
-#else
-   return path[0] == '/';
+   if ((strstr(path, "\\\\") == path)
+         || strstr(path, ":/") || strstr(path, ":\\") || strstr(path, ":\\\\"))
+      return true;
 #endif
+   return false;
 }
 
 /**
@@ -526,7 +521,7 @@ bool path_is_absolute(const char *path)
 void path_resolve_realpath(char *buf, size_t size)
 {
 #ifndef RARCH_CONSOLE
-   char tmp[PATH_MAX_LENGTH] = {0};
+   char tmp[PATH_MAX_LENGTH];
 
    strlcpy(tmp, buf, sizeof(tmp));
 
@@ -543,10 +538,6 @@ void path_resolve_realpath(char *buf, size_t size)
    if (!realpath(tmp, buf))
       strlcpy(buf, tmp, size);
 #endif
-
-#else
-   (void)buf;
-   (void)size;
 #endif
 }
 
@@ -591,17 +582,14 @@ bool path_mkdir(const char *dir)
    const char *target = NULL;
    /* Use heap. Real chance of stack overflow if we recurse too hard. */
    char     *basedir = strdup(dir);
-   bool          ret = true;
+   bool          ret = false;
 
    if (!basedir)
       return false;
 
    path_parent_dir(basedir);
    if (!*basedir || !strcmp(basedir, dir))
-   {
-      ret = false;
       goto end;
-   }
 
    if (path_is_directory(basedir))
    {
@@ -642,13 +630,14 @@ void fill_pathname_resolve_relative(char *out_path,
       const char *in_refpath, const char *in_path, size_t size)
 {
    if (path_is_absolute(in_path))
-      rarch_assert(strlcpy(out_path, in_path, size) < size);
-   else
    {
-      rarch_assert(strlcpy(out_path, in_refpath, size) < size);
-      path_basedir(out_path);
-      rarch_assert(strlcat(out_path, in_path, size) < size);
+      rarch_assert(strlcpy(out_path, in_path, size) < size);
+      return;
    }
+
+   rarch_assert(strlcpy(out_path, in_refpath, size) < size);
+   path_basedir(out_path);
+   rarch_assert(strlcat(out_path, in_path, size) < size);
 }
 
 /**
@@ -721,18 +710,18 @@ void fill_short_pathname_representation(char* out_rep,
             sizeof(path_short));
 
    last_hash = (char*)strchr(path_short,'#');
-   /* We handle paths like:
-    * /path/to/file.7z#mygame.img
-    * short_name: mygame.img:
-    */
    if(last_hash != NULL)
    {
-      /* We check whether something is actually
+      /* We handle paths like:
+       * /path/to/file.7z#mygame.img
+       * short_name: mygame.img:
+       *
+       * We check whether something is actually
        * after the hash to avoid going over the buffer.
        */
       rarch_assert(strlen(last_hash) > 1);
-      strlcpy(out_rep,last_hash + 1, size);
+      strlcpy(out_rep, last_hash + 1, size);
    }
    else
-      strlcpy(out_rep,path_short, size);
+      strlcpy(out_rep, path_short, size);
 }

@@ -14,8 +14,7 @@ static float volume = 1.0;
 void mixer_render(int16_t *buffer)
 {
    // Clear buffer
-   for (unsigned j = 0; j < AUDIO_FRAMES; j++)
-      buffer[j*2+0] = buffer[j*2+1] = 0;
+   memset(buffer, 0, AUDIO_FRAMES * 2 * sizeof(int16_t));
 
    // Loop over audio sources
    for (unsigned i = 0; i < num_sources; i++)

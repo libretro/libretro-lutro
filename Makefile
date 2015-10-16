@@ -75,13 +75,26 @@ endif
    #ifeq ($(WANT_JIT))
    #   LDFLAGS += -Wl,-pagezero_size,10000 -Wl,-image_base,100000000
    #endif
-else ifeq ($(platform), ios)
+
+# iOS
+else ifneq (,$(findstring ios,$(platform)))
+
    TARGET := $(TARGET_NAME)_libretro_ios.dylib
    fpic := -fPIC
    SHARED := -dynamiclib
    DEFINES := -DIOS
-   CC = clang -arch armv7 -isysroot $(IOSSDK)
+   CC = cc -arch armv7 -isysroot $(IOSSDK)
    CFLAGS += -DHAVE_STRL
+IPHONEMINVER :=
+ifeq ($(platform),ios9)
+	IPHONEMINVER = -miphoneos-version-min=8.0
+else
+	IPHONEMINVER = -miphoneos-version-min=5.0
+endif
+   LDFLAGS += $(IPHONEMINVER)
+   FLAGS += $(IPHONEMINVER)
+   CC += $(IPHONEMINVER)
+   CXX += $(IPHONEMINVER)
 else ifeq ($(platform), qnx)
    TARGET := $(TARGET_NAME)_libretro_qnx.so
    fpic := -fPIC

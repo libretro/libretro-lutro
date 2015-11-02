@@ -3,10 +3,6 @@ HAVE_COMPOSITION=0
 WANT_JIT=0
 WANT_ZLIB=1
 
-ifneq ($(EMSCRIPTEN),)
-   platform = emscripten
-endif
-
 ifeq ($(platform),)
 platform = unix
 ifeq ($(shell uname -a),)
@@ -40,6 +36,14 @@ LUA_MYCFLAGS :=
 LUA_SYSCFLAGS :=
 LIBM := -lm
 STATIC_LINKING := 0
+
+ifeq ($(ARCHFLAGS),)
+ifeq ($(archs),ppc)
+   ARCHFLAGS = -arch ppc -arch ppc64
+else
+   ARCHFLAGS = -arch i386 -arch x86_64
+endif
+endif
 
 ifeq ($(platform), unix)
    TARGET := $(TARGET_NAME)_libretro.so
@@ -215,6 +219,13 @@ ifneq ($(SANITIZER),)
    CFLAGS += -fsanitize=$(SANITIZER)
    LDFLAGS += -fsanitize=$(SANITIZER)
    SHARED := -shared
+endif
+
+ifeq ($(platform), osx)
+ifndef ($(NOUNIVERSAL))
+   CFLAGS += $(ARCHFLAGS)
+   LFLAGS += $(ARCHFLAGS)
+endif
 endif
 
 all: $(TARGET)

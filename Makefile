@@ -3,10 +3,6 @@ HAVE_COMPOSITION=0
 WANT_JIT=0
 WANT_ZLIB=1
 
-ifneq ($(EMSCRIPTEN),)
-   platform = emscripten
-endif
-
 ifeq ($(platform),)
 platform = unix
 ifeq ($(shell uname -a),)
@@ -40,6 +36,14 @@ LUA_MYCFLAGS :=
 LUA_SYSCFLAGS :=
 LIBM := -lm
 STATIC_LINKING := 0
+
+ifeq ($(ARCHFLAGS),)
+ifeq ($(archs),ppc)
+   ARCHFLAGS = -arch ppc -arch ppc64
+else
+   ARCHFLAGS = -arch i386 -arch x86_64
+endif
+endif
 
 ifeq ($(platform), unix)
    TARGET := $(TARGET_NAME)_libretro.so
@@ -75,13 +79,26 @@ endif
    #ifeq ($(WANT_JIT))
    #   LDFLAGS += -Wl,-pagezero_size,10000 -Wl,-image_base,100000000
    #endif
-else ifeq ($(platform), ios)
+
+# iOS
+else ifneq (,$(findstring ios,$(platform)))
+
    TARGET := $(TARGET_NAME)_libretro_ios.dylib
    fpic := -fPIC
    SHARED := -dynamiclib
    DEFINES := -DIOS
-   CC = clang -arch armv7 -isysroot $(IOSSDK)
+   CC = cc -arch armv7 -isysroot $(IOSSDK)
    CFLAGS += -DHAVE_STRL
+IPHONEMINVER :=
+ifeq ($(platform),ios9)
+	IPHONEMINVER = -miphoneos-version-min=8.0
+else
+	IPHONEMINVER = -miphoneos-version-min=5.0
+endif
+   LDFLAGS += $(IPHONEMINVER)
+   FLAGS += $(IPHONEMINVER)
+   CC += $(IPHONEMINVER)
+   CXX += $(IPHONEMINVER)
 else ifeq ($(platform), qnx)
    TARGET := $(TARGET_NAME)_libretro_qnx.so
    fpic := -fPIC
@@ -202,6 +219,13 @@ ifneq ($(SANITIZER),)
    CFLAGS += -fsanitize=$(SANITIZER)
    LDFLAGS += -fsanitize=$(SANITIZER)
    SHARED := -shared
+endif
+
+ifeq ($(platform), osx)
+ifndef ($(NOUNIVERSAL))
+   CFLAGS += $(ARCHFLAGS)
+   LFLAGS += $(ARCHFLAGS)
+endif
 endif
 
 all: $(TARGET)

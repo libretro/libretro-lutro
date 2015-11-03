@@ -49,13 +49,15 @@ int fs_read(lua_State *L)
    long fsize = ftell(fp);
    fseek(fp, 0, SEEK_SET);
 
-   char *string = malloc(fsize + 1);
-   fread(string, fsize, 1, fp);
+   char *string      = malloc(fsize + 1);
+   size_t bytes_read = fread(string, 1, fsize, fp);
    fclose(fp);
 
-   string[fsize] = 0;
+   string[bytes_read] = 0;
 
    lua_pushstring(L, string);
+
+   free(string);
 
    return 1;
 }

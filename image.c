@@ -9,10 +9,18 @@
 static unsigned num_imgdatas = 0;
 static bitmap_t** imgdatas = NULL;
 
+static int l_newImageData(lua_State *L);
+static int l_getWidth(lua_State *L);
+static int l_getHeight(lua_State *L);
+static int l_getPixel(lua_State *L);
+static int l_getDimensions(lua_State *L);
+static int l_type(lua_State *L);
+static int l_gc(lua_State *L);
+
 int lutro_image_preload(lua_State *L)
 {
    static luaL_Reg img_funcs[] =  {
-      { "newImageData", l_img_newImageData },
+      { "newImageData", l_newImageData },
       {NULL, NULL}
    };
 
@@ -29,7 +37,7 @@ void lutro_image_init()
 {
 }
 
-void *img_newImageData(lua_State *L, const char *path)
+void *image_data_create(lua_State *L, const char *path)
 {
    char fullpath[PATH_MAX_LENGTH];
    strlcpy(fullpath, settings.gamedir, sizeof(fullpath));
@@ -48,11 +56,11 @@ void *img_newImageData(lua_State *L, const char *path)
    if (luaL_newmetatable(L, "ImageData") != 0)
    {
       static luaL_Reg imgdata_funcs[] = {
-         { "getWidth",   imgdata_getWidth },
-         { "getHeight",  imgdata_getHeight },
-         { "getPixel",   imgdata_getPixel },
-         { "type",       imgdata_type },
-         { "__gc",       imgdata_gc },
+         { "getWidth",   l_getWidth },
+         { "getHeight",  l_getHeight },
+         { "getPixel",   l_getPixel },
+         { "type",       l_type },
+         { "__gc",       l_gc },
          {NULL, NULL}
       };
 
@@ -60,7 +68,7 @@ void *img_newImageData(lua_State *L, const char *path)
 
       lua_setfield(L, -2, "__index");
 
-      lua_pushcfunction(L, imgdata_gc);
+      lua_pushcfunction(L, l_gc);
       lua_setfield( L, -2, "__gc" );
 
       luaL_setfuncs(L, imgdata_funcs, 0);
@@ -71,7 +79,7 @@ void *img_newImageData(lua_State *L, const char *path)
    return self;
 }
 
-int l_img_newImageData(lua_State *L)
+static int l_newImageData(lua_State *L)
 {
    int n = lua_gettop(L);
 
@@ -80,32 +88,32 @@ int l_img_newImageData(lua_State *L)
 
    const char* path = luaL_checkstring(L, 1);
 
-   img_newImageData(L, path);
+   image_data_create(L, path);
 
    return 1;
 }
 
-int imgdata_type(lua_State *L)
+static int l_type(lua_State *L)
 {
    lua_pushstring(L, "ImageData");
    return 1;
 }
 
-int imgdata_getWidth(lua_State *L) 
+static int l_getWidth(lua_State *L)
 {
    bitmap_t* self = (bitmap_t*)luaL_checkudata(L, 1, "ImageData");
    lua_pushnumber(L, self->width);
    return 1;
 }
 
-int imgdata_getHeight(lua_State *L) 
+static int l_getHeight(lua_State *L)
 {
    bitmap_t* self = (bitmap_t*)luaL_checkudata(L, 1, "ImageData");
    lua_pushnumber(L, self->height);
    return 1;
 }
 
-int imgdata_getPixel(lua_State *L) 
+static int l_getPixel(lua_State *L)
 {
    int n = lua_gettop(L);
 
@@ -132,7 +140,7 @@ int imgdata_getPixel(lua_State *L)
    return 4;
 }
 
-int imgdata_getDimensions(lua_State *L) 
+static int l_getDimensions(lua_State *L)
 {
    bitmap_t* self = (bitmap_t*)luaL_checkudata(L, 1, "ImageData");
    lua_pushnumber(L, self->width);
@@ -140,7 +148,7 @@ int imgdata_getDimensions(lua_State *L)
    return 2;
 }
 
-int imgdata_gc(lua_State *L)
+static int l_gc(lua_State *L)
 {
    bitmap_t* self = (bitmap_t*)luaL_checkudata(L, 1, "ImageData");
    (void)self;

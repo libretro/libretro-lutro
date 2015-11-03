@@ -15,6 +15,7 @@ int img_newImageData(lua_State *L);
 
 int imgdata_getWidth(lua_State *L);
 int imgdata_getHeight(lua_State *L);
+int imgdata_getPixel(lua_State *L);
 int imgdata_getDimensions(lua_State *L);
 int imgdata_type(lua_State *L);
 int imgdata_gc(lua_State *L);

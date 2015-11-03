@@ -54,7 +54,8 @@ int img_newImageData(lua_State *L)
    {
       static luaL_Reg imgdata_funcs[] = {
          { "getWidth",   imgdata_getWidth },
-         { "getHeight",  imgdata_getWidth },
+         { "getHeight",  imgdata_getHeight },
+         { "getPixel",   imgdata_getPixel },
          { "type",       imgdata_type },
          { "__gc",       imgdata_gc },
          {NULL, NULL}
@@ -93,6 +94,33 @@ int imgdata_getHeight(lua_State *L)
    bitmap_t* self = (bitmap_t*)luaL_checkudata(L, 1, "ImageData");
    lua_pushnumber(L, self->height);
    return 1;
+}
+
+int imgdata_getPixel(lua_State *L) 
+{
+   int n = lua_gettop(L);
+
+   bitmap_t* self = (bitmap_t*)luaL_checkudata(L, 1, "ImageData");
+
+   int x = luaL_checknumber(L, 2);
+   int y = luaL_checknumber(L, 3);
+
+   lua_pop(L, n);
+
+   uint32_t* data = self->data;
+
+   uint32_t color = data[y * (self->pitch >> 2) + x];
+
+   int a = ((color & 0xff000000)>>24);
+   int r = ((color & 0xff0000)>>16);
+   int g = ((color & 0xff00)>>8);
+   int b = (color & 0xff);
+
+   lua_pushnumber(L, r);
+   lua_pushnumber(L, g);
+   lua_pushnumber(L, b);
+   lua_pushnumber(L, a);
+   return 4;
 }
 
 int imgdata_getDimensions(lua_State *L) 

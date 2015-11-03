@@ -94,7 +94,7 @@ int gfx_newImage(lua_State *L)
    else
    {
       const char* path = luaL_checkstring(L, 1);
-      self->data = (bitmap_t*)img_newImageData(L, path);
+      self->data = (bitmap_t*)image_data_create(L, path);
       self->ref = luaL_ref(L, LUA_REGISTRYINDEX);
    }
 

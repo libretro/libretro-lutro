@@ -12,7 +12,7 @@ static bitmap_t** imgdatas = NULL;
 int lutro_image_preload(lua_State *L)
 {
    static luaL_Reg img_funcs[] =  {
-      { "newImageData", img_newImageData },
+      { "newImageData", l_img_newImageData },
       {NULL, NULL}
    };
 
@@ -29,15 +29,8 @@ void lutro_image_init()
 {
 }
 
-int img_newImageData(lua_State *L)
+void *img_newImageData(lua_State *L, const char *path)
 {
-   int n = lua_gettop(L);
-
-   if (n != 1)
-      return luaL_error(L, "lutro.image.newImageData requires 1 argument, %d given.", n);
-
-   const char* path = luaL_checkstring(L, 1);
-
    char fullpath[PATH_MAX_LENGTH];
    strlcpy(fullpath, settings.gamedir, sizeof(fullpath));
    strlcat(fullpath, path, sizeof(fullpath));
@@ -45,6 +38,8 @@ int img_newImageData(lua_State *L)
    bitmap_t* self = (bitmap_t*)lua_newuserdata(L, sizeof(bitmap_t));
 
    rpng_load_image_argb(fullpath, &self->data, &self->width, &self->height);
+
+   self->pitch = self->width << 2;
 
    num_imgdatas++;
    imgdatas = (bitmap_t**)realloc(imgdatas, num_imgdatas * sizeof(bitmap_t));
@@ -72,6 +67,20 @@ int img_newImageData(lua_State *L)
    }
 
    lua_setmetatable(L, -2);
+
+   return self;
+}
+
+int l_img_newImageData(lua_State *L)
+{
+   int n = lua_gettop(L);
+
+   if (n != 1)
+      return luaL_error(L, "lutro.image.newImageData requires 1 argument, %d given.", n);
+
+   const char* path = luaL_checkstring(L, 1);
+
+   img_newImageData(L, path);
 
    return 1;
 }

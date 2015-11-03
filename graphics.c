@@ -1,4 +1,5 @@
 #include "graphics.h"
+#include "image.h"
 #include "lutro.h"
 #include "compat/strl.h"
 #include "retro_miscellaneous.h"
@@ -80,6 +81,9 @@ int gfx_newImage(lua_State *L)
 
    gfx_Image *self = (gfx_Image*)lua_newuserdata(L, sizeof(gfx_Image));;
 
+   if (!self)
+      return 0;
+
    if (lua_isuserdata(L, 1))
    {
       self->data = (bitmap_t*)luaL_checkudata(L, 1, "ImageData");
@@ -90,20 +94,9 @@ int gfx_newImage(lua_State *L)
    else
    {
       const char* path = luaL_checkstring(L, 1);
-
-      char fullpath[PATH_MAX_LENGTH];
-      strlcpy(fullpath, settings.gamedir, sizeof(fullpath));
-      strlcat(fullpath, path, sizeof(fullpath));
-
-      self->data = (bitmap_t*)lua_newuserdata(L, sizeof(bitmap_t));
-
-      rpng_load_image_argb(fullpath, &self->data->data, &self->data->width, &self->data->height);
-
+      self->data = (bitmap_t*)img_newImageData(L, path);
       self->ref = luaL_ref(L, LUA_REGISTRYINDEX);
    }
-
-   if (!self)
-      return 0;
 
    self->data->pitch = self->data->width << 2;
 
@@ -137,7 +130,8 @@ int gfx_newImage(lua_State *L)
 int img_getData(lua_State *L)
 {
    gfx_Image* self = (gfx_Image*)luaL_checkudata(L, 1, "Image");
-   lua_pushlightuserdata(L, self->data);
+
+   lua_rawgeti(L, LUA_REGISTRYINDEX, self->ref);
    return 1;
 }
 

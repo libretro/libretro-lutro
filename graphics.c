@@ -261,11 +261,7 @@ int quad_gc(lua_State *L)
 static void push_font(lua_State *L, font_t *font)
 {
    font_t* self = (font_t*)lua_newuserdata(L, sizeof(font_t));
-   self->atlas = font->atlas;
-   self->flags = font->flags;
-   self->pxsize = font->pxsize;
-   memcpy(self->separators, font->separators, sizeof(font->separators));
-   memcpy(self->characters, font->characters, sizeof(font->characters));
+   memcpy(self, font, sizeof(font_t));
 
    if (luaL_newmetatable(L, "Font") != 0)
    {
@@ -322,6 +318,8 @@ int gfx_newImageFont(lua_State *L)
    lua_pop(L, n);
 
    push_font(L, font);
+
+   free(font);
 
    return 1;
 }

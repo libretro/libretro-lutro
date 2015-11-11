@@ -119,9 +119,10 @@ void lutro_deinit()
       lutro_live_deinit();
 #endif
 
-   lutro_audio_deinit();
-
    lua_close(L);
+
+   /* Has to be deinitialized later. */
+   lutro_audio_deinit();
 }
 
 int lutro_set_package_path(lua_State* L, const char* path)
@@ -320,6 +321,7 @@ int lutro_load(const char *path)
    lua_pop(L, 1); // either lutro.settings or lutro.conf
 
    lutro_graphics_init();
+   lutro_audio_init();
 
 #ifdef HAVE_INOTIFY
    if (settings.live_enable)

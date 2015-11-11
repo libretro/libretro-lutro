@@ -20,7 +20,8 @@ SOURCES_C += $(CORE_DIR)/libretro.c \
 SOURCES_C += $(CORE_DIR)/libretro-common/formats/png/rpng_decode.c \
 				 $(CORE_DIR)/libretro-common/formats/png/rpng_fbio.c \
 				 $(CORE_DIR)/libretro-common/file/file_path.c \
-				 $(CORE_DIR)/libretro-common/compat/compat.c
+				 $(CORE_DIR)/libretro-common/compat/compat.c \
+				 $(CORE_DIR)/libretro-common/rthreads/rthreads.c
 
 ifeq ($(WANT_ZLIB),1)
 SOURCES_C += $(CORE_DIR)/deps/zlib/adler32.c \

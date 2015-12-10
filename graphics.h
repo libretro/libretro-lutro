@@ -34,7 +34,8 @@ void lutro_graphics_init();
 int lutro_graphics_preload(lua_State *L);
 
 void lutro_graphics_reinit();
-void lutro_graphics_step(lua_State *L);
+void lutro_graphics_begin_frame(lua_State *L);
+void lutro_graphics_end_frame(lua_State *L);
 
 int gfx_clear(lua_State *L);
 int gfx_point(lua_State *L);

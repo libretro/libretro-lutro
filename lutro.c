@@ -404,12 +404,13 @@ void lutro_run(double delta)
    lua_getfield(L, -1, "draw");
    if (lua_isfunction(L, -1))
    {
+      lutro_graphics_begin_frame(L);
       if(lua_pcall(L, 0, 0, 0))
       {
          fprintf(stderr, "%s\n", lua_tostring(L, -1));
          lua_pop(L, 1);
       }
-      lutro_graphics_step(L);
+      lutro_graphics_end_frame(L);
    } else {
       lua_pop(L, 1);
    }

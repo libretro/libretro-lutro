@@ -73,7 +73,7 @@ void lutro_graphics_reinit()
 
    settings.pitch_pixels = settings.width;
    settings.pitch        = settings.pitch_pixels * sizeof(uint32_t);
-   settings.framebuffer  = (bitmap_t*)calloc(1, settings.pitch * settings.height);
+   settings.framebuffer  = (uint32_t*)calloc(1, settings.pitch * settings.height);
 
    fbbmp->data   = settings.framebuffer;
    fbbmp->height = settings.height;
@@ -84,7 +84,12 @@ void lutro_graphics_reinit()
    pntr_reset(painter);
 }
 
-void lutro_graphics_step(lua_State *L)
+void lutro_graphics_begin_frame(lua_State *L)
+{
+   pntr_clear(painter);
+}
+
+void lutro_graphics_end_frame(lua_State *L)
 {
    pntr_origin(painter);
 }

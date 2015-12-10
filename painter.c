@@ -64,10 +64,7 @@ void pntr_reset(painter_t *p)
    p->background = 0xff000000;
    p->foreground = 0xffffffff;
 
-   p->clip.x = 0;
-   p->clip.y = 0;
-   p->clip.width  = p->target->width;
-   p->clip.height = p->target->height;
+   pntr_origin(p);
 }
 
 
@@ -331,6 +328,19 @@ void pntr_printf(painter_t *p, int x, int y, const char *format, ...)
    free(buf);
 }
 
+void pntr_origin(painter_t *p)
+{
+   p->clip.x = 0;
+   p->clip.y = 0;
+   p->clip.width  = p->target->width;
+   p->clip.height = p->target->height;
+
+   p->tx = 0;
+   p->ty = 0;
+   p->sx = 0;
+   p->sy = 0;
+   p->r  = 0;
+}
 
 font_t *font_load_filename(const char *filename, const char *characters, unsigned flags)
 {

@@ -409,6 +409,7 @@ void lutro_run(double delta)
          fprintf(stderr, "%s\n", lua_tostring(L, -1));
          lua_pop(L, 1);
       }
+      lutro_graphics_step(L);
    } else {
       lua_pop(L, 1);
    }

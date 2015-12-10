@@ -72,6 +72,11 @@ void lutro_graphics_init()
    pntr_reset(painter);
 }
 
+void lutro_graphics_step(lua_State *L)
+{
+   pntr_origin(painter);
+}
+
 int gfx_newImage(lua_State *L)
 {
    int n = lua_gettop(L);

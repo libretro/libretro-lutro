@@ -68,6 +68,8 @@ void pntr_print(painter_t *p, int x, int y, const char *text);
 int  pntr_text_width(painter_t *p, const char *text);
 void pntr_printf(painter_t *p, int x, int y, const char *format, ...);
 
+void pntr_origin(painter_t *p);
+
 font_t *font_load_filename(const char *filename, const char *characters, unsigned flags);
 font_t *font_load_bitmap(const bitmap_t *bmp, const char *characters, unsigned flags);
 

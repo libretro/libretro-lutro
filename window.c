@@ -1,5 +1,6 @@
 #include "window.h"
 #include "lutro.h"
+#include "graphics.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -39,6 +40,8 @@ int win_setMode(lua_State *L)
 
    settings.width = luaL_checknumber(L, 1);
    settings.height = luaL_checknumber(L, 2);
+
+   lutro_graphics_reinit();
 
    lua_pop(L, n);
 

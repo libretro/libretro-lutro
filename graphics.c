@@ -56,12 +56,24 @@ int lutro_graphics_preload(lua_State *L)
 void lutro_graphics_init()
 {
    // TODO: power of two framebuffers
+   painter = (painter_t*)calloc(1, sizeof(painter_t));
+   lutro_graphics_reinit();
+
+}
+
+void lutro_graphics_reinit()
+{
+   if (fbbmp && fbbmp->width == settings.width && fbbmp->height == settings.height)
+      return;
+
+   if (fbbmp)
+      free(fbbmp->data);
+   else
+      fbbmp = (bitmap_t*)calloc(1, sizeof(bitmap_t));
+
    settings.pitch_pixels = settings.width;
    settings.pitch        = settings.pitch_pixels * sizeof(uint32_t);
-   settings.framebuffer  = calloc(1, settings.pitch * settings.height);
-
-   painter = calloc(1, sizeof(painter_t));
-   fbbmp = calloc(1, sizeof(bitmap_t));
+   settings.framebuffer  = (bitmap_t*)calloc(1, settings.pitch * settings.height);
 
    fbbmp->data   = settings.framebuffer;
    fbbmp->height = settings.height;

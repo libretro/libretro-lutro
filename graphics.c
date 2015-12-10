@@ -533,7 +533,7 @@ int gfx_rectangle(lua_State *L)
 
    lua_pop(L, n);
 
-   rect_t r  = { x + painter->tx, y + painter->ty, w, h };
+   rect_t r  = { x, y, w, h };
    if (!strcmp(mode, "fill"))
    {
       pntr_fill_rect(painter, &r);
@@ -641,8 +641,8 @@ int gfx_draw(lua_State *L)
    lua_pop(L, n);
 
    rect_t drect = {
-      x + ox + painter->tx,
-      y + oy + painter->ty,
+      x + ox,
+      y + oy,
       painter->target->width,
       painter->target->height
    };

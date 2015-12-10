@@ -89,7 +89,6 @@ void pntr_sanitize_clip(painter_t *p)
    p->clip = rect_intersect(&p->clip,  &target_rect);
 }
 
-
 void pntr_strike_rect(painter_t *p, const rect_t *rect)
 {
 //   int x1, y1, x2, y2, i;
@@ -118,8 +117,13 @@ void pntr_strike_rect(painter_t *p, const rect_t *rect)
 void pntr_fill_rect(painter_t *p, const rect_t *rect)
 {
    size_t row_size = p->target->pitch >> 2;
-   rect_t drect = rect_intersect(&p->clip, rect);
    uint32_t color = p->foreground;
+   rect_t drect = {
+      rect->x + p->tx, rect->y + p->tx,
+      rect->width, rect->height
+   };
+
+   drect = rect_intersect(&p->clip, &drect);
 
    if (rect_is_null(&drect))
       return;
@@ -179,6 +183,9 @@ void pntr_draw(painter_t *p, const bitmap_t *bmp, const rect_t *src_rect, const 
       srect.width  = bmp->width;
       srect.height = bmp->height;
    }
+
+   drect.x += p->tx;
+   drect.y += p->ty;
 
    /* until we are able to scale. */
    drect.width = p->target->width;

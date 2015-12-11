@@ -620,8 +620,8 @@ static int gfx_draw(lua_State *L)
    rect_t drect = {
       x + ox,
       y + oy,
-      (int)painter->target->width,
-      (int)painter->target->height
+      (int)img->data->width,
+      (int)img->data->width
    };
 
    rect_t srect = {

@@ -150,28 +150,14 @@ int rect_is_null(const rect_t *r)
 
 void pntr_draw(painter_t *p, const bitmap_t *bmp, const rect_t *src_rect, const rect_t *dst_rect)
 {
-   rect_t srect, drect;
-
-   if (dst_rect)
-      drect = *dst_rect;
-   else
-      drect.x = drect.y = 0;
-
-   if (src_rect)
-      srect = *src_rect;
-   else
-   {
-      srect.x = srect.y = 0;
-      srect.width  = bmp->width;
-      srect.height = bmp->height;
-   }
+   rect_t srect = *src_rect, drect = *dst_rect;
 
    drect.x += p->trans->tx;
    drect.y += p->trans->ty;
 
-   /* until we are able to scale. */
-   drect.width = p->target->width;
-   drect.height = p->target->height;
+   /* scaling not supported */
+   drect.width  = srect.width;
+   drect.height = srect.height;
 
    if (drect.x < 0)
    {

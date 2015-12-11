@@ -641,6 +641,9 @@ static int gfx_draw(lua_State *L)
       srect.y = quad->y;
       srect.width = quad->w;
       srect.height = quad->h;
+
+      drect.width = quad->w;
+      drect.height = quad->h;
    }
    pntr_draw(painter, img->data, &srect, &drect);
 

@@ -607,35 +607,44 @@ static int gfx_draw(lua_State *L)
 
    int x = luaL_optnumber(L, start + 1, 0);
    int y = luaL_optnumber(L, start + 2, 0);
-   //int r = luaL_optnumber(L, start + 3, 0);
-   //int sx = luaL_optnumber(L, start + 4, 1);
-   //int sy = luaL_optnumber(L, start + 5, sx);
+   float r = luaL_optnumber(L, start + 3, 0);
+   float sx = luaL_optnumber(L, start + 4, 1);
+   float sy = luaL_optnumber(L, start + 5, sx);
    int ox = luaL_optnumber(L, start + 6, 0);
    int oy = luaL_optnumber(L, start + 7, 0);
-   //int kx = luaL_optnumber(L, start + 8, 0);
-   //int ky = luaL_optnumber(L, start + 9, 0);
+   int kx = luaL_optnumber(L, start + 8, 0);
+   int ky = luaL_optnumber(L, start + 9, 0);
 
    lua_pop(L, n);
 
    rect_t drect = {
       x + ox,
       y + oy,
-      painter->target->width,
-      painter->target->height
+      (int)painter->target->width,
+      (int)painter->target->height
    };
 
-   if (quad == NULL)
+   rect_t srect = {
+      0, 0,
+      (int)img->data->width,
+      (int)img->data->width
+   };
+
+   pntr_push(painter);
+   pntr_rotate(painter, r);
+   pntr_scale(painter, sx, sy);
+   pntr_rotate(painter, r);
+
+   if (quad != NULL)
    {
-      pntr_draw(painter, img->data, NULL, &drect);
+      srect.x = quad->x;
+      srect.y = quad->y;
+      srect.width = quad->w;
+      srect.height = quad->h;
    }
-   else
-   {
-      rect_t srect = {
-         quad->x, quad->y,
-         quad->w, quad->h
-      };
-      pntr_draw(painter, img->data, &srect, &drect);
-   }
+   pntr_draw(painter, img->data, &srect, &drect);
+
+   pntr_pop(painter);
 
    return 0;
 }

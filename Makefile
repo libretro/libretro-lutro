@@ -3,6 +3,8 @@ HAVE_COMPOSITION=0
 WANT_JIT=0
 WANT_ZLIB=1
 
+MMD := -MMD
+
 ifeq ($(platform),)
 platform = unix
 ifeq ($(shell uname -a),)
@@ -103,6 +105,7 @@ else ifeq ($(platform), qnx)
    TARGET := $(TARGET_NAME)_libretro_qnx.so
    fpic := -fPIC
    SHARED := -shared -Wl,--no-undefined
+   MMD :=
 else ifeq ($(platform), emscripten)
    TARGET := $(TARGET_NAME)_libretro_emscripten.so
    fpic := -fPIC
@@ -122,6 +125,7 @@ else ifeq ($(platform), psp1)
    CFLAGS += -I$(shell psp-config --pspsdk-path)/include
    LUA_MYCFLAGS := $(DEFINES) $(CFLAGS)
    STATIC_LINKING = 1
+   MMD :=
 
 # Vita
 else ifeq ($(platform), vita)
@@ -133,6 +137,7 @@ else ifeq ($(platform), vita)
    DEFINES := -DVITA  -DLSB_FIRST -DHAVE_ASPRINTF
    LUA_MYCFLAGS := $(DEFINES) $(CFLAGS)
    STATIC_LINKING = 1
+   MMD :=
 
 else ifeq ($(platform), ngc)
 	TARGET := $(TARGET_NAME)_libretro_ngc.a
@@ -143,6 +148,7 @@ else ifeq ($(platform), ngc)
 	DEFINES += -DGEKKO -DHW_DOL -mrvl -mcpu=750 -meabi -mhard-float
    LUA_MYCFLAGS := $(DEFINES) $(CFLAGS)
 	STATIC_LINKING = 1
+   MMD :=
 else ifeq ($(platform), wii)
 	TARGET := $(TARGET_NAME)_libretro_wii.a
 	CC = $(DEVKITPPC)/bin/powerpc-eabi-gcc$(EXE_EXT)
@@ -152,6 +158,7 @@ else ifeq ($(platform), wii)
 	DEFINES += -DGEKKO -DHW_RVL -mrvl -mcpu=750 -meabi -mhard-float
    LUA_MYCFLAGS := $(DEFINES) $(CFLAGS)
 	STATIC_LINKING = 1
+   MMD :=
 # PS3
 else ifeq ($(platform), ps3)
 	TARGET := $(TARGET_NAME)_libretro_ps3.a
@@ -162,6 +169,7 @@ else ifeq ($(platform), ps3)
 	DEFINES := -D__CELLOS_LV2__
    LUA_MYCFLAGS := $(DEFINES) $(CFLAGS)
 	STATIC_LINKING = 1
+   MMD :=
 
 # sncps3
 else ifeq ($(platform), sncps3)
@@ -173,6 +181,7 @@ else ifeq ($(platform), sncps3)
 	DEFINES := -D__CELLOS_LV2__
    LUA_MYCFLAGS := $(DEFINES) $(CFLAGS)
 	STATIC_LINKING = 1
+   MMD :=
 else
    CC = gcc
    TARGET := $(TARGET_NAME)_retro.dll
@@ -228,7 +237,13 @@ ifndef ($(NOUNIVERSAL))
 endif
 endif
 
+OBJS := $(addprefix obj/,$(OBJS))
+
 all: $(TARGET)
+
+ifneq ($(MMD),)
+-include $(OBJS:.o=.d)
+endif
 
 $(TARGET): $(OBJS) $(LUALIB)
 ifeq ($(STATIC_LINKING), 1)
@@ -243,8 +258,9 @@ deps/lua/src/liblua.a:
 deps/luajit/src/libluajit.a:
 	$(MAKE) -C deps/luajit/src BUILDMODE=static CFLAGS="$(LUA_MYCFLAGS) $(fpic)" Q= LDFLAGS="$(fpic)"
 
-%.o: %.c
-	$(CC) $(CFLAGS) -c -o $@ $<
+obj/%.o: %.c
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) $(MMD) -c -o $@ $<
 
 clean:
 	-make -C $(LUADIR) clean

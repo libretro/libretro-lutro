@@ -8,6 +8,7 @@
 #include <string.h>
 #include <stdarg.h>
 #include <assert.h>
+#include <retro_miscellaneous.h>
 
 #ifndef max
 #define max(a, b) ((a) > (b) ? (a) : (b))
@@ -36,26 +37,26 @@ static int strpos(const char *haystack, char needle)
 }
 
 
-painter_t *pntr_push(painter_t *p)
+bool pntr_push(painter_t *p)
 {
-   painter_t *new_painter = calloc(1, sizeof(painter_t));
-   memcpy(new_painter, p, sizeof(painter_t));
-   new_painter->parent = p;
+   if (p->stack_pos == ARRAY_SIZE(p->stack))
+      return false;
 
-   return new_painter;
+   memcpy(&p->stack[p->stack_pos + 1], &p->stack[p->stack_pos], sizeof(p->stack[0]));
+   p->trans = &p->stack[++p->stack_pos];
+
+   return true;
 }
 
 
-painter_t *pntr_pop(painter_t *p)
+bool pntr_pop(painter_t *p)
 {
-   painter_t *parent = p->parent;
+   if (p->stack_pos == 0)
+      return false;
 
-   if (parent)
-      free(p);
-   else
-      parent = p;
+   p->trans = &p->stack[--p->stack_pos];
 
-   return parent;
+   return true;
 }
 
 
@@ -64,7 +65,12 @@ void pntr_reset(painter_t *p)
    p->background = 0xff000000;
    p->foreground = 0xffffffff;
 
-   pntr_origin(p);
+   p->clip.x = 0;
+   p->clip.y = 0;
+   p->clip.width  = p->target->width;
+   p->clip.height = p->target->height;
+
+   pntr_origin(p, true);
 }
 
 
@@ -119,7 +125,7 @@ void pntr_fill_rect(painter_t *p, const rect_t *rect)
    size_t row_size = p->target->pitch >> 2;
    uint32_t color = p->foreground;
    rect_t drect = {
-      rect->x + p->tx, rect->y + p->tx,
+      rect->x + p->trans->tx, rect->y + p->trans->tx,
       rect->width, rect->height
    };
 
@@ -184,8 +190,8 @@ void pntr_draw(painter_t *p, const bitmap_t *bmp, const rect_t *src_rect, const 
       srect.height = bmp->height;
    }
 
-   drect.x += p->tx;
-   drect.y += p->ty;
+   drect.x += p->trans->tx;
+   drect.y += p->trans->ty;
 
    /* until we are able to scale. */
    drect.width = p->target->width;
@@ -335,18 +341,34 @@ void pntr_printf(painter_t *p, int x, int y, const char *format, ...)
    free(buf);
 }
 
-void pntr_origin(painter_t *p)
+void pntr_origin(painter_t *p, bool reset_stack)
 {
-   p->clip.x = 0;
-   p->clip.y = 0;
-   p->clip.width  = p->target->width;
-   p->clip.height = p->target->height;
+   if (reset_stack)
+   {
+      p->stack_pos = 0;
+      p->trans = &p->stack[p->stack_pos];
+   }
 
-   p->tx = 0;
-   p->ty = 0;
-   p->sx = 0;
-   p->sy = 0;
-   p->r  = 0;
+   pntr_scale(p, 1, 1);
+   pntr_rotate(p, 0);
+   pntr_translate(p, 0, 0);
+}
+
+void pntr_scale(painter_t *p, float x, float y)
+{
+   p->trans->sx = x;
+   p->trans->sy = y;
+}
+
+void pntr_rotate(painter_t *p, float rad)
+{
+   p->trans->r = rad;
+}
+
+void pntr_translate(painter_t *p, int x, int y)
+{
+   p->trans->tx = x;
+   p->trans->ty = y;
 }
 
 font_t *font_load_filename(const char *filename, const char *characters, unsigned flags)

@@ -91,7 +91,7 @@ void lutro_graphics_begin_frame(lua_State *L)
 
 void lutro_graphics_end_frame(lua_State *L)
 {
-   pntr_origin(painter);
+   pntr_origin(painter, true);
 }
 
 int gfx_newImage(lua_State *L)
@@ -767,7 +767,9 @@ int gfx_pop(lua_State *L)
 {
    lua_pop(L, lua_gettop(L));
 
-   painter = pntr_pop(painter);
+   if (!pntr_pop(painter))
+      return luaL_error(L, "Transformation stack underflow.");
+
    return 0;
 }
 
@@ -775,7 +777,9 @@ int gfx_push(lua_State *L)
 {
    lua_pop(L, lua_gettop(L));
 
-   painter = pntr_push(painter);
+   if (!pntr_push(painter))
+      return luaL_error(L, "Transformation stack overflow.");
+
    return 0;
 }
 
@@ -786,8 +790,7 @@ int gfx_translate(lua_State *L)
    if (n != 2)
       return luaL_error(L, "lutro.graphics.translate requires 2 arguments, %d given.", n);
 
-   painter->tx = luaL_checknumber(L, 1);
-   painter->ty = luaL_checknumber(L, 2);
+   pntr_translate(painter, luaL_checknumber(L, 1), luaL_checknumber(L, 2));
 
    lua_pop(L, n);
 

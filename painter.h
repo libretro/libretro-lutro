@@ -3,6 +3,7 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <boolean.h>
 
 enum {
    FONT_FREETYPE = 1 << 1,
@@ -33,6 +34,18 @@ typedef struct
    int x, y, width, height;
 } rect_t;
 
+typedef struct
+{
+   /* translation */
+   int tx;
+   int ty;
+   /* rotation */
+   float r;
+   /* scale */
+   float sx;
+   float sy;
+} painter_transform_t;
+
 typedef struct painter_s painter_t;
 
 struct painter_s
@@ -44,20 +57,15 @@ struct painter_s
    font_t   *font;
    rect_t   clip;
 
-   /* translation */
-   int tx;
-   int ty;
-   /* rotation */
-   float r;
-   /* scale */
-   float sx;
-   float sy;
+   painter_transform_t *trans;
+   painter_transform_t stack[64];
+   size_t stack_pos;
 
    painter_t *parent;
 };
 
-painter_t *pntr_push(painter_t *p);
-painter_t *pntr_pop(painter_t *p);
+bool pntr_push(painter_t *p);
+bool pntr_pop(painter_t *p);
 void pntr_reset(painter_t *p);
 void pntr_clear(painter_t *p);
 void pntr_sanitize_clip(painter_t *p);
@@ -68,7 +76,10 @@ void pntr_print(painter_t *p, int x, int y, const char *text);
 int  pntr_text_width(painter_t *p, const char *text);
 void pntr_printf(painter_t *p, int x, int y, const char *format, ...);
 
-void pntr_origin(painter_t *p);
+void pntr_origin(painter_t *p, bool reset_stack);
+void pntr_scale(painter_t *p, float x, float y);
+void pntr_rotate(painter_t *p, float rad);
+void pntr_translate(painter_t *p, int x, int y);
 
 font_t *font_load_filename(const char *filename, const char *characters, unsigned flags);
 font_t *font_load_bitmap(const bitmap_t *bmp, const char *characters, unsigned flags);

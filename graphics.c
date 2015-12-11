@@ -12,47 +12,6 @@ static bitmap_t  *fbbmp;
 //static uint32_t current_color;
 //static uint32_t background_color;
 
-int lutro_graphics_preload(lua_State *L)
-{
-   static luaL_Reg gfx_funcs[] =  {
-      { "clear",        gfx_clear },
-      { "draw",         gfx_draw },
-      { "getBackgroundColor", gfx_getBackgroundColor },
-      { "getColor",     gfx_getColor },
-      { "getFont",      gfx_getFont },
-      { "getHeight",    gfx_getHeight },
-      { "getWidth",     gfx_getWidth },
-      { "line",         gfx_line },
-      { "newImage",     gfx_newImage },
-      { "newImageFont", gfx_newImageFont },
-      { "newQuad",      gfx_newQuad },
-      { "point",        gfx_point },
-      { "pop",          gfx_pop },
-      { "print",        gfx_print },
-      { "printf",       gfx_printf },
-      { "push",         gfx_push },
-      { "translate",    gfx_translate },
-      { "rectangle",    gfx_rectangle },
-      { "scale",        gfx_scale },
-      { "setBackgroundColor", gfx_setBackgroundColor },
-      { "setColor",     gfx_setColor },
-      { "setDefaultFilter", gfx_setDefaultFilter },
-      { "setFont",      gfx_setFont },
-      { "setLineStyle", gfx_setLineStyle },
-      { "setLineWidth", gfx_setLineWidth },
-      { "setScissor",   gfx_setScissor },
-      {NULL, NULL}
-   };
-
-   lutro_ensure_global_table(L, "lutro");
-
-   luaL_newlib(L, gfx_funcs);
-
-   lua_setfield(L, -2, "graphics");
-
-   return 1;
-}
-
 void lutro_graphics_init()
 {
    // TODO: power of two framebuffers
@@ -94,7 +53,58 @@ void lutro_graphics_end_frame(lua_State *L)
    pntr_origin(painter, true);
 }
 
-int gfx_newImage(lua_State *L)
+static int img_getData(lua_State *L)
+{
+   gfx_Image* self = (gfx_Image*)luaL_checkudata(L, 1, "Image");
+
+   lua_rawgeti(L, LUA_REGISTRYINDEX, self->ref);
+   return 1;
+}
+
+static int img_getWidth(lua_State *L)
+{
+   gfx_Image* self = (gfx_Image*)luaL_checkudata(L, 1, "Image");
+   lua_pushnumber(L, self->data->width);
+   return 1;
+}
+
+static int img_getHeight(lua_State *L)
+{
+   gfx_Image* self = (gfx_Image*)luaL_checkudata(L, 1, "Image");
+   lua_pushnumber(L, self->data->height);
+   return 1;
+}
+
+static int img_getDimensions(lua_State *L)
+{
+   gfx_Image* self = (gfx_Image*)luaL_checkudata(L, 1, "Image");
+   lua_pushnumber(L, self->data->width);
+   lua_pushnumber(L, self->data->height);
+   return 2;
+}
+
+static int img_setFilter(lua_State *L)
+{
+   return 0;
+}
+
+static int img_gc(lua_State *L)
+{
+   gfx_Image* self = (gfx_Image*)luaL_checkudata(L, 1, "Image");
+
+   if (self->ref != LUA_NOREF )
+   {
+      luaL_unref( L, LUA_REGISTRYINDEX, self->ref );
+   }
+
+   /* FIXME */
+   /* free((void*)self); */
+
+   return 0;
+}
+
+
+static int gfx_newImage(lua_State *L)
 {
    int n = lua_gettop(L);
 
@@ -149,57 +159,48 @@ int gfx_newImage(lua_State *L)
    return 1;
 }
 
-int img_getData(lua_State *L)
+static int quad_type(lua_State *L)
 {
-   gfx_Image* self = (gfx_Image*)luaL_checkudata(L, 1, "Image");
-
-   lua_rawgeti(L, LUA_REGISTRYINDEX, self->ref);
+   gfx_Quad* self = (gfx_Quad*)luaL_checkudata(L, 1, "Quad");
+   (void) self;
+   lua_pushstring(L, "Quad");
    return 1;
 }
 
-int img_getWidth(lua_State *L)
+static int quad_setViewport(lua_State *L)
 {
-   gfx_Image* self = (gfx_Image*)luaL_checkudata(L, 1, "Image");
-   lua_pushnumber(L, self->data->width);
-   return 1;
-}
+   int n = lua_gettop(L);
 
-int img_getHeight(lua_State *L)
-{
-   gfx_Image* self = (gfx_Image*)luaL_checkudata(L, 1, "Image");
-   lua_pushnumber(L, self->data->height);
-   return 1;
-}
+   if (n != 5)
+      return luaL_error(L, "Quad:setViewport requires 5 arguments, %d given.", n);
 
-int img_getDimensions(lua_State *L)
-{
-   gfx_Image* self = (gfx_Image*)luaL_checkudata(L, 1, "Image");
-   lua_pushnumber(L, self->data->width);
-   lua_pushnumber(L, self->data->height);
-   return 2;
-}
-
-int img_setFilter(lua_State *L)
-{
-   return 0;
-}
-
-int img_gc(lua_State *L)
-{
-   gfx_Image* self = (gfx_Image*)luaL_checkudata(L, 1, "Image");
-
-   if (self->ref != LUA_NOREF )
-   {
-      luaL_unref( L, LUA_REGISTRYINDEX, self->ref );
-   }
-
-   /* FIXME */
-   /* free((void*)self); */
+   gfx_Quad* self = (gfx_Quad*)luaL_checkudata(L, 1, "Quad");
+   self->x = luaL_checknumber(L, 2);
+   self->y = luaL_checknumber(L, 3);
+   self->w = luaL_checknumber(L, 4);
+   self->h = luaL_checknumber(L, 5);
 
    return 0;
 }
 
-int gfx_newQuad(lua_State *L)
+static int quad_getViewport(lua_State *L)
+{
+   gfx_Quad* self = (gfx_Quad*)luaL_checkudata(L, 1, "Quad");
+   lua_pushnumber(L, self->x);
+   lua_pushnumber(L, self->y);
+   lua_pushnumber(L, self->w);
+   lua_pushnumber(L, self->h);
+   return 4;
+}
+
+static int quad_gc(lua_State *L)
+{
+   gfx_Quad* self = (gfx_Quad*)luaL_checkudata(L, 1, "Quad");
+   (void)self;
+   return 0;
+}
+
+static int gfx_newQuad(lua_State *L)
 {
    int n = lua_gettop(L);
 
@@ -239,43 +240,30 @@ int gfx_newQuad(lua_State *L)
    return 1;
 }
 
-int quad_type(lua_State *L)
+static int font_type(lua_State *L)
 {
-   gfx_Quad* self = (gfx_Quad*)luaL_checkudata(L, 1, "Quad");
+   font_t* self = (font_t*)luaL_checkudata(L, 1, "Font");
    (void) self;
-   lua_pushstring(L, "Quad");
+   lua_pushstring(L, "Font");
    return 1;
 }
 
-int quad_setViewport(lua_State *L)
+static int font_getWidth(lua_State *L)
 {
-   int n = lua_gettop(L);
+   const char* text = luaL_checkstring(L, 2);
 
-   if (n != 5)
-      return luaL_error(L, "Quad:setViewport requires 5 arguments, %d given.", n);
+   lua_pushnumber(L, pntr_text_width(painter, text));
+   return 1;
+}
 
-   gfx_Quad* self = (gfx_Quad*)luaL_checkudata(L, 1, "Quad");
-   self->x = luaL_checknumber(L, 2);
-   self->y = luaL_checknumber(L, 3);
-   self->w = luaL_checknumber(L, 4);
-   self->h = luaL_checknumber(L, 5);
-
+static int font_setFilter(lua_State *L)
+{
    return 0;
 }
 
-int quad_getViewport(lua_State *L)
+static int font_gc(lua_State *L)
 {
-   gfx_Quad* self = (gfx_Quad*)luaL_checkudata(L, 1, "Quad");
-   lua_pushnumber(L, self->x);
-   lua_pushnumber(L, self->y);
-   lua_pushnumber(L, self->w);
-   lua_pushnumber(L, self->h);
-   return 4;
-}
-
-int quad_gc(lua_State *L)
-{
-   gfx_Quad* self = (gfx_Quad*)luaL_checkudata(L, 1, "Quad");
+   font_t* self = (font_t*)luaL_checkudata(L, 1, "Font");
    (void)self;
    return 0;
 }
@@ -308,7 +296,7 @@ static void push_font(lua_State *L, font_t *font)
    lua_setmetatable(L, -2);
 }
 
-int gfx_newImageFont(lua_State *L)
+static int gfx_newImageFont(lua_State *L)
 {
    int n = lua_gettop(L);
 
@@ -346,35 +334,7 @@ int gfx_newImageFont(lua_State *L)
    return 1;
 }
 
-int font_type(lua_State *L)
-{
-   font_t* self = (font_t*)luaL_checkudata(L, 1, "Font");
-   (void) self;
-   lua_pushstring(L, "Font");
-   return 1;
-}
-
-int font_getWidth(lua_State *L)
-{
-   const char* text = luaL_checkstring(L, 2);
-
-   lua_pushnumber(L, pntr_text_width(painter, text));
-   return 1;
-}
-
-int font_setFilter(lua_State *L)
-{
-   return 0;
-}
-
-int font_gc(lua_State *L)
-{
-   font_t* self = (font_t*)luaL_checkudata(L, 1, "Font");
-   (void)self;
-   return 0;
-}
-
-int gfx_setFont(lua_State *L)
+static int gfx_setFont(lua_State *L)
 {
    int n = lua_gettop(L);
 
@@ -388,7 +348,7 @@ int gfx_setFont(lua_State *L)
    return 0;
 }
 
-int gfx_getFont(lua_State *L)
+static int gfx_getFont(lua_State *L)
 {
    int n = lua_gettop(L);
 
@@ -402,7 +362,7 @@ int gfx_getFont(lua_State *L)
    return 1;
 }
 
-int gfx_setColor(lua_State *L)
+static int gfx_setColor(lua_State *L)
 {
    int n = lua_gettop(L);
 
@@ -438,7 +398,7 @@ int gfx_setColor(lua_State *L)
    return 0;
 }
 
-int gfx_getColor(lua_State *L)
+static int gfx_getColor(lua_State *L)
 {
    int n = lua_gettop(L);
 
@@ -461,7 +421,7 @@ int gfx_getColor(lua_State *L)
    return 4;
 }
 
-int gfx_setBackgroundColor(lua_State *L)
+static int gfx_setBackgroundColor(lua_State *L)
 {
    int n = lua_gettop(L);
 
@@ -498,7 +458,7 @@ int gfx_setBackgroundColor(lua_State *L)
    return 0;
 }
 
-int gfx_getBackgroundColor(lua_State *L)
+static int gfx_getBackgroundColor(lua_State *L)
 {
    int n = lua_gettop(L);
 
@@ -521,7 +481,7 @@ int gfx_getBackgroundColor(lua_State *L)
    return 4;
 }
 
-int gfx_clear(lua_State *L)
+static int gfx_clear(lua_State *L)
 {
    int n = lua_gettop(L);
 
@@ -535,7 +495,7 @@ int gfx_clear(lua_State *L)
    return 0;
 }
 
-int gfx_rectangle(lua_State *L)
+static int gfx_rectangle(lua_State *L)
 {
    int n = lua_gettop(L);
 
@@ -567,7 +527,7 @@ int gfx_rectangle(lua_State *L)
    return 0;
 }
 
-int gfx_point(lua_State *L)
+static int gfx_point(lua_State *L)
 {
    int n = lua_gettop(L);
 
@@ -587,7 +547,7 @@ int gfx_point(lua_State *L)
    return 0;
 }
 
-int gfx_line(lua_State *L)
+static int gfx_line(lua_State *L)
 {
    int n = lua_gettop(L);
 
@@ -621,7 +581,7 @@ int gfx_line(lua_State *L)
    return 0;
 }
 
-int gfx_draw(lua_State *L)
+static int gfx_draw(lua_State *L)
 {
    int n = lua_gettop(L);
 
@@ -680,7 +640,7 @@ int gfx_draw(lua_State *L)
    return 0;
 }
 
-int gfx_print(lua_State *L)
+static int gfx_print(lua_State *L)
 {
    int n = lua_gettop(L);
 
@@ -702,7 +662,7 @@ int gfx_print(lua_State *L)
    return 0;
 }
 
-int gfx_printf(lua_State *L)
+static int gfx_printf(lua_State *L)
 {
    int n = lua_gettop(L);
 
@@ -730,40 +690,48 @@ int gfx_printf(lua_State *L)
    return 0;
 }
 
-int gfx_setDefaultFilter(lua_State *L)
+static int gfx_setDefaultFilter(lua_State *L)
 {
    return 0;
 }
 
-int gfx_setLineStyle(lua_State *L)
+static int gfx_setLineStyle(lua_State *L)
 {
    return 0;
 }
 
-int gfx_setLineWidth(lua_State *L)
+static int gfx_setLineWidth(lua_State *L)
 {
    return 0;
 }
 
-int gfx_scale(lua_State *L)
+static int gfx_scale(lua_State *L)
 {
    return 0;
 }
 
-int gfx_getWidth(lua_State *L)
+static int gfx_getWidth(lua_State *L)
 {
    lua_pushnumber(L, settings.width);
    return 1;
 }
 
-int gfx_getHeight(lua_State *L)
+static int gfx_getHeight(lua_State *L)
 {
    lua_pushnumber(L, settings.height);
    return 1;
 }
 
+static int gfx_origin(lua_State *L)
+{
+   lua_pop(L, lua_gettop(L));
 
-int gfx_pop(lua_State *L)
+   pntr_origin(painter, false);
+
+   return 0;
+}
+
+static int gfx_pop(lua_State *L)
 {
    lua_pop(L, lua_gettop(L));
 
@@ -773,7 +741,7 @@ int gfx_pop(lua_State *L)
    return 0;
 }
 
-int gfx_push(lua_State *L)
+static int gfx_push(lua_State *L)
 {
    lua_pop(L, lua_gettop(L));
 
@@ -783,7 +751,7 @@ int gfx_push(lua_State *L)
    return 0;
 }
 
-int gfx_translate(lua_State *L)
+static int gfx_translate(lua_State *L)
 {
    int n = lua_gettop(L);
 
@@ -797,7 +765,7 @@ int gfx_translate(lua_State *L)
    return 0;
 }
 
-int gfx_setScissor(lua_State *L)
+static int gfx_setScissor(lua_State *L)
 {
    int n = lua_gettop(L);
 
@@ -824,3 +792,49 @@ int gfx_setScissor(lua_State *L)
    return 0;
 }
 
+
+int lutro_graphics_preload(lua_State *L)
+{
+   static luaL_Reg gfx_funcs[] =  {
+      { "clear",        gfx_clear },
+      { "draw",         gfx_draw },
+      { "getBackgroundColor", gfx_getBackgroundColor },
+      { "getColor",     gfx_getColor },
+      { "getFont",      gfx_getFont },
+      { "getHeight",    gfx_getHeight },
+      { "getWidth",     gfx_getWidth },
+      { "line",         gfx_line },
+      { "newImage",     gfx_newImage },
+      { "newImageFont", gfx_newImageFont },
+      { "newQuad",      gfx_newQuad },
+      { "point",        gfx_point },
+      { "print",        gfx_print },
+      { "printf",       gfx_printf },
+
+      { "origin",       gfx_origin },
+      { "pop",          gfx_pop },
+      { "push",         gfx_push },
+      { "rotate",       l_not_implemented },
+      { "scale",        gfx_scale },
+      { "shear",        l_not_implemented },
+      { "translate",    gfx_translate },
+
+      { "rectangle",    gfx_rectangle },
+      { "setBackgroundColor", gfx_setBackgroundColor },
+      { "setColor",     gfx_setColor },
+      { "setDefaultFilter", gfx_setDefaultFilter },
+      { "setFont",      gfx_setFont },
+      { "setLineStyle", gfx_setLineStyle },
+      { "setLineWidth", gfx_setLineWidth },
+      { "setScissor",   gfx_setScissor },
+      {NULL, NULL}
+   };
+
+   lutro_ensure_global_table(L, "lutro");
+
+   luaL_newlib(L, gfx_funcs);
+
+   lua_setfield(L, -2, "graphics");
+
+   return 1;
+}

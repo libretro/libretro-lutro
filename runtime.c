@@ -196,3 +196,9 @@ LUALIB_API unsigned luaL_checkunsigned (lua_State *L, int narg)
 }
 
 #endif
+
+int l_not_implemented(lua_State *L)
+{
+   lua_pop(L, lua_gettop(L));
+   return luaL_error(L, "Not implemented.");
+}

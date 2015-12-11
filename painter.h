@@ -64,8 +64,6 @@ struct painter_s
    painter_t *parent;
 };
 
-bool pntr_push(painter_t *p);
-bool pntr_pop(painter_t *p);
 void pntr_reset(painter_t *p);
 void pntr_clear(painter_t *p);
 void pntr_sanitize_clip(painter_t *p);
@@ -76,6 +74,9 @@ void pntr_print(painter_t *p, int x, int y, const char *text);
 int  pntr_text_width(painter_t *p, const char *text);
 void pntr_printf(painter_t *p, int x, int y, const char *format, ...);
 
+/* Transformations */
+bool pntr_push(painter_t *p);
+bool pntr_pop(painter_t *p);
 void pntr_origin(painter_t *p, bool reset_stack);
 void pntr_scale(painter_t *p, float x, float y);
 void pntr_rotate(painter_t *p, float rad);

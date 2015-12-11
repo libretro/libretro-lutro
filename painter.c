@@ -36,30 +36,6 @@ static int strpos(const char *haystack, char needle)
    return -1;
 }
 
-
-bool pntr_push(painter_t *p)
-{
-   if (p->stack_pos == ARRAY_SIZE(p->stack))
-      return false;
-
-   memcpy(&p->stack[p->stack_pos + 1], &p->stack[p->stack_pos], sizeof(p->stack[0]));
-   p->trans = &p->stack[++p->stack_pos];
-
-   return true;
-}
-
-
-bool pntr_pop(painter_t *p)
-{
-   if (p->stack_pos == 0)
-      return false;
-
-   p->trans = &p->stack[--p->stack_pos];
-
-   return true;
-}
-
-
 void pntr_reset(painter_t *p)
 {
    p->background = 0xff000000;
@@ -340,6 +316,30 @@ void pntr_printf(painter_t *p, int x, int y, const char *format, ...)
    pntr_print(p, x, y, buf);
    free(buf);
 }
+
+
+bool pntr_push(painter_t *p)
+{
+   if (p->stack_pos == ARRAY_SIZE(p->stack))
+      return false;
+
+   memcpy(&p->stack[p->stack_pos + 1], &p->stack[p->stack_pos], sizeof(p->stack[0]));
+   p->trans = &p->stack[++p->stack_pos];
+
+   return true;
+}
+
+
+bool pntr_pop(painter_t *p)
+{
+   if (p->stack_pos == 0)
+      return false;
+
+   p->trans = &p->stack[--p->stack_pos];
+
+   return true;
+}
+
 
 void pntr_origin(painter_t *p, bool reset_stack)
 {

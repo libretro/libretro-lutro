@@ -57,6 +57,14 @@ int lutro_require(lua_State *L, const char *modname, int pop_result);
  */
 void lutro_relpath_to_modname(char *outmod, const char *relpath);
 
+/**
+ * @brief Returns a "not implemented" error
+ *
+ * @param L
+ * @return
+ */
+int l_not_implemented(lua_State *L);
+
 #if LUA_VERSION_NUM < 502
 #define LUA_OPEQ	0
 #define LUA_OPLT	1

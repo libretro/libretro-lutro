@@ -719,6 +719,34 @@ static int gfx_setLineWidth(lua_State *L)
 
 static int gfx_scale(lua_State *L)
 {
+   int n = lua_gettop(L);
+
+   if (n < 1)
+      return luaL_error(L, "lutro.graphics.scale requires  at least 1 argument 0 given.");
+
+   float x = luaL_checknumber(L, 1);
+   float y = luaL_optnumber(L, 2, x);
+
+   pntr_scale(painter, x, y);
+
+   lua_pop(L, n);
+
+   return 0;
+}
+
+static int gfx_rotate(lua_State *L)
+{
+   int n = lua_gettop(L);
+
+   if (n != 1)
+      return luaL_error(L, "lutro.graphics.rotate requires 1 arguments, %d given.", n);
+
+   float rad = luaL_checknumber(L, 1);
+
+   pntr_rotate(painter, rad);
+
+   lua_pop(L, n);
+
    return 0;
 }
 
@@ -826,7 +854,7 @@ int lutro_graphics_preload(lua_State *L)
       { "origin",       gfx_origin },
       { "pop",          gfx_pop },
       { "push",         gfx_push },
-      { "rotate",       l_not_implemented },
+      { "rotate",       gfx_rotate },
       { "scale",        gfx_scale },
       { "shear",        l_not_implemented },
       { "translate",    gfx_translate },

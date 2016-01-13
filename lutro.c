@@ -12,6 +12,7 @@
 #include "filesystem.h"
 #include "system.h"
 #include "timer.h"
+#include "math.h"
 #include "window.h"
 #include "live.h"
 
@@ -88,6 +89,7 @@ void lutro_init()
    lutro_preload(L, lutro_filesystem_preload, "lutro.filesystem");
    lutro_preload(L, lutro_system_preload, "lutro.system");
    lutro_preload(L, lutro_timer_preload, "lutro.timer");
+   lutro_preload(L, lutro_math_preload, "lutro.math");
    lutro_preload(L, lutro_window_preload, "lutro.window");
 #ifdef HAVE_INOTIFY
    lutro_preload(L, lutro_live_preload, "lutro.live");
@@ -104,6 +106,7 @@ void lutro_init()
    lutro_require(L, "lutro.filesystem", 1);
    lutro_require(L, "lutro.system", 1);
    lutro_require(L, "lutro.timer", 1);
+   lutro_require(L, "lutro.math", 1);
    lutro_require(L, "lutro.window", 1);
 #ifdef HAVE_INOTIFY
    lutro_require(L, "lutro.live", 1);
@@ -322,6 +325,7 @@ int lutro_load(const char *path)
 
    lutro_graphics_init();
    lutro_audio_init();
+   lutro_math_init();
 
 #ifdef HAVE_INOTIFY
    if (settings.live_enable)

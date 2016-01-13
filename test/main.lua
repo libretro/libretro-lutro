@@ -3,6 +3,7 @@ local availableStates = {
 	"graphics/print",
 	"graphics/rectangle",
 	"graphics/line",
+	"math/random",
 	"audio/play"
 }
 local states = {}

@@ -10,6 +10,7 @@ int lutro_window_preload(lua_State *L)
    static luaL_Reg win_funcs[] =  {
       { "setTitle", win_setTitle },
       { "setMode",  win_setMode },
+      { "close", lutro_window_close },
       {NULL, NULL}
    };
 
@@ -48,4 +49,10 @@ int win_setMode(lua_State *L)
    lua_pushboolean(L, true);
 
    return 1;
+}
+
+int lutro_window_close(lua_State *L)
+{
+   retro_unload_game();
+   return 0;
 }

@@ -72,6 +72,7 @@ else ifeq ($(platform), osx)
    SHARED := -dynamiclib
    LUA_SYSCFLAGS := -DLUA_USE_MACOSX
    CFLAGS += -DHAVE_STRL
+   MMD :=
 
 ifeq ($(ARCH), $(filter $(ARCH), intel))
 	WANT_JIT = 1

@@ -229,7 +229,7 @@ static int gfx_newQuad(lua_State *L)
 
       lua_setfield(L, -2, "__index");
 
-      lua_pushcfunction( L, img_gc );
+      lua_pushcfunction( L, quad_gc );
       lua_setfield( L, -2, "__gc" );
 
       luaL_setfuncs(L, quad_funcs, 0);
@@ -266,7 +266,7 @@ static int gfx_newCanvas(lua_State *L)
    /*self->w = luaL_checknumber(L, 1);
    self->h = luaL_checknumber(L, 2);*/
 
-   if (luaL_newmetatable(L, "Quad") != 0)
+   if (luaL_newmetatable(L, "Canvas") != 0)
    {
       static luaL_Reg canvas_funcs[] = {
          { "type",        canvas_type },
@@ -529,6 +529,21 @@ static int gfx_getBackgroundColor(lua_State *L)
 
    return 4;
 }
+
+static int gfx_setCanvas(lua_State *L)
+{
+   int n = lua_gettop(L);
+
+   if (n != 1)
+      return luaL_error(L, "lutro.graphics.setCanvas requires 1 argument, %d given.", n);
+
+   painter_t* pn = (painter_t*)luaL_checkudata(L, 1, "Canvas");
+   lua_pop(L, n);
+   //painter->font = font;
+
+   return 0;
+}
+
 
 static int gfx_clear(lua_State *L)
 {
@@ -917,6 +932,7 @@ int lutro_graphics_preload(lua_State *L)
       { "setLineStyle", gfx_setLineStyle },
       { "setLineWidth", gfx_setLineWidth },
       { "setScissor",   gfx_setScissor },
+      { "setCanvas",    gfx_setCanvas },
       {NULL, NULL}
    };
 

@@ -349,8 +349,8 @@ static int gfx_newImageFont(lua_State *L)
 {
    int n = lua_gettop(L);
 
-   if (n != 2)
-      return luaL_error(L, "lutro.graphics.newImageFont requires 2 arguments, %d given.", n);
+   if (n < 2)
+      return luaL_error(L, "lutro.graphics.newImageFont requires at least 2 arguments, %d given.", n);
 
    font_t *font;
 

@@ -240,6 +240,55 @@ static int gfx_newQuad(lua_State *L)
    return 1;
 }
 
+static int canvas_type(lua_State *L)
+{
+   painter_t* self = (painter_t*)luaL_checkudata(L, 1, "Canvas");
+   (void) self;
+   lua_pushstring(L, "Canvas");
+   return 1;
+}
+
+static int canvas_gc(lua_State *L)
+{
+   painter_t* self = (painter_t*)luaL_checkudata(L, 1, "Canvas");
+   (void)self;
+   return 0;
+}
+
+static int gfx_newCanvas(lua_State *L)
+{
+   int n = lua_gettop(L);
+
+   if (n != 2)
+      return luaL_error(L, "lutro.graphics.newCanvas requires 2 arguments, %d given.", n);
+
+   painter_t* self = (painter_t*)lua_newuserdata(L, sizeof(painter_t));
+   /*self->w = luaL_checknumber(L, 1);
+   self->h = luaL_checknumber(L, 2);*/
+
+   if (luaL_newmetatable(L, "Quad") != 0)
+   {
+      static luaL_Reg canvas_funcs[] = {
+         { "type",        canvas_type },
+         { "__gc",        canvas_gc },
+         {NULL, NULL}
+      };
+
+      lua_pushvalue(L, -1);
+
+      lua_setfield(L, -2, "__index");
+
+      lua_pushcfunction( L, canvas_gc );
+      lua_setfield( L, -2, "__gc" );
+
+      luaL_setfuncs(L, canvas_funcs, 0);
+   }
+
+   lua_setmetatable(L, -2);
+
+   return 1;
+}
+
 static int font_type(lua_State *L)
 {
    font_t* self = (font_t*)luaL_checkudata(L, 1, "Font");
@@ -847,6 +896,7 @@ int lutro_graphics_preload(lua_State *L)
       { "newImage",     gfx_newImage },
       { "newImageFont", gfx_newImageFont },
       { "newQuad",      gfx_newQuad },
+      { "newCanvas",    gfx_newCanvas },
       { "point",        gfx_point },
       { "print",        gfx_print },
       { "printf",       gfx_printf },

@@ -30,6 +30,8 @@ typedef struct
    int a;
 } gfx_Color;
 
+typedef painter_t gfx_Canvas;
+
 void lutro_graphics_init();
 int lutro_graphics_preload(lua_State *L);
 

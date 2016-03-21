@@ -255,22 +255,16 @@ static int canvas_gc(lua_State *L)
    return 0;
 }
 
-static int gfx_newCanvas(lua_State *L)
+static void push_canvas(lua_State *L, painter_t *canvas)
 {
-   int n = lua_gettop(L);
-
-   if (n != 2)
-      return luaL_error(L, "lutro.graphics.newCanvas requires 2 arguments, %d given.", n);
-
    painter_t* self = (painter_t*)lua_newuserdata(L, sizeof(painter_t));
-   /*self->w = luaL_checknumber(L, 1);
-   self->h = luaL_checknumber(L, 2);*/
+   memcpy(self, canvas, sizeof(painter_t));
 
    if (luaL_newmetatable(L, "Canvas") != 0)
    {
       static luaL_Reg canvas_funcs[] = {
-         { "type",        canvas_type },
-         { "__gc",        canvas_gc },
+         { "type",     canvas_type },
+         { "__gc",     canvas_gc },
          {NULL, NULL}
       };
 
@@ -285,6 +279,53 @@ static int gfx_newCanvas(lua_State *L)
    }
 
    lua_setmetatable(L, -2);
+}
+
+static int gfx_newCanvas(lua_State *L)
+{
+   int n = lua_gettop(L);
+
+   if (n != 2)
+      return luaL_error(L, "lutro.graphics.newCanvas requires 2 arguments, %d given.", n);
+
+   painter_t* canvas = (painter_t*)calloc(1, sizeof(painter_t));
+
+   push_canvas(L, canvas);
+
+   return 1;
+}
+
+static int gfx_setCanvas(lua_State *L)
+{
+   int n = lua_gettop(L);
+
+   if (n != 0 && n != 1)
+      return luaL_error(L, "lutro.graphics.setCanvas requires 0 or 1 argument, %d given.", n);
+
+   if (n == 0)
+   {
+
+   }
+   else if (n == 1)
+   {
+      painter_t* pn = (painter_t*)luaL_checkudata(L, 1, "Canvas");
+      lua_pop(L, n);
+      //painter->font = font;
+   }
+
+   return 0;
+}
+
+static int gfx_getCanvas(lua_State *L)
+{
+   int n = lua_gettop(L);
+
+   if (n != 0)
+      return luaL_error(L, "lutro.graphics.getCanvas requires 0 arguments, %d given.", n);
+
+   lua_pop(L, n);
+
+   push_canvas(L, painter);
 
    return 1;
 }
@@ -529,21 +570,6 @@ static int gfx_getBackgroundColor(lua_State *L)
 
    return 4;
 }
-
-static int gfx_setCanvas(lua_State *L)
-{
-   int n = lua_gettop(L);
-
-   if (n != 1)
-      return luaL_error(L, "lutro.graphics.setCanvas requires 1 argument, %d given.", n);
-
-   painter_t* pn = (painter_t*)luaL_checkudata(L, 1, "Canvas");
-   lua_pop(L, n);
-   //painter->font = font;
-
-   return 0;
-}
-
 
 static int gfx_clear(lua_State *L)
 {
@@ -907,6 +933,7 @@ int lutro_graphics_preload(lua_State *L)
       { "getFont",      gfx_getFont },
       { "getHeight",    gfx_getHeight },
       { "getWidth",     gfx_getWidth },
+      { "getCanvas",    gfx_getCanvas },
       { "line",         gfx_line },
       { "newImage",     gfx_newImage },
       { "newImageFont", gfx_newImageFont },

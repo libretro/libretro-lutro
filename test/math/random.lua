@@ -1,3 +1,6 @@
+lutro.math.setRandomSeed(3)
+lutro.math.setRandomSeed(3, 10)
+
 return {
 	draw = function()
     local rand1 = lutro.math.random()

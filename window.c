@@ -10,6 +10,7 @@ int lutro_window_preload(lua_State *L)
    static luaL_Reg win_funcs[] =  {
       { "setTitle", win_setTitle },
       { "setMode",  win_setMode },
+      { "setIcon", win_setIcon },
       {NULL, NULL}
    };
 
@@ -29,6 +30,19 @@ void lutro_window_init()
 int win_setTitle(lua_State *L)
 {
    return 0;
+}
+
+/**
+ * lutro.window.setIcon
+ *
+ * https://love2d.org/wiki/love.window.setIcon
+ */
+int win_setIcon(lua_State *L)
+{
+   // Pretend that we successfully set the window icon.
+   lua_pushboolean(L, true);
+
+   return 1;
 }
 
 int win_setMode(lua_State *L)

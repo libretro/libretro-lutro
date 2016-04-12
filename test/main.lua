@@ -4,7 +4,8 @@ local availableStates = {
 	"graphics/rectangle",
 	"graphics/line",
 	"math/random",
-	"audio/play"
+	"audio/play",
+	"filesystem/getUserDirectory"
 }
 local states = {}
 local currentState = 1

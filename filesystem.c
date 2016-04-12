@@ -14,6 +14,7 @@ int lutro_filesystem_preload(lua_State *L)
       { "write",       fs_write },
       { "load",        fs_load },
       { "setIdentity", fs_setIdentity },
+      { "getUserDirectory", fs_getUserDirectory },
       { "isDirectory", fs_isDirectory },
       { "isFile",      fs_isFile },
       { "createDirectory", fs_createDirectory },
@@ -139,6 +140,27 @@ int fs_setIdentity(lua_State *L)
    strlcpy(settings.identity, name, sizeof(settings.identity));
 
    return 0;
+}
+
+/**
+ * lutro.filesystem.getUserDirectory
+ *
+ * https://love2d.org/wiki/love.filesystem.getUserDirectory
+ */
+int fs_getUserDirectory(lua_State *L)
+{
+   // Retrieve the user's home directory from environment variables.
+   char *homedir = getenv("HOME");
+   if (homedir == NULL) {
+      homedir = getenv("HOMEDRIVE");
+      if (homedir == NULL) {
+         // TODO: Figure out what to do when HOME isn't available.
+         homedir = ".";
+      }
+   }
+   lua_pushstring(L, homedir);
+
+   return 1;
 }
 
 int fs_isDirectory(lua_State *L)

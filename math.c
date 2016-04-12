@@ -4,7 +4,7 @@
 
 #include <stdlib.h>
 #include <string.h>
-
+#include <time.h>
 
 void lutro_math_init()
 {
@@ -16,6 +16,7 @@ int lutro_math_preload(lua_State *L)
 {
    static luaL_Reg math_funcs[] = {
       { "random", lutro_math_random },
+      { "setRandomSeed", lutro_math_setRandomSeed },
       {NULL, NULL}
    };
 
@@ -58,4 +59,32 @@ int lutro_math_random(lua_State *L)
     }
 
     return 1;
+}
+
+/**
+ * lutro.math.setRandomSeed
+ *
+ * https://love2d.org/wiki/love.math.setRandomSeed
+ */
+int lutro_math_setRandomSeed(lua_State *L)
+{
+    int n = lua_gettop(L), arg1, arg2;
+    if (n < 1 || n > 2) {
+        return luaL_error(L, "lutro.math.setRandomSeed requires 1 or 2 arguments, %d given.", n);
+    }
+
+    switch (n) {
+        case 1:
+            arg1 = (unsigned) luaL_checknumber(L, 1);
+            srand(arg1);
+            break;
+        case 2:
+            // TODO: love.math.setRandomSeed expects to combine the two integers into one 64-bit integer.
+            arg1 = (unsigned) luaL_checknumber(L, 1);
+            arg2 = (unsigned) luaL_checknumber(L, 1);
+            srand(arg1 + arg2);
+            break;
+    }
+
+    return 0;
 }

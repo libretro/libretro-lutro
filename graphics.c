@@ -966,6 +966,16 @@ static int gfx_setScissor(lua_State *L)
    return 0;
 }
 
+/**
+ * lutro.graphics.present
+ *
+ * https://love2d.org/wiki/love.graphics.present
+ */
+static int gfx_present(lua_State *L)
+{
+   // Since Lutro handles drawing internally, we will ignore this call.
+   return 0;
+}
 
 int lutro_graphics_preload(lua_State *L)
 {
@@ -984,6 +994,7 @@ int lutro_graphics_preload(lua_State *L)
       { "newQuad",      gfx_newQuad },
       { "newCanvas",    gfx_newCanvas },
       { "point",        gfx_point },
+      { "present",      gfx_present },
       { "print",        gfx_print },
       { "printf",       gfx_printf },
 

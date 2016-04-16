@@ -8,7 +8,8 @@ return {
 		lutro.graphics.print("Tests switch every 3 seconds.", 30, 100)
 
 		if lutro.mouse.isDown(1, 2) then
-			lutro.graphics.print("The left or right mouse button is Down.", 30, 200)
+			local x, y = lutro.mouse.getPosition()
+			lutro.graphics.print("Mouse " .. lutro.mouse.getX() .. "-" .. lutro.mouse.getY(), x, y)
 		end
 	end
 }

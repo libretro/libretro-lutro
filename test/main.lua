@@ -1,12 +1,12 @@
 -- Lutro Tester
 local availableStates = {
 	"graphics/print",
-	"graphics/rectangle",
-	"graphics/line",
-	"math/random",
-	"audio/play",
-	"filesystem/getUserDirectory",
-	"window/close"
+	-- "graphics/rectangle",
+	-- "graphics/line",
+	-- "math/random",
+	-- "audio/play",
+	-- "filesystem/getUserDirectory",
+	-- "window/close"
 }
 local states = {}
 local currentState = 1

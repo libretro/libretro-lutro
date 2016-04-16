@@ -15,6 +15,7 @@ SOURCES_C += $(CORE_DIR)/libretro.c \
 	$(CORE_DIR)/system.c \
 	$(CORE_DIR)/timer.c \
 	$(CORE_DIR)/math.c \
+	$(CORE_DIR)/mouse.c \
 	$(CORE_DIR)/window.c \
 	$(CORE_DIR)/painter.c
 

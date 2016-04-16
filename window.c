@@ -1,6 +1,7 @@
 #include "window.h"
 #include "lutro.h"
 #include "graphics.h"
+#include "libretro.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -8,6 +9,7 @@
 int lutro_window_preload(lua_State *L)
 {
    static luaL_Reg win_funcs[] =  {
+      { "close", win_close },
       { "setTitle", win_setTitle },
       { "setMode",  win_setMode },
       { "setIcon", win_setIcon },
@@ -29,6 +31,18 @@ void lutro_window_init()
 
 int win_setTitle(lua_State *L)
 {
+   return 0;
+}
+
+/**
+ * lutro.window.close()
+ *
+ * https://love2d.org/wiki/love.window.close
+ */
+int win_close(lua_State *L)
+{
+   retro_shutdown_game();
+
    return 0;
 }
 

@@ -11,6 +11,9 @@ int lutro_mouse_preload(lua_State *L)
 {
    static luaL_Reg mouse_funcs[] =  {
       { "isDown", mouse_isDown },
+      { "getX", mouse_getX },
+      { "getY", mouse_getY },
+      { "getPosition", mouse_getPosition },
       {NULL, NULL}
    };
 
@@ -33,7 +36,12 @@ void lutro_mouseevent(lua_State* L)
    for (i = 0; i < 8; i++)
    {
       int16_t value = settings.input_cb(0, RETRO_DEVICE_MOUSE, 0, i);
-      mouse_cache[i] = value;
+      if (i == RETRO_DEVICE_ID_MOUSE_X || i == RETRO_DEVICE_ID_MOUSE_Y) {
+        mouse_cache[i] += value;
+      }
+      else {
+        mouse_cache[i] = value;
+      }
    }
 }
 
@@ -77,3 +85,60 @@ int mouse_isDown(lua_State *L)
 
     return 1;
 }
+
+/**
+ * lutro.mouse.getX()
+ *
+ * https://love2d.org/wiki/love.mouse.getX
+ */
+int mouse_getX(lua_State *L)
+{
+    int n = lua_gettop(L);
+    if (n > 0) {
+        return luaL_error(L, "lutro.mouse.getX takes no arguments, %d given.", n);
+    }
+
+    unsigned x = (unsigned) mouse_cache[RETRO_DEVICE_ID_MOUSE_X];
+    lua_pushnumber(L, x);
+
+    return 1;
+}
+
+/**
+ * lutro.mouse.getY()
+ *
+ * https://love2d.org/wiki/love.mouse.getY
+ */
+int mouse_getY(lua_State *L)
+{
+    int n = lua_gettop(L);
+    if (n > 0) {
+        return luaL_error(L, "lutro.mouse.getX takes no arguments, %d given.", n);
+    }
+
+    unsigned y = (unsigned) mouse_cache[RETRO_DEVICE_ID_MOUSE_Y];
+    lua_pushnumber(L, y);
+
+    return 1;
+}
+
+/**
+ * lutro.mouse.getPosition()
+ *
+ * https://love2d.org/wiki/love.mouse.getPosition
+ */
+int mouse_getPosition(lua_State *L)
+{
+    int n = lua_gettop(L);
+    if (n > 0) {
+        return luaL_error(L, "lutro.mouse.getX takes no arguments, %d given.", n);
+    }
+
+    unsigned x = (unsigned) mouse_cache[RETRO_DEVICE_ID_MOUSE_X];
+    unsigned y = (unsigned) mouse_cache[RETRO_DEVICE_ID_MOUSE_Y];
+    lua_pushnumber(L, x);
+    lua_pushnumber(L, y);
+
+    return 2;
+}
+

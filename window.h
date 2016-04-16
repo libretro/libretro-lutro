@@ -10,6 +10,7 @@
 void lutro_window_init();
 int lutro_window_preload(lua_State *L);
 
+int win_close(lua_State *L);
 int win_setTitle(lua_State *L);
 int win_setIcon(lua_State *L);
 int win_setMode(lua_State *L);

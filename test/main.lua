@@ -5,7 +5,8 @@ local availableStates = {
 	"graphics/line",
 	"math/random",
 	"audio/play",
-	"filesystem/getUserDirectory"
+	"filesystem/getUserDirectory",
+	"window/close"
 }
 local states = {}
 local currentState = 1

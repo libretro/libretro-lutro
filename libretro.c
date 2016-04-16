@@ -207,6 +207,11 @@ void retro_unload_game(void)
 {
 }
 
+void retro_shutdown_game(void)
+{
+   environ_cb(RETRO_ENVIRONMENT_SHUTDOWN, 0);
+}
+
 unsigned retro_get_region(void)
 {
    return RETRO_REGION_NTSC;

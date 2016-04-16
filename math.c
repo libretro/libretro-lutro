@@ -51,7 +51,7 @@ int lutro_math_random(lua_State *L)
             break;
         case 2:
             min = (double) luaL_checknumber(L, 1);
-            max = (double) luaL_checknumber(L, 1);
+            max = (double) luaL_checknumber(L, 2);
             num *= max;
             num += min;
             lua_pushnumber(L, num);
@@ -81,7 +81,7 @@ int lutro_math_setRandomSeed(lua_State *L)
         case 2:
             // TODO: love.math.setRandomSeed expects to combine the two integers into one 64-bit integer.
             arg1 = (unsigned) luaL_checknumber(L, 1);
-            arg2 = (unsigned) luaL_checknumber(L, 1);
+            arg2 = (unsigned) luaL_checknumber(L, 2);
             srand(arg1 + arg2);
             break;
     }

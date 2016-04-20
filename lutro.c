@@ -16,6 +16,7 @@
 #include "window.h"
 #include "live.h"
 #include "mouse.h"
+#include "joystick.h"
 
 #ifdef HAVE_JIT
 #include "luajit.h"
@@ -93,6 +94,7 @@ void lutro_init()
    lutro_preload(L, lutro_math_preload, "lutro.math");
    lutro_preload(L, lutro_window_preload, "lutro.window");
    lutro_preload(L, lutro_mouse_preload, "lutro.mouse");
+   lutro_preload(L, lutro_joystick_preload, "lutro.joystick");
 #ifdef HAVE_INOTIFY
    lutro_preload(L, lutro_live_preload, "lutro.live");
 #endif
@@ -111,6 +113,7 @@ void lutro_init()
    lutro_require(L, "lutro.math", 1);
    lutro_require(L, "lutro.window", 1);
    lutro_require(L, "lutro.mouse", 1);
+   lutro_require(L, "lutro.joystick", 1);
 #ifdef HAVE_INOTIFY
    lutro_require(L, "lutro.live", 1);
 #endif
@@ -424,6 +427,7 @@ void lutro_run(double delta)
 
    lutro_gamepadevent(L);
    lutro_mouseevent(L);
+   lutro_joystickevent(L);
 
    lua_pop(L, 1);
 

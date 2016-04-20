@@ -1,5 +1,6 @@
 -- Lutro Tester
 local availableStates = {
+	"joystick/getJoystickCount",
 	"graphics/print",
 	"graphics/rectangle",
 	"graphics/line",

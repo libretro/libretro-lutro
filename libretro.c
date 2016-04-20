@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdarg.h>
+#include "joystick.h"
 
 static bool use_audio_cb;
 int16_t audio_buffer[2 * AUDIO_FRAMES];

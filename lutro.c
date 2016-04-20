@@ -8,6 +8,7 @@
 #include "graphics.h"
 #include "input.h"
 #include "audio.h"
+#include "keyboard.h"
 #include "sound.h"
 #include "filesystem.h"
 #include "system.h"
@@ -88,6 +89,7 @@ void lutro_init()
    lutro_preload(L, lutro_sound_preload, "lutro.sound");
    lutro_preload(L, lutro_input_preload, "lutro.input");
    lutro_preload(L, lutro_filesystem_preload, "lutro.filesystem");
+   lutro_preload(L, lutro_keyboard_preload, "lutro.keyboard");
    lutro_preload(L, lutro_system_preload, "lutro.system");
    lutro_preload(L, lutro_timer_preload, "lutro.timer");
    lutro_preload(L, lutro_math_preload, "lutro.math");
@@ -104,6 +106,7 @@ void lutro_init()
    lutro_require(L, "lutro.graphics", 1);
    lutro_require(L, "lutro.audio", 1);
    lutro_require(L, "lutro.sound", 1);
+   lutro_require(L, "lutro.keyboard", 1);
    lutro_require(L, "lutro.input", 1);
    lutro_require(L, "lutro.filesystem", 1);
    lutro_require(L, "lutro.system", 1);
@@ -422,6 +425,7 @@ void lutro_run(double delta)
       lua_pop(L, 1);
    }
 
+   lutro_keyboardevent(L);
    lutro_gamepadevent(L);
    lutro_mouseevent(L);
 

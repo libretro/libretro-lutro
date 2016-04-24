@@ -13,6 +13,7 @@ int lutro_window_preload(lua_State *L)
       { "setTitle", win_setTitle },
       { "setMode",  win_setMode },
       { "setIcon", win_setIcon },
+      { "isCreated", win_isCreated },
       {NULL, NULL}
    };
 
@@ -73,6 +74,24 @@ int win_setMode(lua_State *L)
 
    lua_pop(L, n);
 
+   lua_pushboolean(L, true);
+
+   return 1;
+}
+
+/**
+ * lutro.window.isCreated
+ *
+ * https://love2d.org/wiki/love.window.isCreated
+ */
+int win_isCreated(lua_State *L)
+{
+   int n = lua_gettop(L);
+
+   if (n > 0)
+      return luaL_error(L, "lutro.window.isCreated expects 0 arguments, %d given.", n);
+
+   // The window will always be created in libretro.
    lua_pushboolean(L, true);
 
    return 1;

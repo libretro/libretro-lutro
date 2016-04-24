@@ -3,6 +3,7 @@
 *.ko
 *.obj
 *.elf
+/obj
 
 # Precompiled Headers
 *.gch
@@ -27,3 +28,16 @@
 *.i*86
 *.x86_64
 *.hex
+
+# Compiled files
+deps/luajit/src/host/buildvm
+deps/luajit/src/host/buildvm_arch.h
+deps/luajit/src/host/minilua
+deps/luajit/src/jit/vmdef.lua
+deps/luajit/src/lj_bcdef.h
+deps/luajit/src/lj_ffdef.h
+deps/luajit/src/lj_folddef.h
+deps/luajit/src/lj_libdef.h
+deps/luajit/src/lj_recdef.h
+deps/luajit/src/lj_vm.s
+deps/luajit/src/luajit

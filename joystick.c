@@ -11,6 +11,7 @@ int lutro_joystick_preload(lua_State *L)
 {
    static luaL_Reg joystick_funcs[] =  {
       { "getJoystickCount", joystick_getJoystickCount },
+      { "isDown", joystick_isDown },
       {NULL, NULL}
    };
 
@@ -51,6 +52,30 @@ int joystick_getJoystickCount(lua_State *L)
 
     // TODO: Query libretro to see device capacities of all joysticks.
     lua_pushnumber(L, 4);
+
+    return 1;
+}
+
+/**
+ * lutro.joystick.isDown() from LOVE 0.9.0.
+ *
+ * https://love2d.org/wiki/love.joystick.isDown
+ */
+int joystick_isDown(lua_State *L)
+{
+    int n = lua_gettop(L);
+    if (n != 2) {
+        return luaL_error(L, "lutro.joystick.isDown requires two arguments, %d given.", n);
+    }
+
+    bool output;
+
+    int joystick = luaL_checknumber(L, 1);
+    int button = luaL_checknumber(L, 2);
+
+    output = (bool) joystick_cache[joystick - 1][button - 1];
+
+    lua_pushboolean(L, output);
 
     return 1;
 }

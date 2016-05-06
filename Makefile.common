@@ -10,6 +10,7 @@ SOURCES_C += $(CORE_DIR)/libretro.c \
 	$(CORE_DIR)/graphics.c \
 	$(CORE_DIR)/input.c \
 	$(CORE_DIR)/audio.c \
+	$(CORE_DIR)/event.c \
 	$(CORE_DIR)/keyboard.c \
 	$(CORE_DIR)/sound.c \
 	$(CORE_DIR)/filesystem.c \

@@ -8,6 +8,7 @@
 #include "graphics.h"
 #include "input.h"
 #include "audio.h"
+#include "event.h"
 #include "keyboard.h"
 #include "sound.h"
 #include "filesystem.h"
@@ -87,6 +88,7 @@ void lutro_init()
    lutro_preload(L, lutro_image_preload, "lutro.image");
    lutro_preload(L, lutro_graphics_preload, "lutro.graphics");
    lutro_preload(L, lutro_audio_preload, "lutro.audio");
+   lutro_preload(L, lutro_event_preload, "lutro.event");
    lutro_preload(L, lutro_sound_preload, "lutro.sound");
    lutro_preload(L, lutro_input_preload, "lutro.input");
    lutro_preload(L, lutro_filesystem_preload, "lutro.filesystem");
@@ -107,6 +109,7 @@ void lutro_init()
    lutro_require(L, "lutro.image", 1);
    lutro_require(L, "lutro.graphics", 1);
    lutro_require(L, "lutro.audio", 1);
+   lutro_require(L, "lutro.event", 1);
    lutro_require(L, "lutro.sound", 1);
    lutro_require(L, "lutro.keyboard", 1);
    lutro_require(L, "lutro.input", 1);
@@ -334,6 +337,7 @@ int lutro_load(const char *path)
 
    lutro_graphics_init();
    lutro_audio_init();
+   lutro_event_init();
    lutro_math_init();
 
 #ifdef HAVE_INOTIFY

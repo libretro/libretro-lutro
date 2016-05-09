@@ -335,7 +335,7 @@ int lutro_load(const char *path)
 
    lua_pop(L, 1); // either lutro.settings or lutro.conf
 
-   lutro_graphics_init();
+   lutro_graphics_init(L);
    lutro_audio_init();
    lutro_event_init();
    lutro_math_init();

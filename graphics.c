@@ -7,22 +7,80 @@
 #include <stdlib.h>
 #include <string.h>
 
-static gfx_Canvas *def_canv;
-static gfx_Canvas *cur_canv;
+static int def_canv = LUA_NOREF;
+static int cur_canv = LUA_NOREF;
 static bitmap_t  *fbbmp;
 //static uint32_t current_color;
 //static uint32_t background_color;
 
-void lutro_graphics_init()
+static void set_ref(lua_State *L, int *ref)
 {
-   // TODO: power of two framebuffers
-   def_canv = (gfx_Canvas*)calloc(1, sizeof(gfx_Canvas));
-   cur_canv = def_canv;
-   lutro_graphics_reinit();
+   if (*ref != LUA_NOREF)
+      luaL_unref(L, LUA_REGISTRYINDEX, *ref);
+   
+   *ref = luaL_ref(L, LUA_REGISTRYINDEX);
 }
 
-void lutro_graphics_reinit()
+static void un_ref(lua_State *L, int *ref)
 {
+   luaL_unref(L, LUA_REGISTRYINDEX, *ref);
+   *ref = LUA_NOREF;
+}
+
+static int canvas_type(lua_State *L);
+static int canvas_gc(lua_State *L);
+
+static void make_canvas(lua_State *L)
+{
+   if (luaL_newmetatable(L, "Canvas") != 0)
+   {
+      static luaL_Reg canvas_funcs[] = {
+         { "type",     canvas_type },
+         { "__gc",     canvas_gc },
+         {NULL, NULL}
+      };
+
+      lua_pushvalue(L, -1);
+      lua_setfield(L, -2, "__index");
+      luaL_setfuncs(L, canvas_funcs, 0);
+   }
+
+   lua_setmetatable(L, -2);
+}
+
+static gfx_Canvas *new_canvas(lua_State *L)
+{
+   gfx_Canvas* self = (gfx_Canvas*)lua_newuserdata(L, sizeof(gfx_Canvas));
+   make_canvas(L);
+   return self;
+}
+
+static gfx_Canvas *get_canvas_ndx(lua_State *L, int ndx)
+{
+   return (gfx_Canvas*)luaL_checkudata(L, ndx, "Canvas");
+}
+
+static gfx_Canvas *get_canvas_ref(lua_State *L, int ref)
+{
+   lua_rawgeti(L, LUA_REGISTRYINDEX, ref);
+   return get_canvas_ndx(L, -1);
+}
+
+void lutro_graphics_init(lua_State *L)
+{
+   // TODO: power of two framebuffers
+   new_canvas(L);
+   lua_pushvalue(L, -1);
+   set_ref(L, &def_canv);
+   set_ref(L, &cur_canv);
+   
+   lutro_graphics_reinit(L);
+}
+
+void lutro_graphics_reinit(lua_State *L)
+{
+   gfx_Canvas *canvas;
+   
    if (fbbmp && fbbmp->width == settings.width && fbbmp->height == settings.height)
       return;
 
@@ -40,18 +98,21 @@ void lutro_graphics_reinit()
    fbbmp->width  = settings.width;
    fbbmp->pitch  = settings.pitch;
 
-   cur_canv->target = fbbmp;
-   pntr_reset(cur_canv);
+   canvas = (gfx_Canvas*)get_canvas_ref(L, cur_canv);
+   canvas->target = fbbmp;
+   pntr_reset(canvas);
 }
 
 void lutro_graphics_begin_frame(lua_State *L)
 {
-   pntr_clear(cur_canv);
+   gfx_Canvas* canvas = get_canvas_ref(L, cur_canv);
+   pntr_clear(canvas);
 }
 
 void lutro_graphics_end_frame(lua_State *L)
 {
-   pntr_origin(cur_canv, true);
+   gfx_Canvas* canvas = get_canvas_ref(L, cur_canv);
+   pntr_origin(canvas, true);
 }
 
 static int img_getData(lua_State *L)
@@ -243,7 +304,7 @@ static int gfx_newQuad(lua_State *L)
 
 static int canvas_type(lua_State *L)
 {
-   gfx_Canvas* self = (gfx_Canvas*)luaL_checkudata(L, 1, "Canvas");
+   gfx_Canvas* self = get_canvas_ndx(L, 1);
    (void) self;
    lua_pushstring(L, "Canvas");
    return 1;
@@ -251,35 +312,9 @@ static int canvas_type(lua_State *L)
 
 static int canvas_gc(lua_State *L)
 {
-   gfx_Canvas* self = (gfx_Canvas*)luaL_checkudata(L, 1, "Canvas");
+   gfx_Canvas* self = get_canvas_ndx(L, 1);
    (void)self;
    return 0;
-}
-
-static void push_canvas(lua_State *L, gfx_Canvas *canvas)
-{
-   gfx_Canvas* self = (gfx_Canvas*)lua_newuserdata(L, sizeof(gfx_Canvas));
-   memcpy(self, canvas, sizeof(gfx_Canvas));
-
-   if (luaL_newmetatable(L, "Canvas") != 0)
-   {
-      static luaL_Reg canvas_funcs[] = {
-         { "type",     canvas_type },
-         { "__gc",     canvas_gc },
-         {NULL, NULL}
-      };
-
-      lua_pushvalue(L, -1);
-
-      lua_setfield(L, -2, "__index");
-
-      lua_pushcfunction( L, canvas_gc );
-      lua_setfield( L, -2, "__gc" );
-
-      luaL_setfuncs(L, canvas_funcs, 0);
-   }
-
-   lua_setmetatable(L, -2);
 }
 
 static int gfx_newCanvas(lua_State *L)
@@ -292,12 +327,12 @@ static int gfx_newCanvas(lua_State *L)
    int w = luaL_checknumber(L, 1);
    int h = luaL_checknumber(L, 2);
 
-   gfx_Canvas* canvas = (gfx_Canvas*)calloc(1, sizeof(gfx_Canvas));
+   gfx_Canvas* canvas = new_canvas(L);
 
    bitmap_t* bmp = (bitmap_t*)calloc(1, sizeof(bitmap_t));
 
    int pitch = w * sizeof(uint32_t);
-   uint32_t*framebuffer  = (uint32_t*)calloc(1, pitch * h);
+   uint32_t *framebuffer  = (uint32_t*)calloc(1, pitch * h);
 
    bmp->data   = framebuffer;
    bmp->height = h;
@@ -306,9 +341,6 @@ static int gfx_newCanvas(lua_State *L)
 
    canvas->target = bmp;
    pntr_reset(canvas);
-
-   push_canvas(L, canvas);
-
    return 1;
 }
 
@@ -321,12 +353,15 @@ static int gfx_setCanvas(lua_State *L)
 
    if (n == 0)
    {
-      *cur_canv = *def_canv;
+      un_ref(L, &cur_canv);
+      lua_rawgeti(L, LUA_REGISTRYINDEX, def_canv);
+      set_ref(L, &cur_canv);
    }
    else if (n == 1)
    {
-      *cur_canv = *(gfx_Canvas*)luaL_checkudata(L, 1, "Canvas");
-      lua_pop(L, n);
+      get_canvas_ndx(L, 1);
+      lua_pushvalue(L, 1);
+      set_ref(L, &cur_canv);
    }
 
    return 0;
@@ -339,9 +374,7 @@ static int gfx_getCanvas(lua_State *L)
    if (n != 0)
       return luaL_error(L, "lutro.graphics.getCanvas requires 0 arguments, %d given.", n);
 
-   lua_pop(L, n);
-
-   push_canvas(L, cur_canv);
+   get_canvas_ref(L, cur_canv);
 
    return 1;
 }
@@ -357,8 +390,9 @@ static int font_type(lua_State *L)
 static int font_getWidth(lua_State *L)
 {
    const char* text = luaL_checkstring(L, 2);
+   gfx_Canvas *canvas = get_canvas_ref(L, cur_canv);
 
-   lua_pushnumber(L, pntr_text_width(cur_canv, text));
+   lua_pushnumber(L, pntr_text_width(canvas, text));
    return 1;
 }
 
@@ -431,8 +465,6 @@ static int gfx_newImageFont(lua_State *L)
       font = font_load_bitmap(img->data, characters, 0);
    }
 
-   lua_pop(L, n);
-
    push_font(L, font);
 
    free(font);
@@ -443,13 +475,13 @@ static int gfx_newImageFont(lua_State *L)
 static int gfx_setFont(lua_State *L)
 {
    int n = lua_gettop(L);
+   gfx_Canvas *canvas = get_canvas_ref(L, cur_canv);
 
    if (n != 1)
       return luaL_error(L, "lutro.graphics.setFont requires 1 arguments, %d given.", n);
 
    font_t* font = (font_t*)luaL_checkudata(L, 1, "Font");
-   lua_pop(L, n);
-   cur_canv->font = font;
+   canvas->font = font;
 
    return 0;
 }
@@ -457,13 +489,12 @@ static int gfx_setFont(lua_State *L)
 static int gfx_getFont(lua_State *L)
 {
    int n = lua_gettop(L);
+   gfx_Canvas *canvas = get_canvas_ref(L, cur_canv);
 
    if (n != 0)
       return luaL_error(L, "lutro.graphics.getFont requires 0 arguments, %d given.", n);
 
-   lua_pop(L, n);
-
-   push_font(L, cur_canv->font);
+   push_font(L, canvas->font);
 
    return 1;
 }
@@ -471,6 +502,7 @@ static int gfx_getFont(lua_State *L)
 static int gfx_setColor(lua_State *L)
 {
    int n = lua_gettop(L);
+   gfx_Canvas *canvas = get_canvas_ref(L, cur_canv);
 
    if (n != 1 && n != 3 && n != 4)
       return luaL_error(L, "lutro.graphics.setColor requires 1, 3 or 4 arguments, %d given.", n);
@@ -497,9 +529,7 @@ static int gfx_setColor(lua_State *L)
       c.a = luaL_optint(L, 4, 255);
    }
 
-   lua_pop(L, n);
-
-   cur_canv->foreground = (c.a<<24) | (c.r<<16) | (c.g<<8) | c.b;
+   canvas->foreground = (c.a<<24) | (c.r<<16) | (c.g<<8) | c.b;
 
    return 0;
 }
@@ -507,17 +537,16 @@ static int gfx_setColor(lua_State *L)
 static int gfx_getColor(lua_State *L)
 {
    int n = lua_gettop(L);
+   gfx_Canvas *canvas = get_canvas_ref(L, cur_canv);
 
    if (n != 0)
       return luaL_error(L, "lutro.graphics.getColor requires 0 arguments, %d given.", n);
 
-   lua_pop(L, n);
-
    gfx_Color c;
-   c.a = (cur_canv->foreground >> 24) & 0xff;
-   c.r = (cur_canv->foreground >> 16) & 0xff;
-   c.g = (cur_canv->foreground >>  8) & 0xff;
-   c.b = (cur_canv->foreground >>  0) & 0xff;
+   c.a = (canvas->foreground >> 24) & 0xff;
+   c.r = (canvas->foreground >> 16) & 0xff;
+   c.g = (canvas->foreground >>  8) & 0xff;
+   c.b = (canvas->foreground >>  0) & 0xff;
 
    lua_pushnumber(L, c.r);
    lua_pushnumber(L, c.g);
@@ -530,6 +559,7 @@ static int gfx_getColor(lua_State *L)
 static int gfx_setBackgroundColor(lua_State *L)
 {
    int n = lua_gettop(L);
+   gfx_Canvas *canvas = get_canvas_ref(L, cur_canv);
 
    if (n != 1 && n != 3 && n != 4)
       return luaL_error(L, "lutro.graphics.setBackgroundColor requires 1, 3 or 4 arguments, %d given.", n);
@@ -556,10 +586,8 @@ static int gfx_setBackgroundColor(lua_State *L)
       c.a = luaL_optint(L, 4, 255);
    }
 
-   lua_pop(L, n);
-
 //   background_color = (c.a<<24) | (c.r<<16) | (c.g<<8) | c.b;
-   cur_canv->background = (c.a<<24) | (c.r<<16) | (c.g<<8) | c.b;
+   canvas->background = (c.a<<24) | (c.r<<16) | (c.g<<8) | c.b;
 
    return 0;
 }
@@ -567,17 +595,16 @@ static int gfx_setBackgroundColor(lua_State *L)
 static int gfx_getBackgroundColor(lua_State *L)
 {
    int n = lua_gettop(L);
+   gfx_Canvas *canvas = get_canvas_ref(L, cur_canv);
 
    if (n != 0)
       return luaL_error(L, "lutro.graphics.getBackgroundColor requires 0 arguments, %d given.", n);
 
-   lua_pop(L, n);
-
    gfx_Color c;
-   c.a = (cur_canv->background >> 24) & 0xff;
-   c.r = (cur_canv->background >> 16) & 0xff;
-   c.g = (cur_canv->background >>  8) & 0xff;
-   c.b = (cur_canv->background >>  0) & 0xff;
+   c.a = (canvas->background >> 24) & 0xff;
+   c.r = (canvas->background >> 16) & 0xff;
+   c.g = (canvas->background >>  8) & 0xff;
+   c.b = (canvas->background >>  0) & 0xff;
 
    lua_pushnumber(L, c.r);
    lua_pushnumber(L, c.g);
@@ -590,13 +617,12 @@ static int gfx_getBackgroundColor(lua_State *L)
 static int gfx_clear(lua_State *L)
 {
    int n = lua_gettop(L);
+   gfx_Canvas *canvas = get_canvas_ref(L, cur_canv);
 
    if (n != 0)
       return luaL_error(L, "lutro.graphics.clear requires 0 arguments, %d given.", n);
 
-   lua_pop(L, n);
-
-   pntr_clear(cur_canv);
+   pntr_clear(canvas);
 
    return 0;
 }
@@ -604,6 +630,7 @@ static int gfx_clear(lua_State *L)
 static int gfx_rectangle(lua_State *L)
 {
    int n = lua_gettop(L);
+   gfx_Canvas *canvas = get_canvas_ref(L, cur_canv);
 
    if (n != 5)
       return luaL_error(L, "lutro.graphics.rectangle requires 5 arguments, %d given.", n);
@@ -614,16 +641,14 @@ static int gfx_rectangle(lua_State *L)
    int w = luaL_checknumber(L, 4);
    int h = luaL_checknumber(L, 5);
 
-   lua_pop(L, n);
-
    rect_t r  = { x, y, w, h };
    if (!strcmp(mode, "fill"))
    {
-      pntr_fill_rect(cur_canv, &r);
+      pntr_fill_rect(canvas, &r);
    }
    else if (!strcmp(mode, "line"))
    {
-      pntr_strike_rect(cur_canv, &r);
+      pntr_strike_rect(canvas, &r);
    }
    else
    {
@@ -636,6 +661,7 @@ static int gfx_rectangle(lua_State *L)
 static int gfx_point(lua_State *L)
 {
    int n = lua_gettop(L);
+   gfx_Canvas *canvas = get_canvas_ref(L, cur_canv);
 
    if (n != 2)
       return luaL_error(L, "lutro.graphics.point requires 2 arguments, %d given.", n);
@@ -645,10 +671,10 @@ static int gfx_point(lua_State *L)
 
    lua_pop(L, n);
 
-   if (x > cur_canv->target->width || x < 0 || y > cur_canv->target->height || y < 0)
+   if (x > canvas->target->width || x < 0 || y > canvas->target->height || y < 0)
       return 0;
 
-   cur_canv->target->data[y * (cur_canv->target->pitch >> 2) + x] = cur_canv->foreground;
+   canvas->target->data[y * (canvas->target->pitch >> 2) + x] = canvas->foreground;
 
    return 0;
 }
@@ -656,6 +682,7 @@ static int gfx_point(lua_State *L)
 static int gfx_line(lua_State *L)
 {
    int n = lua_gettop(L);
+   gfx_Canvas *canvas = get_canvas_ref(L, cur_canv);
 
    if (n != 4)
       return luaL_error(L, "lutro.graphics.line requires 4 arguments, %d given.", n);
@@ -677,7 +704,7 @@ static int gfx_line(lua_State *L)
    for (;;) {
       if (y1 >= 0 && y1 < settings.height)
          if (x1 >= 0 && x1 < settings.width)
-            framebuffer[y1 * pitch_pixels + x1] = cur_canv->foreground;
+            framebuffer[y1 * pitch_pixels + x1] = canvas->foreground;
       if (x1==x2 && y1==y2) break;
       e2 = err;
       if (e2 >-dx) { err -= dy; x1 += sx; }
@@ -705,6 +732,7 @@ void *checkudata (lua_State *L, int ud, const char *tname) {
 static int gfx_draw(lua_State *L)
 {
    int n = lua_gettop(L);
+   gfx_Canvas *canvas = get_canvas_ref(L, cur_canv);
 
    if (n < 1)
       return luaL_error(L, "lutro.graphics.draw requires at least 1 arguments, %d given.", n);
@@ -722,7 +750,7 @@ static int gfx_draw(lua_State *L)
 
       if (img == NULL)
       {
-         cnv = (gfx_Canvas*)luaL_checkudata(L, 1, "Canvas");
+         cnv = get_canvas_ndx(L, 1);
          data = cnv->target;
       }
       else
@@ -749,8 +777,6 @@ static int gfx_draw(lua_State *L)
    int kx = luaL_optnumber(L, start + 8, 0);
    int ky = luaL_optnumber(L, start + 9, 0);
 
-   lua_pop(L, n);
-
    rect_t drect = {
       x + ox,
       y + oy,
@@ -763,11 +789,11 @@ static int gfx_draw(lua_State *L)
       (int)data->width,
       (int)data->width
    };
-
-   pntr_push(cur_canv);
-   pntr_rotate(cur_canv, r);
-   pntr_scale(cur_canv, sx, sy);
-   pntr_rotate(cur_canv, r);
+   
+   pntr_push(canvas);
+   pntr_rotate(canvas, r);
+   pntr_scale(canvas, sx, sy);
+   pntr_rotate(canvas, r);
 
    if (quad != NULL)
    {
@@ -779,9 +805,9 @@ static int gfx_draw(lua_State *L)
       drect.width = quad->w;
       drect.height = quad->h;
    }
-   pntr_draw(cur_canv, data, &srect, &drect);
+   pntr_draw(canvas, data, &srect, &drect);
 
-   pntr_pop(cur_canv);
+   pntr_pop(canvas);
 
    return 0;
 }
@@ -789,11 +815,12 @@ static int gfx_draw(lua_State *L)
 static int gfx_print(lua_State *L)
 {
    int n = lua_gettop(L);
+   gfx_Canvas *canvas = get_canvas_ref(L, cur_canv);
 
    if (n != 3)
       return luaL_error(L, "lutro.graphics.print requires 3 arguments, %d given.", n);
 
-   if (cur_canv->font == NULL)
+   if (canvas->font == NULL)
       return luaL_error(L, "lutro.graphics.print requires a font to be set.");
 
 
@@ -801,9 +828,7 @@ static int gfx_print(lua_State *L)
    int dest_x = luaL_checknumber(L, 2);
    int dest_y = luaL_checknumber(L, 3);
 
-   pntr_print(cur_canv, dest_x, dest_y, message);
-
-   lua_pop(L, n);
+   pntr_print(canvas, dest_x, dest_y, message);
 
    return 0;
 }
@@ -811,11 +836,12 @@ static int gfx_print(lua_State *L)
 static int gfx_printf(lua_State *L)
 {
    int n = lua_gettop(L);
+   gfx_Canvas *canvas = get_canvas_ref(L, cur_canv);
 
    if (n != 5)
       return luaL_error(L, "lutro.graphics.printf requires 5 arguments, %d given.", n);
 
-   if (cur_canv->font == NULL)
+   if (canvas->font == NULL)
       return luaL_error(L, "lutro.graphics.printf requires a font to be set.");
 
    const char* message = luaL_checkstring(L, 1);
@@ -825,13 +851,11 @@ static int gfx_printf(lua_State *L)
    const char* align = luaL_checkstring(L, 5);
 
    if (!strcmp(align, "right"))
-      pntr_print(cur_canv, dest_x + limit - pntr_text_width(cur_canv, message), dest_y, message);
+      pntr_print(canvas, dest_x + limit - pntr_text_width(canvas, message), dest_y, message);
    else if (!strcmp(align, "center"))
-      pntr_print(cur_canv, dest_x + limit/2 - pntr_text_width(cur_canv, message)/2, dest_y, message);
+      pntr_print(canvas, dest_x + limit/2 - pntr_text_width(canvas, message)/2, dest_y, message);
    else
-      pntr_print(cur_canv, dest_x, dest_y, message);
-
-   lua_pop(L, n);
+      pntr_print(canvas, dest_x, dest_y, message);
 
    return 0;
 }
@@ -854,6 +878,7 @@ static int gfx_setLineWidth(lua_State *L)
 static int gfx_scale(lua_State *L)
 {
    int n = lua_gettop(L);
+   gfx_Canvas *canvas = get_canvas_ref(L, cur_canv);
 
    if (n < 1)
       return luaL_error(L, "lutro.graphics.scale requires  at least 1 argument 0 given.");
@@ -861,9 +886,7 @@ static int gfx_scale(lua_State *L)
    float x = luaL_checknumber(L, 1);
    float y = luaL_optnumber(L, 2, x);
 
-   pntr_scale(cur_canv, x, y);
-
-   lua_pop(L, n);
+   pntr_scale(canvas, x, y);
 
    return 0;
 }
@@ -871,15 +894,14 @@ static int gfx_scale(lua_State *L)
 static int gfx_rotate(lua_State *L)
 {
    int n = lua_gettop(L);
+   gfx_Canvas *canvas = get_canvas_ref(L, cur_canv);
 
    if (n != 1)
       return luaL_error(L, "lutro.graphics.rotate requires 1 arguments, %d given.", n);
 
    float rad = luaL_checknumber(L, 1);
 
-   pntr_rotate(cur_canv, rad);
-
-   lua_pop(L, n);
+   pntr_rotate(canvas, rad);
 
    return 0;
 }
@@ -898,18 +920,16 @@ static int gfx_getHeight(lua_State *L)
 
 static int gfx_origin(lua_State *L)
 {
-   lua_pop(L, lua_gettop(L));
-
-   pntr_origin(cur_canv, false);
-
+   gfx_Canvas *canvas = get_canvas_ref(L, cur_canv);
+   pntr_origin(canvas, false);
    return 0;
 }
 
 static int gfx_pop(lua_State *L)
 {
-   lua_pop(L, lua_gettop(L));
-
-   if (!pntr_pop(cur_canv))
+   gfx_Canvas *canvas = get_canvas_ref(L, cur_canv);
+   
+   if (!pntr_pop(canvas))
       return luaL_error(L, "Transformation stack underflow.");
 
    return 0;
@@ -917,9 +937,9 @@ static int gfx_pop(lua_State *L)
 
 static int gfx_push(lua_State *L)
 {
-   lua_pop(L, lua_gettop(L));
+   gfx_Canvas *canvas = get_canvas_ref(L, cur_canv);
 
-   if (!pntr_push(cur_canv))
+   if (!pntr_push(canvas))
       return luaL_error(L, "Transformation stack overflow.");
 
    return 0;
@@ -928,13 +948,12 @@ static int gfx_push(lua_State *L)
 static int gfx_translate(lua_State *L)
 {
    int n = lua_gettop(L);
+   gfx_Canvas *canvas = get_canvas_ref(L, cur_canv);
 
    if (n != 2)
       return luaL_error(L, "lutro.graphics.translate requires 2 arguments, %d given.", n);
 
-   pntr_translate(cur_canv, luaL_checknumber(L, 1), luaL_checknumber(L, 2));
-
-   lua_pop(L, n);
+   pntr_translate(canvas, luaL_checknumber(L, 1), luaL_checknumber(L, 2));
 
    return 0;
 }
@@ -942,12 +961,13 @@ static int gfx_translate(lua_State *L)
 static int gfx_setScissor(lua_State *L)
 {
    int n = lua_gettop(L);
+   gfx_Canvas *canvas = get_canvas_ref(L, cur_canv);
 
    if (n != 0 && n != 4)
       return luaL_error(L, "lutro.graphics.setScissor requires 0 or 4 arguments, %d given.", n);
 
    rect_t r = {
-      0, 0, cur_canv->target->width, cur_canv->target->height
+      0, 0, canvas->target->width, canvas->target->height
    };
 
    if (n > 0)
@@ -960,8 +980,8 @@ static int gfx_setScissor(lua_State *L)
       lua_pop(L, n);
    }
 
-   cur_canv->clip = r;
-   pntr_sanitize_clip(cur_canv);
+   canvas->clip = r;
+   pntr_sanitize_clip(canvas);
 
    return 0;
 }

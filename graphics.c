@@ -24,6 +24,10 @@ static void set_ref(lua_State *L, int *ref)
 static int canvas_type(lua_State *L);
 static int canvas_gc(lua_State *L);
 
+static int canvas_setFilter(lua_State *L)
+{
+   return 0;
+}
 
 static gfx_Canvas *new_canvas(lua_State *L)
 {
@@ -33,8 +37,9 @@ static gfx_Canvas *new_canvas(lua_State *L)
    if (luaL_newmetatable(L, "Canvas") != 0)
    {
       static luaL_Reg canvas_funcs[] = {
-         { "type",     canvas_type },
-         { "__gc",     canvas_gc },
+         { "type",      canvas_type },
+         { "setFilter", canvas_setFilter },
+         { "__gc",      canvas_gc },
          {NULL, NULL}
       };
 

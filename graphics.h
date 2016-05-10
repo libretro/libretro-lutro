@@ -32,10 +32,10 @@ typedef struct
 
 typedef painter_t gfx_Canvas;
 
-void lutro_graphics_init();
+void lutro_graphics_init(lua_State* L);
 int lutro_graphics_preload(lua_State *L);
 
-void lutro_graphics_reinit();
+void lutro_graphics_reinit(lua_State *L);
 void lutro_graphics_begin_frame(lua_State *L);
 void lutro_graphics_end_frame(lua_State *L);
 

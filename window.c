@@ -70,7 +70,7 @@ int win_setMode(lua_State *L)
    settings.width = luaL_checknumber(L, 1);
    settings.height = luaL_checknumber(L, 2);
 
-   lutro_graphics_reinit();
+   lutro_graphics_reinit(L);
 
    lua_pop(L, n);
 

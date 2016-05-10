@@ -47,6 +47,129 @@ lutro_settings_t settings = {
    .input_cb = NULL
 };
 
+#if 0
+static void dumpstack( lua_State* L )
+{
+  int top = lua_gettop( L );
+  
+  for ( int i = 1; i <= top; i++ )
+  {
+    printf( "%2d %3d ", i, i - top - 1 );
+    
+    lua_pushvalue( L, i );
+    
+    switch ( lua_type( L, -1 ) )
+    {
+    case LUA_TNIL:
+      printf( "nil\n" );
+      break;
+    case LUA_TNUMBER:
+      printf( "%e\n", lua_tonumber( L, -1 ) );
+      break;
+    case LUA_TBOOLEAN:
+      printf( "%s\n", lua_toboolean( L, -1 ) ? "true" : "false" );
+      break;
+    case LUA_TSTRING:
+      printf( "\"%s\"\n", lua_tostring( L, -1 ) );
+      break;
+    case LUA_TTABLE:
+      printf( "table\n" );
+      break;
+    case LUA_TFUNCTION:
+      printf( "function\n" );
+      break;
+    case LUA_TUSERDATA:
+      printf( "userdata\n" );
+      break;
+    case LUA_TTHREAD:
+      printf( "thread\n" );
+      break;
+    case LUA_TLIGHTUSERDATA:
+      printf( "light userdata\n" );
+      break;
+    default:
+      printf( "?\n" );
+      break;
+    }
+  }
+  
+  lua_settop( L, top );
+}
+#endif
+
+#define LEVELS1	12	/* size of the first part of the stack */
+#define LEVELS2	10	/* size of the second part of the stack */
+
+static int db_errorfb (lua_State *L) {
+  int level;
+  int firstpart = 1;  /* still before eventual `...' */
+  int arg = 0;
+  lua_State *L1 = L; /*getthread(L, &arg);*/
+  lua_Debug ar;
+  if (lua_isnumber(L, arg+2)) {
+    level = (int)lua_tointeger(L, arg+2);
+    lua_pop(L, 1);
+  }
+  else
+    level = (L == L1) ? 1 : 0;  /* level 0 may be this own function */
+  if (lua_gettop(L) == arg)
+    lua_pushliteral(L, "");
+  else if (!lua_isstring(L, arg+1)) return 1;  /* message is not a string */
+  else lua_pushliteral(L, "\n");
+  lua_pushliteral(L, "stack traceback:");
+  while (lua_getstack(L1, level++, &ar)) {
+    if (level > LEVELS1 && firstpart) {
+      /* no more than `LEVELS2' more levels? */
+      if (!lua_getstack(L1, level+LEVELS2, &ar))
+        level--;  /* keep going */
+      else {
+        lua_pushliteral(L, "\n\t...");  /* too many levels */
+        while (lua_getstack(L1, level+LEVELS2, &ar))  /* find last levels */
+          level++;
+      }
+      firstpart = 0;
+      continue;
+    }
+    lua_pushliteral(L, "\n\t");
+    lua_getinfo(L1, "Snl", &ar);
+    lua_pushfstring(L, "%s:", ar.short_src);
+    if (ar.currentline > 0)
+      lua_pushfstring(L, "%d:", ar.currentline);
+    if (*ar.namewhat != '\0')  /* is there a name? */
+        lua_pushfstring(L, " in function " LUA_QS, ar.name);
+    else {
+      if (*ar.what == 'm')  /* main? */
+        lua_pushfstring(L, " in main chunk");
+      else if (*ar.what == 'C' || *ar.what == 't')
+        lua_pushliteral(L, " ?");  /* C function or tail call */
+      else
+        lua_pushfstring(L, " in function <%s:%d>",
+                           ar.short_src, ar.linedefined);
+    }
+    lua_concat(L, lua_gettop(L) - arg);
+  }
+  lua_concat(L, lua_gettop(L) - arg);
+  return 1;
+}
+
+static int dofile(lua_State *L, const char *path)
+{
+   int res;
+   
+   lua_pushcfunction(L, db_errorfb);
+   res = luaL_loadfile(L, path);
+
+   if (res != 0)
+   {
+      lua_pop(L, 1);
+      return res;
+   }
+
+   res = lua_pcall(L, 0, LUA_MULTRET, -2);
+   lua_pop(L, 1);
+   return res;
+}
+
 static int lutro_core_preload(lua_State *L)
 {
    lutro_ensure_global_table(L, "lutro");
@@ -284,7 +407,7 @@ int lutro_load(const char *path)
    snprintf(package_path, PATH_MAX_LENGTH, ";%s?.lua;%s?/init.lua", gamedir, gamedir);
    lutro_set_package_path(L, package_path);
 
-   if(luaL_dofile(L, mainfile))
+   if(dofile(L, mainfile))
    {
        fprintf(stderr, "%s\n", lua_tostring(L, -1));
        lua_pop(L, 1);
@@ -292,6 +415,7 @@ int lutro_load(const char *path)
        return 0;
    }
 
+   lua_pushcfunction(L, db_errorfb);
    lua_getglobal(L, "lutro");
 
    strlcpy(settings.gamedir, gamedir, PATH_MAX_LENGTH);
@@ -402,14 +526,16 @@ void lutro_run(double delta)
       lutro_live_update(L);
 #endif
 
+   lua_pushcfunction(L, db_errorfb);
+   
    lua_getglobal(L, "lutro");
-
    lua_getfield(L, -1, "update");
 
    if (lua_isfunction(L, -1))
    {
       lua_pushnumber(L, delta);
-      if(lua_pcall(L, 1, 0, 0))
+      
+      if(lua_pcall(L, 1, 0, -4))
       {
          fprintf(stderr, "%s\n", lua_tostring(L, -1));
          lua_pop(L, 1);
@@ -419,10 +545,12 @@ void lutro_run(double delta)
    }
 
    lua_getfield(L, -1, "draw");
+   
    if (lua_isfunction(L, -1))
    {
       lutro_graphics_begin_frame(L);
-      if(lua_pcall(L, 0, 0, 0))
+      
+      if(lua_pcall(L, 0, 0, -3))
       {
          fprintf(stderr, "%s\n", lua_tostring(L, -1));
          lua_pop(L, 1);
@@ -437,7 +565,7 @@ void lutro_run(double delta)
    lutro_mouseevent(L);
    lutro_joystickevent(L);
 
-   lua_pop(L, 1);
+   lua_pop(L, 2);
 
    lua_gc(L, LUA_GCSTEP, 0);
 }

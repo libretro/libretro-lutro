@@ -39,18 +39,8 @@ void lutro_image_init()
 {
 }
 
-void *image_data_create(lua_State *L, const char *path)
+void *image_data_create(lua_State *L, bitmap_t* self)
 {
-   char fullpath[PATH_MAX_LENGTH];
-   strlcpy(fullpath, settings.gamedir, sizeof(fullpath));
-   strlcat(fullpath, path, sizeof(fullpath));
-
-   bitmap_t* self = (bitmap_t*)lua_newuserdata(L, sizeof(bitmap_t));
-
-   rpng_load_image_argb(fullpath, &self->data, &self->width, &self->height);
-
-   self->pitch = self->width << 2;
-
    num_imgdatas++;
    imgdatas = (bitmap_t**)realloc(imgdatas, num_imgdatas * sizeof(bitmap_t));
    imgdatas[num_imgdatas-1] = self;
@@ -82,16 +72,51 @@ void *image_data_create(lua_State *L, const char *path)
    return self;
 }
 
+void *image_data_create_from_path(lua_State *L, const char *path)
+{
+   char fullpath[PATH_MAX_LENGTH];
+   strlcpy(fullpath, settings.gamedir, sizeof(fullpath));
+   strlcat(fullpath, path, sizeof(fullpath));
+
+   bitmap_t* self = (bitmap_t*)lua_newuserdata(L, sizeof(bitmap_t));
+
+   rpng_load_image_argb(fullpath, &self->data, &self->width, &self->height);
+
+   self->pitch = self->width << 2;
+
+   return image_data_create(L, self);
+}
+
+void *image_data_create_from_dimensions(lua_State *L, int width, int height)
+{
+   bitmap_t* self = (bitmap_t*)lua_newuserdata(L, sizeof(bitmap_t));
+
+   self->width = width;
+   self->height = height;
+   self->pitch = self->width << 2;
+   self->data = (uint32_t*)calloc(1, sizeof(uint32_t)*self->width*self->height);
+
+   return image_data_create(L, self);
+}
+
 static int l_newImageData(lua_State *L)
 {
    int n = lua_gettop(L);
 
-   if (n != 1)
-      return luaL_error(L, "lutro.image.newImageData requires 1 argument, %d given.", n);
+   if (n != 1 && n != 2)
+      return luaL_error(L, "lutro.image.newImageData requires 1 or 2 arguments, %d given.", n);
 
-   const char* path = luaL_checkstring(L, 1);
-
-   image_data_create(L, path);
+   if (n == 1)
+   {
+      const char* path = luaL_checkstring(L, 1);
+      image_data_create_from_path(L, path);
+   }
+   else if (n == 2)
+   {
+      int width = luaL_checknumber(L, 1);
+      int height = luaL_checknumber(L, 2);
+      image_data_create_from_dimensions(L, width, height);
+   }
 
    return 1;
 }

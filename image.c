@@ -1,3 +1,4 @@
+#include "graphics.h"
 #include "image.h"
 #include "lutro.h"
 #include "painter.h"
@@ -13,6 +14,7 @@ static int l_newImageData(lua_State *L);
 static int l_getWidth(lua_State *L);
 static int l_getHeight(lua_State *L);
 static int l_getPixel(lua_State *L);
+static int l_setPixel(lua_State *L);
 static int l_getDimensions(lua_State *L);
 static int l_type(lua_State *L);
 static int l_gc(lua_State *L);
@@ -59,6 +61,7 @@ void *image_data_create(lua_State *L, const char *path)
          { "getWidth",   l_getWidth },
          { "getHeight",  l_getHeight },
          { "getPixel",   l_getPixel },
+         { "setPixel",   l_setPixel },
          { "type",       l_type },
          { "__gc",       l_gc },
          {NULL, NULL}
@@ -138,6 +141,28 @@ static int l_getPixel(lua_State *L)
    lua_pushnumber(L, b);
    lua_pushnumber(L, a);
    return 4;
+}
+
+static int l_setPixel(lua_State *L)
+{
+   int n = lua_gettop(L);
+
+   bitmap_t* self = (bitmap_t*)luaL_checkudata(L, 1, "ImageData");
+
+   gfx_Color c;
+
+   int x = luaL_checknumber(L, 2);
+   int y = luaL_checknumber(L, 3);
+   c.r = luaL_checkint(L, 4);
+   c.g = luaL_checkint(L, 5);
+   c.b = luaL_checkint(L, 6);
+   c.a = luaL_optint(L, 7, 255);
+
+   lua_pop(L, n);
+
+   self->data[y * (self->pitch >> 2) + x] = (c.a<<24) | (c.r<<16) | (c.g<<8) | c.b;
+
+   return 0;
 }
 
 static int l_getDimensions(lua_State *L)

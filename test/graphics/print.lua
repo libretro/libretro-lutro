@@ -5,6 +5,9 @@ return {
 	end,
 
 	draw = function()
+		local major, minor, revision, codename = lutro.getVersion()
+		local str = string.format("Version %d.%d.%d - %s", major, minor, revision, codename)
+		lutro.graphics.print(str, 20, 20)
 		lutro.graphics.print("Tests switch every 3 seconds.", 30, 100)
 
 		if lutro.mouse.isDown(1, 2) then

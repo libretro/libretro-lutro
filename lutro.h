@@ -4,10 +4,15 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include "libretro.h"
+#include "lua.h"
 
 #ifndef PATH_MAX_LENGTH
 #define PATH_MAX_LENGTH 4096
 #endif
+
+#define VERSION_MAJOR 0
+#define VERSION_MINOR 0
+#define VERSION_PATCH 1
 
 typedef struct lutro_settings_t {
    int width;

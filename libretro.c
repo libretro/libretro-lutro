@@ -93,9 +93,11 @@ char* getenv( const char* name)
 
 void retro_get_system_info(struct retro_system_info *info)
 {
+   char version[20];
+   sprintf(version, "v%d.%d.%d", VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH);
    memset(info, 0, sizeof(*info));
    info->library_name     = "lutro";
-   info->library_version  = "v1.0";
+   info->library_version  = version;
    info->need_fullpath    = true;
    info->valid_extensions = "lutro|lua";
 }

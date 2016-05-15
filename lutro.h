@@ -4,7 +4,6 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include "libretro.h"
-#include "lua.h"
 
 #ifndef PATH_MAX_LENGTH
 #define PATH_MAX_LENGTH 4096

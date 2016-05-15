@@ -5,10 +5,10 @@ return {
 	end,
 
 	draw = function()
+		-- Output the version information.
 		local major, minor, revision, codename = lutro.getVersion()
 		local str = string.format("Version %d.%d.%d - %s", major, minor, revision, codename)
-		lutro.graphics.print(str, 20, 20)
-		lutro.graphics.print("Tests switch every 3 seconds.", 30, 100)
+		lutro.graphics.print(str, 10, 50)
 
 		if lutro.mouse.isDown(1, 2) then
 			local x, y = lutro.mouse.getPosition()

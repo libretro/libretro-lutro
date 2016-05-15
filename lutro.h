@@ -12,7 +12,8 @@
 #define VERSION_MAJOR 0
 #define VERSION_MINOR 0
 #define VERSION_PATCH 1
-#define STR(x) #x
+#define STR_(x) #x
+#define STR(x) STR_(x)
 #define VERSION_STRING "v" STR(VERSION_MAJOR) "." STR(VERSION_MINOR) "." STR(VERSION_PATCH)
 
 typedef struct lutro_settings_t {

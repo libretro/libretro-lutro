@@ -34,6 +34,11 @@ void lutro_filesystem_init()
 {
 }
 
+/**
+ * contents, size = lutro.filesystem.read(name, size)
+ *
+ * https://love2d.org/wiki/love.filesystem.read
+ */
 int fs_read(lua_State *L)
 {
    const char *path = luaL_checkstring(L, 1);
@@ -57,10 +62,11 @@ int fs_read(lua_State *L)
    string[bytes_read] = 0;
 
    lua_pushstring(L, string);
+   lua_pushnumber(L, bytes_read);
 
    free(string);
 
-   return 1;
+   return 2;
 }
 
 int fs_write(lua_State *L)

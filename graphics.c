@@ -695,6 +695,10 @@ static int gfx_points(lua_State *L)
    int n = lua_gettop(L), i, x, y;
    gfx_Canvas *canvas;
 
+   if (n == 1) {
+      // TODO: Implement drawing Point tables https://love2d.org/wiki/love.graphics.points
+      return luaL_error(L, "lutro.graphics.points does not currently support drawing Point types in a table.");
+   }
    if (n < 2)
       return luaL_error(L, "lutro.graphics.points requires at least 2 arguments, %d given.", n);
    if (n & 1)

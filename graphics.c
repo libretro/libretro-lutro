@@ -711,7 +711,8 @@ static int gfx_points(lua_State *L)
       y = luaL_checknumber(L, i + 1);
 
       if (x > canvas->target->width || x < 0 || y > canvas->target->height || y < 0)
-         return 0;
+         // Skip if the point is out of the canvas.
+         continue;
 
       canvas->target->data[y * (canvas->target->pitch >> 2) + x] = canvas->foreground;
    }

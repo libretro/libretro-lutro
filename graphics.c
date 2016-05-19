@@ -685,6 +685,41 @@ static int gfx_point(lua_State *L)
    return 0;
 }
 
+/**
+ * lutro.graphics.points(x, y, ... )
+ *
+ * https://love2d.org/wiki/love.graphics.points
+ */
+static int gfx_points(lua_State *L)
+{
+   int n = lua_gettop(L), i, x, y;
+   gfx_Canvas *canvas;
+
+   if (n == 1) {
+      // TODO: Implement drawing Point tables https://love2d.org/wiki/love.graphics.points
+      return luaL_error(L, "lutro.graphics.points does not currently support drawing Point types in a table.");
+   }
+   if (n < 2)
+      return luaL_error(L, "lutro.graphics.points requires at least 2 arguments, %d given.", n);
+   if (n & 1)
+      return luaL_error(L, "lutro.graphics.points requires an even amount of arguments, %d arguments given.", n);
+
+   canvas = get_canvas_ref(L, cur_canv);
+
+   for (i = 1; i < n; i += 2) {
+      x = luaL_checknumber(L, i);
+      y = luaL_checknumber(L, i + 1);
+
+      if (x > canvas->target->width || x < 0 || y > canvas->target->height || y < 0)
+         // Skip if the point is out of the canvas.
+         continue;
+
+      canvas->target->data[y * (canvas->target->pitch >> 2) + x] = canvas->foreground;
+   }
+
+   return 0;
+}
+
 static int gfx_line(lua_State *L)
 {
    int n = lua_gettop(L);
@@ -1032,6 +1067,7 @@ int lutro_graphics_preload(lua_State *L)
       { "newQuad",      gfx_newQuad },
       { "newCanvas",    gfx_newCanvas },
       { "point",        gfx_point },
+      { "points",       gfx_points },
       { "present",      gfx_present },
       { "print",        gfx_print },
       { "printf",       gfx_printf },

@@ -11,6 +11,7 @@ int lutro_keyboard_preload(lua_State *L)
 {
    static luaL_Reg keyboard_funcs[] =  {
       { "isDown", keyboard_isDown },
+      { "getScancodeFromKey", keyboard_getScancodeFromKey },
       {NULL, NULL}
    };
 
@@ -62,6 +63,24 @@ int keyboard_isDown(lua_State *L)
     lua_pushboolean(L, output);
 
     return 1;
+}
+
+/**
+ * lutro.keyboard.getScancodeFromKey(key)
+ *
+ * https://love2d.org/wiki/love.keyboard.getScancodeFromKey
+ */
+int keyboard_getScancodeFromKey(lua_State *L) {
+  int n = lua_gettop(L);
+  if (n < 1) {
+      return luaL_error(L, "lutro.keyboard.isDown requires 1 or more arguments, %d given.", n);
+  }
+
+  const char* buttonToCheck = luaL_checkstring(L, 1);
+  int scancode = keyboard_string_to_libretro(buttonToCheck);
+  lua_pushnumber(L, scancode);
+
+  return 1;
 }
 
 /**

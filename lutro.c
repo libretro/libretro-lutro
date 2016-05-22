@@ -14,7 +14,7 @@
 #include "filesystem.h"
 #include "system.h"
 #include "timer.h"
-#include "math.h"
+#include "lutro_math.h"
 #include "window.h"
 #include "live.h"
 #include "mouse.h"
@@ -51,13 +51,13 @@ lutro_settings_t settings = {
 static void dumpstack( lua_State* L )
 {
   int top = lua_gettop( L );
-  
+
   for ( int i = 1; i <= top; i++ )
   {
     printf( "%2d %3d ", i, i - top - 1 );
-    
+
     lua_pushvalue( L, i );
-    
+
     switch ( lua_type( L, -1 ) )
     {
     case LUA_TNIL:
@@ -92,7 +92,7 @@ static void dumpstack( lua_State* L )
       break;
     }
   }
-  
+
   lua_settop( L, top );
 }
 #endif
@@ -155,7 +155,7 @@ static int db_errorfb (lua_State *L) {
 static int dofile(lua_State *L, const char *path)
 {
    int res;
-   
+
    lua_pushcfunction(L, db_errorfb);
    res = luaL_loadfile(L, path);
 
@@ -527,14 +527,14 @@ void lutro_run(double delta)
 #endif
 
    lua_pushcfunction(L, db_errorfb);
-   
+
    lua_getglobal(L, "lutro");
    lua_getfield(L, -1, "update");
 
    if (lua_isfunction(L, -1))
    {
       lua_pushnumber(L, delta);
-      
+
       if(lua_pcall(L, 1, 0, -4))
       {
          fprintf(stderr, "%s\n", lua_tostring(L, -1));
@@ -545,11 +545,11 @@ void lutro_run(double delta)
    }
 
    lua_getfield(L, -1, "draw");
-   
+
    if (lua_isfunction(L, -1))
    {
       lutro_graphics_begin_frame(L);
-      
+
       if(lua_pcall(L, 0, 0, -3))
       {
          fprintf(stderr, "%s\n", lua_tostring(L, -1));

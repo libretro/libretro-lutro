@@ -1,5 +1,5 @@
-#ifndef MATH_H
-#define MATH_H
+#ifndef LUTRO_MATH_H
+#define LUTRO_MATH_H
 
 #include <stdint.h>
 #include <stdlib.h>
@@ -12,4 +12,4 @@ int lutro_math_preload(lua_State *L);
 int lutro_math_random(lua_State *L);
 int lutro_math_setRandomSeed(lua_State *L);
 
-#endif // MATH_H
+#endif // LUTRO_MATH_H

@@ -10,8 +10,8 @@
 #include <assert.h>
 #include <retro_miscellaneous.h>
 
+#define _USE_MATH_DEFINES
 #include <math.h>
-#define M_PI 3.14159265358979323846
 
 #ifndef max
 #define max(a, b) ((a) > (b) ? (a) : (b))
@@ -208,7 +208,36 @@ void pntr_strike_ellipse(painter_t *p, int x, int y, int radius_x, int radius_y,
 
 void pntr_fill_ellipse(painter_t *p, int x, int y, int radius_x, int radius_y, int nb_segments)
 {
-   // TODO
+   uint32_t color = p->foreground;
+   if ((color & 0xff000000) == 0)
+      return;
+
+   for (int yy = y - radius_y; yy <= y + radius_y; ++yy)
+   {
+      int xmin = p->target->width + 1;
+      int xmax = -1;
+      for (int i = 0; i < nb_segments; ++i)
+      {
+         int x1 = x + (radius_x * cos(2 * i * M_PI / nb_segments));
+         int y1 = y + (radius_y * sin(2 * i * M_PI / nb_segments));
+         int x2 = x + (radius_x * cos(2 * (i + 1) * M_PI / nb_segments));
+         int y2 = y + (radius_y * sin(2 * (i + 1) * M_PI / nb_segments));
+
+         if ((y1 > yy) != (y2 > yy))
+         {
+            int testx = x1 + ((x2 - x1) * (yy - y1)) / (y2 - y1);
+            xmin = min(xmin, testx);
+            xmax = max(xmax, testx);
+         }
+      }
+
+      for (int xx = xmin; xx <= xmax; ++xx)
+      {
+         if (yy >= 0 && yy < p->target->height)
+            if (xx >= 0 && xx < p->target->width)
+               p->target->data[yy * (p->target->pitch >> 2) + xx] = color;
+      }
+   }
 }
 
 void pntr_draw(painter_t *p, const bitmap_t *bmp, const rect_t *src_rect, const rect_t *dst_rect)

@@ -73,7 +73,7 @@ int keyboard_isDown(lua_State *L)
 int keyboard_getScancodeFromKey(lua_State *L) {
   int n = lua_gettop(L);
   if (n < 1) {
-      return luaL_error(L, "lutro.keyboard.isDown requires 1 or more arguments, %d given.", n);
+      return luaL_error(L, "lutro.keyboard.getScancodeFromKey requires 1 or more arguments, %d given.", n);
   }
 
   const char* buttonToCheck = luaL_checkstring(L, 1);

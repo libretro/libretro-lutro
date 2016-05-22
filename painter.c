@@ -71,28 +71,38 @@ void pntr_sanitize_clip(painter_t *p)
    p->clip = rect_intersect(&p->clip,  &target_rect);
 }
 
+void pntr_strike_line(painter_t *p, int x1, int y1, int x2, int y2)
+{
+   uint32_t color = p->foreground;
+   if ((color & 0xff000000) == 0)
+      return;
+
+   int dx = abs(x2-x1), sx = x1<x2 ? 1 : -1;
+   int dy = abs(y2-y1), sy = y1<y2 ? 1 : -1;
+   int err = (dx>dy ? dx : -dy)/2, e2;
+
+   for (;;) {
+      if (y1 >= 0 && y1 < p->target->height)
+         if (x1 >= 0 && x1 < p->target->width)
+            p->target->data[y1 * (p->target->pitch >> 2) + x1] = color;
+      if (x1==x2 && y1==y2) break;
+      e2 = err;
+      if (e2 >-dx) { err -= dy; x1 += sx; }
+      if (e2 < dy) { err += dx; y1 += sy; }
+   }
+}
+
 void pntr_strike_rect(painter_t *p, const rect_t *rect)
 {
-//   int x1, y1, x2, y2, i;
-//   uint32_t *fb = p->target->data + (p->target->pitch >> 2)
+   int x1 = rect->x;
+   int y1 = rect->y;
+   int x2 = x1 + rect->width;
+   int y2 = y1 + rect->height;
 
-//   x1 = rect->x;
-//   y1 = rect->y;
-//   x2 = x1 + rect->width;
-//   y2 = y1 + rect->height;
-
-
-//   for (i = y1; i < y2; i++)
-//   {
-//      framebuffer[i * pitch_pixels + x1] = current_color;
-//      framebuffer[i * pitch_pixels + x2-1] = current_color;
-//   }
-
-//   for (i = x1; i < x2; i++)
-//   {
-//      framebuffer[y1 * pitch_pixels + i] = current_color;
-//      framebuffer[(y1+h-1) * pitch_pixels + i] = current_color;
-//   }
+   pntr_strike_line(p, x1, y1, x1, y2);
+   pntr_strike_line(p, x1, y2, x2, y2);
+   pntr_strike_line(p, x2, y2, x2, y1);
+   pntr_strike_line(p, x2, y1, x1, y1);
 }
 
 
@@ -145,6 +155,40 @@ rect_t rect_intersect(const rect_t *a, const rect_t *b)
 int rect_is_null(const rect_t *r)
 {
    return r->width <= 0 || r->height <= 0;
+}
+
+void pntr_strike_poly(painter_t *p, const int *points, int nb_points)
+{
+   if ((nb_points % 2) != 0)
+      return;
+
+   uint32_t color = p->foreground;
+   if ((color & 0xff000000) == 0)
+      return;
+
+   for (int i = 0; i < (nb_points / 2); ++i)
+   {
+      int x1 = points[2 * i];
+      int y1 = points[(2 * i) + 1];
+      int x2, y2;
+      if (i < ((nb_points / 2) - 1))
+      {
+         x2 = points[2 * (i + 1)];
+         y2 = points[(2 * (i + 1)) + 1];
+      }
+      else
+      {
+         x2 = points[0];
+         y2 = points[1];
+      }
+
+      pntr_strike_line(p, x1, y1, x2, y2);
+   }
+}
+
+void pntr_fill_poly(painter_t *p, const int *points, int nb_points)
+{
+   // TODO
 }
 
 

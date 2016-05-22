@@ -17,7 +17,7 @@ static void set_ref(lua_State *L, int *ref)
 {
    if (*ref != LUA_NOREF)
       luaL_unref(L, LUA_REGISTRYINDEX, *ref);
-   
+
    *ref = luaL_ref(L, LUA_REGISTRYINDEX);
 }
 
@@ -33,7 +33,7 @@ static gfx_Canvas *new_canvas(lua_State *L)
 {
    gfx_Canvas* self = (gfx_Canvas*)lua_newuserdata(L, sizeof(gfx_Canvas));
    memset(self, 0, sizeof(*self));
-   
+
    if (luaL_newmetatable(L, "Canvas") != 0)
    {
       static luaL_Reg canvas_funcs[] = {
@@ -70,14 +70,14 @@ void lutro_graphics_init(lua_State *L)
    lua_pushvalue(L, -1);
    set_ref(L, &def_canv);
    set_ref(L, &cur_canv);
-   
+
    lutro_graphics_reinit(L);
 }
 
 void lutro_graphics_reinit(lua_State *L)
 {
    gfx_Canvas *canvas;
-   
+
    if (fbbmp && fbbmp->width == settings.width && fbbmp->height == settings.height)
       return;
 
@@ -644,10 +644,10 @@ static int gfx_rectangle(lua_State *L)
    int y = luaL_checknumber(L, 3);
    int w = luaL_checknumber(L, 4);
    int h = luaL_checknumber(L, 5);
-   
+
    canvas = get_canvas_ref(L, cur_canv);
    rect_t r  = { x, y, w, h };
-   
+
    if (!strcmp(mode, "fill"))
    {
       pntr_fill_rect(canvas, &r);
@@ -664,6 +664,46 @@ static int gfx_rectangle(lua_State *L)
    return 0;
 }
 
+static int gfx_polygon(lua_State *L)
+{
+   int n = lua_gettop(L);
+   gfx_Canvas *canvas;
+
+   if (n == 2)
+      return luaL_error(L, "lutro.graphics.polygon does not currently support drawing Polygon from a table.", n);
+
+   if ((n % 2) != 1)
+      return luaL_error(L, "lutro.graphics.polygon requires an odd number of arguments, %d given.", n);
+
+   const char* mode = luaL_checkstring(L, 1);
+
+   canvas = get_canvas_ref(L, cur_canv);
+
+   int* points = calloc(n-1, sizeof(int));
+   for (int i = 2; i <= n; ++i)
+   {
+      points[i-2] = luaL_checknumber(L, i);
+   }
+
+   if (!strcmp(mode, "fill"))
+   {
+      pntr_fill_poly(canvas, points, n-1);
+      free(points);
+   }
+   else if (!strcmp(mode, "line"))
+   {
+      pntr_strike_poly(canvas, points, n-1);
+      free(points);
+   }
+   else
+   {
+      free(points);
+      return luaL_error(L, "lutro.graphics.polygon's available modes are : fill or line", n);
+   }
+
+   return 0;
+}
+
 static int gfx_point(lua_State *L)
 {
    int n = lua_gettop(L);
@@ -674,9 +714,9 @@ static int gfx_point(lua_State *L)
 
    int x = luaL_checknumber(L, 1);
    int y = luaL_checknumber(L, 2);
-   
+
    canvas = get_canvas_ref(L, cur_canv);
-   
+
    if (x > canvas->target->width || x < 0 || y > canvas->target->height || y < 0)
       return 0;
 
@@ -732,25 +772,10 @@ static int gfx_line(lua_State *L)
    int y1 = luaL_checknumber(L, 2);
    int x2 = luaL_checknumber(L, 3);
    int y2 = luaL_checknumber(L, 4);
-   
+
    canvas = get_canvas_ref(L, cur_canv);
 
-   int pitch_pixels = settings.pitch_pixels;
-   uint32_t *framebuffer = settings.framebuffer;
-
-   int dx = abs(x2-x1), sx = x1<x2 ? 1 : -1;
-   int dy = abs(y2-y1), sy = y1<y2 ? 1 : -1;
-   int err = (dx>dy ? dx : -dy)/2, e2;
-
-   for (;;) {
-      if (y1 >= 0 && y1 < settings.height)
-         if (x1 >= 0 && x1 < settings.width)
-            framebuffer[y1 * pitch_pixels + x1] = canvas->foreground;
-      if (x1==x2 && y1==y2) break;
-      e2 = err;
-      if (e2 >-dx) { err -= dy; x1 += sx; }
-      if (e2 < dy) { err += dx; y1 += sy; }
-   }
+   pntr_strike_line(canvas, x1, y1, x2, y2);
 
    return 0;
 }
@@ -832,7 +857,7 @@ static int gfx_draw(lua_State *L)
       (int)data->width,
       (int)data->width
    };
-   
+
    canvas = get_canvas_ref(L, cur_canv);
    pntr_push(canvas);
    pntr_rotate(canvas, r);
@@ -865,7 +890,7 @@ static int gfx_print(lua_State *L)
       return luaL_error(L, "lutro.graphics.print requires 3 arguments, %d given.", n);
 
    canvas = get_canvas_ref(L, cur_canv);
-   
+
    if (canvas->font == NULL)
       return luaL_error(L, "lutro.graphics.print requires a font to be set.");
 
@@ -897,7 +922,7 @@ static int gfx_printf(lua_State *L)
    int dest_y = luaL_checknumber(L, 3);
    int limit  = luaL_checknumber(L, 4);
    const char* align = luaL_checkstring(L, 5);
-   
+
    if (!strcmp(align, "right"))
       pntr_print(canvas, dest_x + limit - pntr_text_width(canvas, message), dest_y, message);
    else if (!strcmp(align, "center"))
@@ -978,7 +1003,7 @@ static int gfx_origin(lua_State *L)
 static int gfx_pop(lua_State *L)
 {
    gfx_Canvas *canvas = get_canvas_ref(L, cur_canv);
-   
+
    if (!pntr_pop(canvas))
       return luaL_error(L, "Transformation stack underflow.");
 
@@ -1018,7 +1043,7 @@ static int gfx_setScissor(lua_State *L)
       return luaL_error(L, "lutro.graphics.setScissor requires 0 or 4 arguments, %d given.", n);
 
    canvas = get_canvas_ref(L, cur_canv);
-   
+
    rect_t r = {
       0, 0, canvas->target->width, canvas->target->height
    };
@@ -1081,6 +1106,7 @@ int lutro_graphics_preload(lua_State *L)
       { "translate",    gfx_translate },
 
       { "rectangle",    gfx_rectangle },
+      { "polygon",      gfx_polygon },
       { "setBackgroundColor", gfx_setBackgroundColor },
       { "setColor",     gfx_setColor },
       { "setDefaultFilter", gfx_setDefaultFilter },

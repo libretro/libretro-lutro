@@ -10,6 +10,9 @@
 #include <assert.h>
 #include <retro_miscellaneous.h>
 
+#include <math.h>
+#define M_PI 3.14159265358979323846
+
 #ifndef max
 #define max(a, b) ((a) > (b) ? (a) : (b))
 #endif
@@ -191,6 +194,22 @@ void pntr_fill_poly(painter_t *p, const int *points, int nb_points)
    // TODO
 }
 
+void pntr_strike_ellipse(painter_t *p, int x, int y, int radius_x, int radius_y, int nb_segments)
+{
+   for (int i = 0; i < nb_segments; ++i)
+   {
+      int x1 = x + (radius_x * cos(2 * i * M_PI / nb_segments));
+      int y1 = y + (radius_y * sin(2 * i * M_PI / nb_segments));
+      int x2 = x + (radius_x * cos(2 * (i + 1) * M_PI / nb_segments));
+      int y2 = y + (radius_y * sin(2 * (i + 1) * M_PI / nb_segments));
+      pntr_strike_line(p, x1, y1, x2, y2);
+   }
+}
+
+void pntr_fill_ellipse(painter_t *p, int x, int y, int radius_x, int radius_y, int nb_segments)
+{
+   // TODO
+}
 
 void pntr_draw(painter_t *p, const bitmap_t *bmp, const rect_t *src_rect, const rect_t *dst_rect)
 {

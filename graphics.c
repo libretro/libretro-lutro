@@ -704,6 +704,79 @@ static int gfx_polygon(lua_State *L)
    return 0;
 }
 
+static int gfx_circle(lua_State *L)
+{
+   int n = lua_gettop(L);
+   gfx_Canvas *canvas;
+
+   if ((n != 4) && (n != 5))
+      return luaL_error(L, "lutro.graphics.circle requires 4 or 5 arguments, %d given.", n);
+
+   const char* mode = luaL_checkstring(L, 1);
+   int x = luaL_checknumber(L, 2);
+   int y = luaL_checknumber(L, 3);
+   int radius = luaL_checknumber(L, 4);
+   int nb_segments = 0;
+   if (n == 5)
+     nb_segments = luaL_checknumber(L, 5);
+   if (nb_segments <= 0)
+     nb_segments = max(10, radius);
+
+   canvas = get_canvas_ref(L, cur_canv);
+
+   if (!strcmp(mode, "fill"))
+   {
+      pntr_fill_ellipse(canvas, x, y, radius, radius, nb_segments);
+   }
+   else if (!strcmp(mode, "line"))
+   {
+      pntr_strike_ellipse(canvas, x, y, radius, radius, nb_segments);
+   }
+   else
+   {
+      return luaL_error(L, "lutro.graphics.circle's available modes are : fill or line", n);
+   }
+
+   return 0;
+}
+
+static int gfx_ellipse(lua_State *L)
+{
+   int n = lua_gettop(L);
+   gfx_Canvas *canvas;
+
+   if ((n != 5) && (n != 6))
+      return luaL_error(L, "lutro.graphics.ellipse requires 5 or 6 arguments, %d given.", n);
+
+   const char* mode = luaL_checkstring(L, 1);
+   int x = luaL_checknumber(L, 2);
+   int y = luaL_checknumber(L, 3);
+   int x_radius = luaL_checknumber(L, 4);
+   int y_radius = luaL_checknumber(L, 5);
+   int nb_segments = 0;
+   if (n == 6)
+     nb_segments = luaL_checknumber(L, 6);
+   if (nb_segments <= 0)
+     nb_segments = max(10, max(x_radius, y_radius));
+
+   canvas = get_canvas_ref(L, cur_canv);
+
+   if (!strcmp(mode, "fill"))
+   {
+      pntr_fill_ellipse(canvas, x, y, x_radius, y_radius, nb_segments);
+   }
+   else if (!strcmp(mode, "line"))
+   {
+      pntr_strike_ellipse(canvas, x, y, x_radius, y_radius, nb_segments);
+   }
+   else
+   {
+      return luaL_error(L, "lutro.graphics.circle's available modes are : fill or line", n);
+   }
+
+   return 0;
+}
+
 static int gfx_point(lua_State *L)
 {
    int n = lua_gettop(L);
@@ -1107,6 +1180,8 @@ int lutro_graphics_preload(lua_State *L)
 
       { "rectangle",    gfx_rectangle },
       { "polygon",      gfx_polygon },
+      { "circle",       gfx_circle },
+      { "ellipse",      gfx_ellipse },
       { "setBackgroundColor", gfx_setBackgroundColor },
       { "setColor",     gfx_setColor },
       { "setDefaultFilter", gfx_setDefaultFilter },

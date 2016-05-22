@@ -1,6 +1,6 @@
 
 #include "lutro.h"
-#include "math.h"
+#include "lutro_math.h"
 
 #include <stdlib.h>
 #include <string.h>

@@ -191,7 +191,59 @@ void pntr_strike_poly(painter_t *p, const int *points, int nb_points)
 
 void pntr_fill_poly(painter_t *p, const int *points, int nb_points)
 {
-   // TODO
+   if ((nb_points % 2) != 0)
+      return;
+
+   uint32_t color = p->foreground;
+   if ((color & 0xff000000) == 0)
+      return;
+
+   // find the top-most and bottom-most points
+   int ymin = p->target->height + 1;
+   int ymax = -1;
+   for (int i = 0; i < (nb_points / 2); ++i)
+   {
+     ymin = min(ymin, points[(2 * i) + 1]);
+     ymax = max(ymax, points[(2 * i) + 1]);
+   }
+
+   // Note: the following algorithm is correct for convex polygons only.
+   // However, the polygon fill function in Love2D is also incorrect for non-convex polygons.
+   for (int yy = ymin; yy <= ymax; ++yy)
+   {
+      int xmin = p->target->width + 1;
+      int xmax = -1;
+      for (int i = 0; i < (nb_points / 2); ++i)
+      {
+         int x1 = points[2 * i];
+         int y1 = points[(2 * i) + 1];
+         int x2, y2;
+         if (i < ((nb_points / 2) - 1))
+         {
+            x2 = points[2 * (i + 1)];
+            y2 = points[(2 * (i + 1)) + 1];
+         }
+         else
+         {
+            x2 = points[0];
+            y2 = points[1];
+         }
+
+         if ((y1 > yy) != (y2 > yy))
+         {
+            int testx = x1 + ((x2 - x1) * (yy - y1)) / (y2 - y1);
+            xmin = min(xmin, testx);
+            xmax = max(xmax, testx);
+         }
+      }
+
+      for (int xx = xmin; xx <= xmax; ++xx)
+      {
+         if (yy >= 0 && yy < p->target->height)
+            if (xx >= 0 && xx < p->target->width)
+               p->target->data[yy * (p->target->pitch >> 2) + xx] = color;
+      }
+   }
 }
 
 void pntr_strike_ellipse(painter_t *p, int x, int y, int radius_x, int radius_y, int nb_segments)

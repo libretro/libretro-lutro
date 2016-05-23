@@ -79,3 +79,97 @@ int joystick_isDown(lua_State *L)
 
     return 1;
 }
+
+/**
+ * Retrieve the Joystick string from a given libretro enum key.
+ */
+char* joystick_retroToJoystick(int joystickKey)
+{
+  switch (joystickKey) {
+    case RETRO_DEVICE_ID_JOYPAD_B:
+      return "b";
+    case RETRO_DEVICE_ID_JOYPAD_Y:
+      return "y";
+    case RETRO_DEVICE_ID_JOYPAD_SELECT:
+      return "select";
+    case RETRO_DEVICE_ID_JOYPAD_START:
+      return "start";
+    case RETRO_DEVICE_ID_JOYPAD_UP:
+      return "up";
+    case RETRO_DEVICE_ID_JOYPAD_DOWN:
+      return "down";
+    case RETRO_DEVICE_ID_JOYPAD_LEFT:
+      return "left";
+    case RETRO_DEVICE_ID_JOYPAD_RIGHT:
+      return "right";
+    case RETRO_DEVICE_ID_JOYPAD_A:
+      return "a";
+    case RETRO_DEVICE_ID_JOYPAD_X:
+      return "x";
+    case RETRO_DEVICE_ID_JOYPAD_L: 
+      return "l1";
+    case RETRO_DEVICE_ID_JOYPAD_R:
+      return "r1";
+    case RETRO_DEVICE_ID_JOYPAD_L2:
+      return "l2";
+    case RETRO_DEVICE_ID_JOYPAD_R2:
+      return "r2";
+    case RETRO_DEVICE_ID_JOYPAD_L3:
+      return "l3";
+    case RETRO_DEVICE_ID_JOYPAD_R3:
+      return "r3";
+  }
+}
+
+/**
+ * Retrieve the libretro enum key from a Joystick string.
+ */
+int joystick_joystickToRetro(const char* retroKey)
+{
+  switch (retroKey[0]) {
+    case "b":
+      return RETRO_DEVICE_ID_JOYPAD_B;
+    case "y":
+      return RETRO_DEVICE_ID_JOYPAD_Y;
+    case "s":
+      switch (retroKey[1]) {
+        case "e":
+          return RETRO_DEVICE_ID_JOYPAD_SELECT;
+        case "t":
+          return RETRO_DEVICE_ID_JOYPAD_START;
+      }
+      break;
+    case "u":
+      return RETRO_DEVICE_ID_JOYPAD_UP;
+    case "d":
+      return RETRO_DEVICE_ID_JOYPAD_DOWN;
+    case "l":
+      switch (retroKey[1]) {
+        case "e":
+          return RETRO_DEVICE_ID_JOYPAD_LEFT;
+        case "1":
+          return RETRO_DEVICE_ID_JOYPAD_L; 
+        case "2":
+      return RETRO_DEVICE_ID_JOYPAD_L2;
+        case "3":
+          return RETRO_DEVICE_ID_JOYPAD_L3;
+      }
+      break;
+    case "r":
+      switch (retroKey[1]) {
+        case "i":
+          return RETRO_DEVICE_ID_JOYPAD_RIGHT;
+        case "1":
+          return RETRO_DEVICE_ID_JOYPAD_R;
+        case "2":
+          return RETRO_DEVICE_ID_JOYPAD_R2;
+        case "3":
+          return RETRO_DEVICE_ID_JOYPAD_R3;
+      }
+      break;
+    case "a":
+      return RETRO_DEVICE_ID_JOYPAD_A;
+    case "x":
+      return RETRO_DEVICE_ID_JOYPAD_X;
+  }
+}

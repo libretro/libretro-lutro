@@ -14,6 +14,7 @@ local states = {}
 local currentState = 1
 local currentTime = 0
 local intervalTime = 2.5
+local joystickButton = 0
 
 function lutro.conf(t)
 	t.width = 640
@@ -64,4 +65,10 @@ function lutro.draw()
 
 	local status = 'Test ' .. currentState .. ' - ' .. states[currentState]['name']
 	lutro.graphics.print(status, 10, 5)
+
+	lutro.graphics.print(joystickButton, 50, 50)
+end
+
+function lutro.joystickpressed(joystick, button)
+	joystickButton = "a"
 end

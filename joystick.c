@@ -24,18 +24,58 @@ int lutro_joystick_preload(lua_State *L)
    return 1;
 }
 
-void lutro_joystick_init(retro_environment_t cb)
+void lutro_joystick_init()
 {
 }
 
 void lutro_joystickevent(lua_State* L)
 {
-   int i, u;
-   for (i = 0; i < 4; i++) {
-   	for (u = 0; u < 14; u++) {
-      	joystick_cache[i][u] = settings.input_cb(i, RETRO_DEVICE_JOYPAD, 0, u);
-   	}
-   }
+  int i, u;
+  int16_t state;
+
+  // Loop through each joystick.
+  for (i = 0; i < 4; i++) {
+    // Loop through each button.
+    for (u = 0; u < 14; u++) {
+      // Retrieve the state of the button.
+      state = settings.input_cb(i, RETRO_DEVICE_JOYPAD, 0, u);
+
+      // Check if there's a change of state.
+      if (joystick_cache[i][u] != state) {
+        joystick_cache[i][u] = state;
+        // If the button was pressed, invoke the callback.
+        if (state > 0) {
+          lutro_joystickInvokeJoystickPressed(L, i, u);
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Invoke lutro.joystickpressed(joystick, button)
+ */
+void lutro_joystickInvokeJoystickPressed(lua_State* L, int joystick, int button) {
+  lua_getglobal(L, "lutro");
+  lua_getfield(L, -1, "joystickpressed");
+  if (lua_isfunction(L, -1))
+  {
+    // Add the first argument (the joystick number).
+    // TODO: Switch to using Joystick objects.
+    lua_pushnumber(L, joystick);
+
+    // Add the second argument (the joystick key).
+    lua_pushnumber(L, button);
+
+    // Call the event callback.
+    if (lua_pcall(L, 2, 0, -5))
+    {
+       fprintf(stderr, "%s\n", lua_tostring(L, -1));
+       lua_pop(L, 1);
+    }
+  } else {
+    lua_pop(L, 1);
+  }
 }
 
 /**
@@ -82,6 +122,8 @@ int joystick_isDown(lua_State *L)
 
 /**
  * Retrieve the Joystick string from a given libretro enum key.
+ *
+ * @return The string if the key is found, an empty string otherwise.
  */
 char* joystick_retroToJoystick(int joystickKey)
 {
@@ -119,57 +161,63 @@ char* joystick_retroToJoystick(int joystickKey)
     case RETRO_DEVICE_ID_JOYPAD_R3:
       return "r3";
   }
+
+  return "";
 }
 
 /**
  * Retrieve the libretro enum key from a Joystick string.
+ *
+ * @return The joystick key representing the string. -1 otherwise.
  */
 int joystick_joystickToRetro(const char* retroKey)
 {
   switch (retroKey[0]) {
-    case "b":
+    case 'b':
       return RETRO_DEVICE_ID_JOYPAD_B;
-    case "y":
+    case 'y':
       return RETRO_DEVICE_ID_JOYPAD_Y;
-    case "s":
+    case 's':
       switch (retroKey[1]) {
-        case "e":
+        case 'e':
           return RETRO_DEVICE_ID_JOYPAD_SELECT;
-        case "t":
+        case 't':
           return RETRO_DEVICE_ID_JOYPAD_START;
       }
       break;
-    case "u":
+    case 'u':
       return RETRO_DEVICE_ID_JOYPAD_UP;
-    case "d":
+    case 'd':
       return RETRO_DEVICE_ID_JOYPAD_DOWN;
-    case "l":
+    case 'l':
       switch (retroKey[1]) {
-        case "e":
+        case 'e':
           return RETRO_DEVICE_ID_JOYPAD_LEFT;
-        case "1":
+        case '1':
           return RETRO_DEVICE_ID_JOYPAD_L; 
-        case "2":
+        case '2':
       return RETRO_DEVICE_ID_JOYPAD_L2;
-        case "3":
+        case '3':
           return RETRO_DEVICE_ID_JOYPAD_L3;
       }
       break;
-    case "r":
+    case 'r':
       switch (retroKey[1]) {
-        case "i":
+        case 'i':
           return RETRO_DEVICE_ID_JOYPAD_RIGHT;
-        case "1":
+        case '1':
           return RETRO_DEVICE_ID_JOYPAD_R;
-        case "2":
+        case '2':
           return RETRO_DEVICE_ID_JOYPAD_R2;
-        case "3":
+        case '3':
           return RETRO_DEVICE_ID_JOYPAD_R3;
       }
       break;
-    case "a":
+    case 'a':
       return RETRO_DEVICE_ID_JOYPAD_A;
-    case "x":
+    case 'x':
       return RETRO_DEVICE_ID_JOYPAD_X;
   }
+
+  return -1;
 }

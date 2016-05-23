@@ -7,11 +7,12 @@
 #include "libretro.h"
 
 int lutro_joystick_preload(lua_State *L);
-void lutro_joystick_init(retro_environment_t cb);
+void lutro_joystick_init();
 void lutro_joystickevent(lua_State* L);
 int joystick_getJoystickCount(lua_State *L);
 int joystick_isDown(lua_State *L);
 char* joystick_retroToJoystick(int joystickKey);
 int joystick_joystickToRetro(const char* retroKey);
+void lutro_joystickInvokeJoystickPressed(lua_State* L, int joystick, int button);
 
 #endif // JOYSTICK_H

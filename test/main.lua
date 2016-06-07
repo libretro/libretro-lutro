@@ -14,6 +14,7 @@ local states = {}
 local currentState = 1
 local currentTime = 0
 local intervalTime = 2.5
+local keypressed = ""
 
 function lutro.conf(t)
 	t.width = 640
@@ -64,4 +65,17 @@ function lutro.draw()
 
 	local status = 'Test ' .. currentState .. ' - ' .. states[currentState]['name']
 	lutro.graphics.print(status, 10, 5)
+
+	-- Testing the key pressed event.
+	lutro.graphics.print(keypressed, 500, 400)
+end
+
+-- Test the Key Pressed event
+function lutro.keypressed(key)
+	keypressed = key
+end
+
+-- Test the Key Released event
+function lutro.keyreleased(key)
+	keypressed = ''
 end

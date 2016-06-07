@@ -74,3 +74,8 @@ end
 function lutro.keypressed(key)
 	keypressed = key
 end
+
+-- Test the Key Released event
+function lutro.keyreleased(key)
+	keypressed = ''
+end

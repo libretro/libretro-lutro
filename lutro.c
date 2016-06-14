@@ -24,6 +24,8 @@
 #include "luajit.h"
 #endif
 
+#include "deps/luautf8/lutf8lib.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -222,6 +224,8 @@ void lutro_init()
    lutro_preload(L, lutro_window_preload, "lutro.window");
    lutro_preload(L, lutro_mouse_preload, "lutro.mouse");
    lutro_preload(L, lutro_joystick_preload, "lutro.joystick");
+   lutro_preload(L, luaopen_luautf8, "utf8");
+
 #ifdef HAVE_INOTIFY
    lutro_preload(L, lutro_live_preload, "lutro.live");
 #endif

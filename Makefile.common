@@ -28,6 +28,9 @@ SOURCES_C += $(CORE_DIR)/libretro-common/formats/png/rpng_decode.c \
 				 $(CORE_DIR)/libretro-common/compat/compat.c \
 				 $(CORE_DIR)/libretro-common/rthreads/rthreads.c
 
+# Lua UTF-8
+SOURCES_C += $(CORE_DIR)/deps/luautf8/lutf8lib.c
+
 ifeq ($(WANT_ZLIB),1)
 SOURCES_C += $(CORE_DIR)/deps/zlib/adler32.c \
 				 $(CORE_DIR)/deps/zlib/compress.c \

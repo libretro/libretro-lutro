@@ -5,12 +5,157 @@
 #include <stdlib.h>
 #include <string.h>
 
-static int16_t keyboard_cache[255];
+static int16_t keyboard_cache[RETROK_LAST];
+
+const struct key_int_const_map keyboard_enum[RETROK_LAST] = {
+   {RETROK_BACKSPACE     ,"backspace"},
+   {RETROK_TAB           ,"tab"},
+   {RETROK_CLEAR         ,"clear"},
+   {RETROK_RETURN        ,"return"},
+   {RETROK_PAUSE         ,"pause"},
+   {RETROK_ESCAPE        ,"escape"},
+   {RETROK_SPACE         ,"space"},
+   {RETROK_EXCLAIM       ,"!"},
+   {RETROK_QUOTEDBL      ,"\""},
+   {RETROK_HASH          ,"#"},
+   {RETROK_DOLLAR        ,"$"},
+   {RETROK_AMPERSAND     ,"&"},
+   {RETROK_QUOTE         ,"'"},
+   {RETROK_LEFTPAREN     ,"("},
+   {RETROK_RIGHTPAREN    ,")"},
+   {RETROK_ASTERISK      ,"*"},
+   {RETROK_PLUS          ,"+"},
+   {RETROK_COMMA         ,","},
+   {RETROK_MINUS         ,"-"},
+   {RETROK_PERIOD        ,"."},
+   {RETROK_SLASH         ,"/"},
+   {RETROK_0             ,"0"},
+   {RETROK_1             ,"1"},
+   {RETROK_2             ,"2"},
+   {RETROK_3             ,"3"},
+   {RETROK_4             ,"4"},
+   {RETROK_5             ,"5"},
+   {RETROK_6             ,"6"},
+   {RETROK_7             ,"7"},
+   {RETROK_8             ,"8"},
+   {RETROK_9             ,"9"},
+   {RETROK_COLON         ,":"},
+   {RETROK_SEMICOLON     ,";"},
+   {RETROK_LESS          ,"<"},
+   {RETROK_EQUALS        ,"="},
+   {RETROK_GREATER       ,">"},
+   {RETROK_QUESTION      ,"?"},
+   {RETROK_AT            ,"@"},
+   {RETROK_LEFTBRACKET   ,"["},
+   {RETROK_BACKSLASH     ,"\\"},
+   {RETROK_RIGHTBRACKET  ,"]"},
+   {RETROK_CARET         ,"^"},
+   {RETROK_UNDERSCORE    ,"_"},
+   {RETROK_BACKQUOTE     ,"\""},
+   {RETROK_a             ,"a"},
+   {RETROK_b             ,"b"},
+   {RETROK_c             ,"c"},
+   {RETROK_d             ,"d"},
+   {RETROK_e             ,"e"},
+   {RETROK_f             ,"f"},
+   {RETROK_g             ,"g"},
+   {RETROK_h             ,"h"},
+   {RETROK_i             ,"i"},
+   {RETROK_j             ,"j"},
+   {RETROK_k             ,"k"},
+   {RETROK_l             ,"l"},
+   {RETROK_m             ,"m"},
+   {RETROK_n             ,"n"},
+   {RETROK_o             ,"o"},
+   {RETROK_p             ,"p"},
+   {RETROK_q             ,"q"},
+   {RETROK_r             ,"r"},
+   {RETROK_s             ,"s"},
+   {RETROK_t             ,"t"},
+   {RETROK_u             ,"u"},
+   {RETROK_v             ,"v"},
+   {RETROK_w             ,"w"},
+   {RETROK_x             ,"x"},
+   {RETROK_y             ,"y"},
+   {RETROK_z             ,"z"},
+   {RETROK_DELETE        ,"kpdelete"},
+
+   {RETROK_KP0           ,"kp0"},
+   {RETROK_KP1           ,"kp1"},
+   {RETROK_KP2           ,"kp2"},
+   {RETROK_KP3           ,"kp3"},
+   {RETROK_KP4           ,"kp4"},
+   {RETROK_KP5           ,"kp5"},
+   {RETROK_KP6           ,"kp6"},
+   {RETROK_KP7           ,"kp7"},
+   {RETROK_KP8           ,"kp8"},
+   {RETROK_KP9           ,"kp9"},
+   {RETROK_KP_PERIOD     ,"kp."},
+   {RETROK_KP_DIVIDE     ,"kp/"},
+   {RETROK_KP_MULTIPLY   ,"kp*"},
+   {RETROK_KP_MINUS      ,"kp-"},
+   {RETROK_KP_PLUS       ,"kp+"},
+   {RETROK_KP_ENTER      ,"kpenter"},
+   {RETROK_KP_EQUALS     ,"kp="},
+
+   {RETROK_UP            ,"up"},
+   {RETROK_DOWN          ,"down"},
+   {RETROK_RIGHT         ,"right"},
+   {RETROK_LEFT          ,"left"},
+   {RETROK_INSERT        ,"insert"},
+   {RETROK_HOME          ,"home"},
+   {RETROK_END           ,"end"},
+   {RETROK_PAGEUP        ,"pageup"},
+   {RETROK_PAGEDOWN      ,"pagedown"},
+
+   {RETROK_F1            ,"f1"},
+   {RETROK_F2            ,"f2"},
+   {RETROK_F3            ,"f3"},
+   {RETROK_F4            ,"f4"},
+   {RETROK_F5            ,"f5"},
+   {RETROK_F6            ,"f6"},
+   {RETROK_F7            ,"f7"},
+   {RETROK_F8            ,"f8"},
+   {RETROK_F9            ,"f9"},
+   {RETROK_F10           ,"f10"},
+   {RETROK_F11           ,"f11"},
+   {RETROK_F12           ,"f12"},
+   {RETROK_F13           ,"f13"},
+   {RETROK_F14           ,"f14"},
+   {RETROK_F15           ,"f15"},
+
+   {RETROK_NUMLOCK       ,"numlock"},
+   {RETROK_CAPSLOCK      ,"capslock"},
+   {RETROK_SCROLLOCK     ,"scrolllock"},
+   {RETROK_RSHIFT        ,"rshift"},
+   {RETROK_LSHIFT        ,"lshift"},
+   {RETROK_RCTRL         ,"rctrl"},
+   {RETROK_LCTRL         ,"lctrl"},
+   {RETROK_RALT          ,"ralt"},
+   {RETROK_LALT          ,"lalt"},
+   {RETROK_RMETA         ,"rmeta"},
+   {RETROK_LMETA         ,"lmeta"},
+   {RETROK_LSUPER        ,"lgui"},
+   {RETROK_RSUPER        ,"rgui"},
+   {RETROK_MODE          ,"mode"},
+   {RETROK_COMPOSE       ,"application"},
+
+   {RETROK_HELP          ,"help"},
+   {RETROK_PRINT         ,"printscreen"},
+   {RETROK_SYSREQ        ,"sysreq"},
+   {RETROK_BREAK         ,"pause"},
+   {RETROK_MENU          ,"menu"},
+   {RETROK_POWER         ,"power"},
+   {RETROK_EURO          ,"currencyunit"},
+   {RETROK_UNDO          ,"undo"},
+   {0, NULL}
+};
 
 int lutro_keyboard_preload(lua_State *L)
 {
    static luaL_Reg keyboard_funcs[] =  {
       { "isDown", keyboard_isDown },
+      { "getScancodeFromKey", keyboard_getScancodeFromKey },
       {NULL, NULL}
    };
 
@@ -27,12 +172,46 @@ void lutro_keyboard_init()
 {
 }
 
+/**
+ * Keyboard Events
+ *
+ * https://love2d.org/wiki/love.keypressed
+ * https://love2d.org/wiki/love.keyreleased
+ */
 void lutro_keyboardevent(lua_State* L)
 {
-   unsigned i;
-   for (i = 0; i < 255; i++)
+   int16_t is_down;
+   for (unsigned i = 0; i < RETROK_LAST; i++)
    {
-      keyboard_cache[i] = settings.input_cb(0, RETRO_DEVICE_KEYBOARD, 0, i);
+      // Check if the keyboard key is pressed.
+      is_down = settings.input_cb(0, RETRO_DEVICE_KEYBOARD, 0, i);
+      // Change the state if needed.
+      if (is_down != keyboard_cache[i]) {
+         // Load up the lutro.keypressed event Lua function.
+         lua_getfield(L, -1, is_down ? "keypressed" : "keyreleased");
+         if (lua_isfunction(L, -1))
+         {
+            // Set up the arguments.
+            lua_pushstring(L, keyboard_find_name(keyboard_enum, i)); // KeyConstant key
+            lua_pushnumber(L, i); // Scancode scancode
+            // @todo Add the isrepeat argument functionality. https://love2d.org/wiki/love.keypressed
+            lua_pushboolean(L, false);
+
+            // Call the function.
+            if (lua_pcall(L, 3, 0, 0))
+            {
+               fprintf(stderr, "%s\n", lua_tostring(L, -1));
+               lua_pop(L, 1);
+            }
+         }
+         else
+         {
+            lua_pop(L, 1);
+         }
+
+         // Update the keyboard state.
+         keyboard_cache[i] = is_down;
+      }
    }
 }
 
@@ -48,13 +227,14 @@ int keyboard_isDown(lua_State *L)
         return luaL_error(L, "lutro.keyboard.isDown requires 1 or more arguments, %d given.", n);
     }
 
-    int buttonToCheckKey;
     bool output = false;
     unsigned i;
     for (i = 0; i < n; i++) {
       const char* buttonToCheck = luaL_checkstring(L, i + 1);
-      buttonToCheckKey = keyboard_string_to_libretro(buttonToCheck);
-      if (keyboard_cache[buttonToCheckKey]) {
+      unsigned id;
+      if (!keyboard_find_value(keyboard_enum, buttonToCheck, &id))
+         return luaL_error(L, "invalid button");
+      if (keyboard_cache[id]) {
           output = true;
           break;
       }
@@ -65,278 +245,44 @@ int keyboard_isDown(lua_State *L)
 }
 
 /**
- * Converts a Love2D KeyCode string constant to a libretro constant.
+ * lutro.keyboard.getScancodeFromKey(key)
+ *
+ * https://love2d.org/wiki/love.keyboard.getScancodeFromKey
  */
-int keyboard_string_to_libretro(const char* key)
-{
-  switch (key[0]) {
-    case 'a':
-      return RETROK_a;
-    case 'b':
-      return RETROK_b;
-    case 'c':
-      return RETROK_c;
-    case 'd':
-      switch (key[1]) {
-        case 'o':
-          return RETROK_DOWN;
-      }
-      return RETROK_d;
-    case 'e':
-      return RETROK_e;
-    case 'f':
-      return RETROK_f;
-    case 'g':
-      return RETROK_g;
-    case 'h':
-      return RETROK_h;
-    case 'i':
-      return RETROK_i;
-    case 'j':
-      return RETROK_j;
-    case 'k':
-      return RETROK_k;
-    case 'l':
-      switch (key[1]) {
-        case 'e':
-          return RETROK_LEFT;
-      }
-      return RETROK_l;
-    case 'm':
-      return RETROK_m;
-    case 'n':
-      return RETROK_n;
-    case 'o':
-      return RETROK_o;
-    case 'p':
-      return RETROK_p;
-    case 'q':
-      return RETROK_q;
-    case 'r':
-      switch (key[1]) {
-        case 'i':
-          return RETROK_RIGHT;
-      }
-      return RETROK_r;
-    case 's':
-      switch (key[1]) {
-        case 'p':
-          return RETROK_SPACE;
-      }
-      return RETROK_s;
-    case 't':
-      return RETROK_t;
-    case 'u':
-      switch (key[1]) {
-        case 'p':
-          return RETROK_UP;
-      }
-      return RETROK_u;
-    case 'v':
-      return RETROK_v;
-    case 'w':
-      return RETROK_w;
-    case 'x':
-      return RETROK_x;
-    case 'y':
-      return RETROK_y;
-    case 'z':
-      return RETROK_z;
-    case '0':
-      return RETROK_0;
-    case '1':
-      return RETROK_1;
-    case '2':
-      return RETROK_2;
-    case '3':
-      return RETROK_3;
-    case '4':
-      return RETROK_4;
-    case '5':
-      return RETROK_5;
-    case '6':
-      return RETROK_6;
-    case '7':
-      return RETROK_7;
-    case '8':
-      return RETROK_8;
-    case '9':
-      return RETROK_9;
-    case '!':
-      return RETROK_EXCLAIM;
-    case '"':
-      return RETROK_QUOTEDBL;
-    case '#':
-      return RETROK_HASH;
-    case '$':
-      return RETROK_DOLLAR;
-    case '&':
-      return RETROK_AMPERSAND;
-    case '\'':
-      return RETROK_BACKSLASH;
-    case '(':
-      return RETROK_LEFTBRACKET;
-    case ')':
-      return RETROK_RIGHTBRACKET;
-    case '*':
-      return RETROK_KP_MULTIPLY;
-    case '+':
-      return RETROK_PLUS;
-    case ',':
-      return RETROK_COMMA;
-    case '-':
-      return RETROK_MINUS;
-    case '/':
-      return RETROK_SLASH;
-    case ':':
-      return RETROK_COLON;
-    case ';':
-      return RETROK_SEMICOLON;
-    case '<':
-      return RETROK_LESS;
-    case '=':
-      return RETROK_EQUALS;
-    case '>':
-      return RETROK_GREATER;
-    case '?':
-      return RETROK_QUESTION;
-    case '@':
-      return RETROK_ASTERISK;
-    case '[':
-      return RETROK_LEFTBRACKET;
-    case '\\':
-      return RETROK_BACKSLASH;
-    case ']':
-      return RETROK_RIGHTBRACKET;
-    case '^':
-      return RETROK_CARET;
-    case '_':
-      return RETROK_UNDERSCORE;
-    case '`':
-      return RETROK_CARET;
-/*
-    case 'home':
-      return ;
-    case 'end':
-      return ;
-    case 'pageup':
-      return ;
-    case 'pagedown':
-      return ;
-    case 'insert':
-      return ;
-    case 'backspace':
-      return ;
-    case 'tab':
-      return ;
-    case 'clear':
-      return ;
-    case 'return':
-      return ;
-    case 'delete':
-      return ;
-    case 'f1':
-      return ;
-    case 'f2':
-      return ;
-    case 'f3':
-      return ;
-    case 'f4':
-      return ;
-    case 'f5':
-      return ;
-    case 'f6':
-      return ;
-    case 'f7':
-      return ;
-    case 'f8':
-      return ;
-    case 'f9':
-      return ;
-    case 'f10':
-      return ;
-    case 'f11':
-      return ;
-    case 'f12':
-      return ;
-    case 'f13':
-      return ;
-    case 'f14':
-      return ;
-    case 'f15':
-      return ;
-    case 'f16':
-      return ;
-    case 'f17':
-      return ;
-    case 'f18':
-      return ;
-    case 'numlock':
-      return ;
-    case 'capslock':
-      return ;
-    case 'scrolllock':
-      return ;
-    case 'rshift':
-      return ;
-    case 'lshift':
-      return ;
-    case 'rctrl':
-      return ;
-    case 'lctrl':
-      return ;
-    case 'ralt':
-      return ;
-    case 'lalt':
-      return ;
-    case 'rgui':
-      return ;
-    case 'lgui':
-      return ;
-    case 'mode':
-      return ;
-    case 'www':
-      return ;
-    case 'mail':
-      return ;
-    case 'calculator':
-      return ;
-    case 'computer':
-      return ;
-    case 'appsearch':
-      return ;
-    case 'apphome':
-      return ;
-    case 'appback':
-      return ;
-    case 'appforward':
-      return ;
-    case 'apprefresh':
-      return ;
-    case 'appbookmarks':
-      return ;
-    case 'pause':
-      return ;
-    case 'escape':
-      return ;
-    case 'help':
-      return ;
-    case 'printscreen':
-      return ;
-    case 'sysreq':
-      return ;
-    case 'menu':
-      return ;
-    case 'application':
-      return ;
-    case 'power':
-      return ;
-    case 'currencyunit':
-      return ;
-    case 'undo':
-      return ;
-*/
+int keyboard_getScancodeFromKey(lua_State *L) {
+  int n = lua_gettop(L);
+  if (n < 1) {
+      return luaL_error(L, "lutro.keyboard.getScancodeFromKey requires 1 or more arguments, %d given.", n);
   }
 
-  return RETROK_UNKNOWN;
+  const char* buttonToCheck = luaL_checkstring(L, 1);
+
+  unsigned id;
+  if (!keyboard_find_value(keyboard_enum, buttonToCheck, &id))
+     return luaL_error(L, "invalid button");
+  lua_pushnumber(L, id);
+
+  return 1;
+}
+
+int keyboard_find_value(const struct key_int_const_map *map, const char *name, unsigned *value)
+{
+   for (; map->name; ++map)
+   {
+      if (strcmp(map->name, name) == 0)
+      {
+         *value = map->value;
+         return 1;
+      }
+   }
+
+   return 0;
+}
+
+const char* keyboard_find_name(const struct key_int_const_map *map, unsigned value)
+{
+   for (; map->name; ++map)
+      if (map->value == value)
+         return map->name;
+   return "";
 }

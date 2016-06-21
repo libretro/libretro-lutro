@@ -1,6 +1,6 @@
 
 #include "lutro.h"
-#include "math.h"
+#include "lutro_math.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -29,6 +29,12 @@ int lutro_math_preload(lua_State *L)
    return 1;
 }
 
+/**
+ * rand()/RAND_MAX can only return RAND_MAX possible values
+ * inlcuding 0 and 1, seemingly skewing the odds in their favor
+ * 
+ * rand() % x usually slightly favors smaller numbers
+ */
 int lutro_math_random(lua_State *L)
 {
     int n = lua_gettop(L);
@@ -36,23 +42,30 @@ int lutro_math_random(lua_State *L)
         return luaL_error(L, "lutro.math.random requires 0, 1 or 2 arguments, %d given.", n);
     }
 
-    double num = (double) rand() / (RAND_MAX);
-    double min;
-    double max;
+    int num = rand();
+    double num0;
+    int min;
+    int max;
 
     switch (n) {
         case 0:
-            lua_pushnumber(L, num);
+            num0 = (double) num / (RAND_MAX);
+            lua_pushnumber(L, num0);
             break;
         case 1:
-            max = (double) luaL_checknumber(L, 1);
-            num *= max;
+            max = luaL_checknumber(L, 1);
+            num = num % max + 1;
             lua_pushnumber(L, num);
             break;
         case 2:
-            min = (double) luaL_checknumber(L, 1);
-            max = (double) luaL_checknumber(L, 2);
-            num *= max;
+            min = luaL_checknumber(L, 1);
+            max = luaL_checknumber(L, 2);
+            if (min > max) {
+                min ^= max;
+                max ^= min;
+                min ^= max;
+            }
+            num = num % (max-min+1);
             num += min;
             lua_pushnumber(L, num);
             break;

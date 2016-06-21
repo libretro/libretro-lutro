@@ -45,7 +45,10 @@ void lutro_joystickevent(lua_State* L)
         joystick_cache[i][u] = state;
         // If the button was pressed, invoke the callback.
         if (state > 0) {
-          lutro_joystickInvokeJoystickPressed(L, i, u);
+          lutro_joystickInvokeJoystickEvent(L, "joystickpressed", i, u);
+        }
+        else {
+          lutro_joystickInvokeJoystickEvent(L, "joystickreleased", i, u);
         }
       }
     }
@@ -54,10 +57,11 @@ void lutro_joystickevent(lua_State* L)
 
 /**
  * Invoke lutro.joystickpressed(joystick, button)
+ * Invoke lutro.joystickreleased(joystick, button)
  */
-void lutro_joystickInvokeJoystickPressed(lua_State* L, int joystick, int button) {
+void lutro_joystickInvokeJoystickEvent(lua_State* L, char* eventName, int joystick, int button) {
   lua_getglobal(L, "lutro");
-  lua_getfield(L, -1, "joystickpressed");
+  lua_getfield(L, -1, eventName);
   if (lua_isfunction(L, -1))
   {
     // Add the first argument (the joystick number).

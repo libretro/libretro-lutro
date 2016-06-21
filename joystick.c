@@ -7,6 +7,26 @@
 
 static int16_t joystick_cache[4][14];
 
+const struct joystick_int_const_map joystick_key_enum[17] = {
+   {RETRO_DEVICE_ID_JOYPAD_B, "b"},
+   {RETRO_DEVICE_ID_JOYPAD_Y, "y"},
+   {RETRO_DEVICE_ID_JOYPAD_SELECT, "select"},
+   {RETRO_DEVICE_ID_JOYPAD_START, "start"},
+   {RETRO_DEVICE_ID_JOYPAD_UP, "up"},
+   {RETRO_DEVICE_ID_JOYPAD_DOWN, "down"},
+   {RETRO_DEVICE_ID_JOYPAD_LEFT, "left"},
+   {RETRO_DEVICE_ID_JOYPAD_RIGHT, "right"},
+   {RETRO_DEVICE_ID_JOYPAD_A, "a"},
+   {RETRO_DEVICE_ID_JOYPAD_X, "x"},
+   {RETRO_DEVICE_ID_JOYPAD_L, "l1"},
+   {RETRO_DEVICE_ID_JOYPAD_R, "r1"},
+   {RETRO_DEVICE_ID_JOYPAD_L2, "l2"},
+   {RETRO_DEVICE_ID_JOYPAD_R2, "r2"},
+   {RETRO_DEVICE_ID_JOYPAD_L3, "l3"},
+   {RETRO_DEVICE_ID_JOYPAD_R3, "r3"},
+   {0, NULL}
+};
+
 int lutro_joystick_preload(lua_State *L)
 {
    static luaL_Reg joystick_funcs[] =  {
@@ -56,8 +76,8 @@ void lutro_joystickevent(lua_State* L)
 }
 
 /**
- * Invoke lutro.joystickpressed(joystick, button)
- * Invoke lutro.joystickreleased(joystick, button)
+ * Invokes lutro.joystickpressed(joystick, button)
+ * Invokes lutro.joystickreleased(joystick, button)
  */
 void lutro_joystickInvokeJoystickEvent(lua_State* L, char* eventName, int joystick, int button) {
   lua_getglobal(L, "lutro");
@@ -129,44 +149,9 @@ int joystick_isDown(lua_State *L)
  *
  * @return The string if the key is found, an empty string otherwise.
  */
-char* joystick_retroToJoystick(int joystickKey)
+const char* joystick_retroToJoystick(unsigned joystickKey)
 {
-  switch (joystickKey) {
-    case RETRO_DEVICE_ID_JOYPAD_B:
-      return "b";
-    case RETRO_DEVICE_ID_JOYPAD_Y:
-      return "y";
-    case RETRO_DEVICE_ID_JOYPAD_SELECT:
-      return "select";
-    case RETRO_DEVICE_ID_JOYPAD_START:
-      return "start";
-    case RETRO_DEVICE_ID_JOYPAD_UP:
-      return "up";
-    case RETRO_DEVICE_ID_JOYPAD_DOWN:
-      return "down";
-    case RETRO_DEVICE_ID_JOYPAD_LEFT:
-      return "left";
-    case RETRO_DEVICE_ID_JOYPAD_RIGHT:
-      return "right";
-    case RETRO_DEVICE_ID_JOYPAD_A:
-      return "a";
-    case RETRO_DEVICE_ID_JOYPAD_X:
-      return "x";
-    case RETRO_DEVICE_ID_JOYPAD_L: 
-      return "l1";
-    case RETRO_DEVICE_ID_JOYPAD_R:
-      return "r1";
-    case RETRO_DEVICE_ID_JOYPAD_L2:
-      return "l2";
-    case RETRO_DEVICE_ID_JOYPAD_R2:
-      return "r2";
-    case RETRO_DEVICE_ID_JOYPAD_L3:
-      return "l3";
-    case RETRO_DEVICE_ID_JOYPAD_R3:
-      return "r3";
-  }
-
-  return "";
+  return joystick_find_name(joystick_key_enum, joystickKey);
 }
 
 /**
@@ -176,52 +161,37 @@ char* joystick_retroToJoystick(int joystickKey)
  */
 int joystick_joystickToRetro(const char* retroKey)
 {
-  switch (retroKey[0]) {
-    case 'b':
-      return RETRO_DEVICE_ID_JOYPAD_B;
-    case 'y':
-      return RETRO_DEVICE_ID_JOYPAD_Y;
-    case 's':
-      switch (retroKey[1]) {
-        case 'e':
-          return RETRO_DEVICE_ID_JOYPAD_SELECT;
-        case 't':
-          return RETRO_DEVICE_ID_JOYPAD_START;
-      }
-      break;
-    case 'u':
-      return RETRO_DEVICE_ID_JOYPAD_UP;
-    case 'd':
-      return RETRO_DEVICE_ID_JOYPAD_DOWN;
-    case 'l':
-      switch (retroKey[1]) {
-        case 'e':
-          return RETRO_DEVICE_ID_JOYPAD_LEFT;
-        case '1':
-          return RETRO_DEVICE_ID_JOYPAD_L; 
-        case '2':
-      return RETRO_DEVICE_ID_JOYPAD_L2;
-        case '3':
-          return RETRO_DEVICE_ID_JOYPAD_L3;
-      }
-      break;
-    case 'r':
-      switch (retroKey[1]) {
-        case 'i':
-          return RETRO_DEVICE_ID_JOYPAD_RIGHT;
-        case '1':
-          return RETRO_DEVICE_ID_JOYPAD_R;
-        case '2':
-          return RETRO_DEVICE_ID_JOYPAD_R2;
-        case '3':
-          return RETRO_DEVICE_ID_JOYPAD_R3;
-      }
-      break;
-    case 'a':
-      return RETRO_DEVICE_ID_JOYPAD_A;
-    case 'x':
-      return RETRO_DEVICE_ID_JOYPAD_X;
+  unsigned id;
+  if (joystick_find_value(joystick_key_enum, retroKey, &id) == 0) {
+    return 0;
   }
+  return id;
+}
 
-  return -1;
+/**
+ * Retrieve the value of the given joystick button.
+ */
+int joystick_find_value(const struct joystick_int_const_map *map, const char *name, unsigned *value)
+{
+   for (; map->name; ++map)
+   {
+      if (strcmp(map->name, name) == 0)
+      {
+         *value = map->value;
+         return 1;
+      }
+   }
+
+   return 0;
+}
+
+/**
+ * Finds the name of the given joystick key.
+ */
+const char* joystick_find_name(const struct joystick_int_const_map *map, unsigned value)
+{
+   for (; map->name; ++map)
+      if (map->value == value)
+         return map->name;
+   return "";
 }

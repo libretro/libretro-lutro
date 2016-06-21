@@ -12,9 +12,7 @@
 #define VERSION_MAJOR 0
 #define VERSION_MINOR 0
 #define VERSION_PATCH 1
-#define STR_(x) #x
-#define STR(x) STR_(x)
-#define VERSION_STRING "v" STR(VERSION_MAJOR) "." STR(VERSION_MINOR) "." STR(VERSION_PATCH)
+#define VERSION_STRING "0.0.1"
 
 typedef struct lutro_settings_t {
    int width;

@@ -426,8 +426,8 @@ int lutro_load(const char *path)
 
    lua_getfield(L, -1, "conf");
 
-   // Process the custom configuration if it exists.
-   if (!lua_isnoneornil(L, -1))
+   // Process the custom configuration, if it exists.
+   if (lua_isfunction(L, -1))
    {
       lua_getfield(L, -2, "settings");
 
@@ -473,7 +473,7 @@ int lutro_load(const char *path)
    lua_getfield(L, -1, "load");
 
    // Check if lutro.load() exists.
-   if (!lua_isnoneornil(L, -1))
+   if (lua_isfunction(L, -1))
    {
       // It exists, so call lutro.load().
       if(lua_pcall(L, 0, 0, 0))

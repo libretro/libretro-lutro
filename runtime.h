@@ -83,4 +83,9 @@ LUA_API int lua_absindex (lua_State *L, int idx);
 LUA_API int lua_compare (lua_State *L, int index1, int index2, int op);
 LUALIB_API unsigned luaL_checkunsigned (lua_State *L, int narg);
 #endif
+
+void luax_register(lua_State *L, const char *name, const luaL_Reg *l);
+int luax_c_insistglobal(lua_State *L, const char *k);
+void luax_setfuncs(lua_State *L, const luaL_Reg *l);
+
 #endif // RUNTIME_H

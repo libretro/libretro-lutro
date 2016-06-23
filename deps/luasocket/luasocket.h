@@ -22,7 +22,7 @@
 #define LOVE_LUASOCKET_LUASOCKET_H
 
 // LOVE
-#include "lua.h"
+#include "runtime.h"
 
 //namespace love
 //{

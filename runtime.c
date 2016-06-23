@@ -202,3 +202,48 @@ int l_not_implemented(lua_State *L)
    lua_pop(L, lua_gettop(L));
    return luaL_error(L, "Not implemented.");
 }
+
+int luax_insistglobal(lua_State *L, const char *k)
+{
+  lua_getglobal(L, k);
+
+  if (!lua_istable(L, -1))
+  {
+    lua_pop(L, 1); // Pop the non-table.
+    lua_newtable(L);
+    lua_pushvalue(L, -1);
+    lua_setglobal(L, k);
+  }
+
+  return 1;
+}
+
+int luax_c_insistglobal(lua_State *L, const char *k)
+{
+  return luax_insistglobal(L, k);
+}
+
+void luax_register(lua_State *L, const char *name, const luaL_Reg *l)
+{
+  if (name)
+    lua_newtable(L);
+
+  luax_setfuncs(L, l);
+  if (name)
+  {
+    lua_pushvalue(L, -1);
+    lua_setglobal(L, name);
+  }
+}
+
+void luax_setfuncs(lua_State *L, const luaL_Reg *l)
+{
+  if (!l)
+    return;
+
+  for (; l->name; l++)
+  {
+    lua_pushcfunction(L, l->func);
+    lua_setfield(L, -2, l->name);
+  }
+}

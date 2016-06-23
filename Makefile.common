@@ -45,9 +45,13 @@ SOURCES_C += $(CORE_DIR)/deps/luasocket/libluasocket/auxiliar.c \
 	$(CORE_DIR)/deps/luasocket/libluasocket/timeout.c \
 	$(CORE_DIR)/deps/luasocket/libluasocket/udp.c \
 	$(CORE_DIR)/deps/luasocket/libluasocket/unix.c \
-	$(CORE_DIR)/deps/luasocket/libluasocket/usocket.c \
-	$(CORE_DIR)/deps/luasocket/libluasocket/wsocket.c \
 	$(CORE_DIR)/deps/luasocket/luasocket.c
+ifeq ($(system_platform),unix)
+	SOURCES_C += $(CORE_DIR)/deps/luasocket/libluasocket/usocket.c
+else
+	SOURCES_C += $(CORE_DIR)/deps/luasocket/libluasocket/wsocket.c
+endif
+
 
 ifeq ($(WANT_ZLIB),1)
 SOURCES_C += $(CORE_DIR)/deps/zlib/adler32.c \

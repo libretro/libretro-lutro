@@ -1,5 +1,6 @@
 -- Lutro Tester
 local availableStates = {
+	"http/request",
 	"graphics/print",
 	"joystick/isDown",
 	"graphics/rectangle",

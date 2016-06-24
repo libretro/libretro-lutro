@@ -23,3 +23,13 @@ Through RetroArch, use the Lutro core to load the game's source directory:
 Alternatively, you can load a compressed `.lutro` file:
 
     retroarch -L libretro_lutro.so game.lutro
+
+## Build
+
+Compile Lutro by [installing the RetroArch dependencies](https://github.com/libretro/retroarch#dependencies-pc), and running:
+
+    make
+
+To compile with [Docker](https://www.docker.com/), use:
+
+    make docker

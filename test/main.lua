@@ -14,6 +14,7 @@ local states = {}
 local currentState = 1
 local currentTime = 0
 local intervalTime = 2.5
+local joystickButton = 0
 local keypressed = ""
 
 function lutro.conf(t)
@@ -66,8 +67,17 @@ function lutro.draw()
 	local status = 'Test ' .. currentState .. ' - ' .. states[currentState]['name']
 	lutro.graphics.print(status, 10, 5)
 
-	-- Testing the key pressed event.
+	-- Testing the keyboard/joystick pressed event.
+	lutro.graphics.print(joystickButton, 50, 50)
 	lutro.graphics.print(keypressed, 500, 400)
+end
+
+function lutro.joystickpressed(joystick, button)
+	joystickButton = "Joystick Pressed"
+end
+
+function lutro.joystickreleased(joystick, button)
+	joystickButton = "Joystick Released"
 end
 
 -- Test the Key Pressed event

@@ -464,6 +464,7 @@ int lutro_load(const char *path)
    lutro_audio_init();
    lutro_event_init();
    lutro_math_init();
+   lutro_joystick_init();
 
 #ifdef HAVE_INOTIFY
    if (settings.live_enable)

@@ -2,6 +2,8 @@
 
 Experimental [Lua](http://lua.org) game framework for [libretro](http://libretro.com), following the [LÖVE](http://love2d.org) API.
 
+Lutro is software rendered and implements only a subset of the LÖVE API. It targets portability though the libretro API and backed in dependancies.
+
 ## Sample Games
 
 
@@ -21,3 +23,13 @@ Through RetroArch, use the Lutro core to load the game's source directory:
 Alternatively, you can load a compressed `.lutro` file:
 
     retroarch -L libretro_lutro.so game.lutro
+
+## Build
+
+Compile Lutro by [installing the RetroArch dependencies](https://github.com/libretro/retroarch#dependencies-pc), and running:
+
+    make
+
+To compile with [Docker](https://www.docker.com/), use:
+
+    make docker

@@ -1,0 +1,10 @@
+sudo: required
+
+services:
+  - docker
+
+script:
+  - make docker
+
+notifications:
+  email: false

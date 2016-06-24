@@ -267,4 +267,8 @@ clean:
 	-make -C $(LUADIR) clean
 	-rm -f $(OBJS) $(TARGET)
 
+docker:
+	docker build -t libretro-lutro .
+	docker run -v $(CURDIR):/app libretro-lutro make
+
 .PHONY: clean

@@ -4,6 +4,12 @@ package.path = package.path .. './test/?.lua;./test/unit/?.lua;./test/unit/luaun
 -- Dependencies
 unit = require 'luaunit'
 
+function UTF8Test()
+	local utf8 = require("utf8")
+	local actual = utf8.len("Hello World!")
+	unit.assertEquals(actual, 12)
+end
+
 function lutro.math.setRandomSeedTest()
 	lutro.math.setRandomSeed(3)
 	lutro.math.setRandomSeed(3, 10)
@@ -30,6 +36,7 @@ end
 function runTests()
 	lutro.math.setRandomSeedTest()
 	lutro.math.randomTest()
+	UTF8Test()
 end
 
 -- Return a load and draw function for running the unit

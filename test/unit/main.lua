@@ -15,7 +15,6 @@ require 'tests'
 
 -- Set up Lutro to run the tests at load.
 function lutro.load()
-
 	runTests()
 	io.write("Lutro unit test run complete\n")
 	lutro.event.quit()

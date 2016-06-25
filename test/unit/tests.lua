@@ -1,5 +1,14 @@
--- Load LuaUnit
-unit = require 'test/unit/luaunit/luaunit'
+-- Add all available include paths.
+package.path = package.path .. './test/?.lua;./test/unit/?.lua;./test/unit/luaunit/?.lua;./luaunit/?.lua'
+
+-- Dependencies
+unit = require 'luaunit'
+
+function UTF8Test()
+	local utf8 = require("utf8")
+	local actual = utf8.len("Hello World!")
+	unit.assertEquals(actual, 12)
+end
 
 function lutro.math.setRandomSeedTest()
 	lutro.math.setRandomSeed(3)
@@ -23,6 +32,13 @@ function lutro.math.randomTest()
 	end
 end
 
+function lutro.filesystem.getUserDirectoryTest()
+	local homeDir = lutro.filesystem.getUserDirectory()
+	-- @todo Find out how to make os.getenv('HOME') work on Windows?
+	local luaHomeDir = os.getenv("HOME")
+	unit.assertEquals(homeDir, luaHomeDir)
+end
+
 function LuaSocketTest()
 	local http = require('socket.http')
 	local result = 'Result'
@@ -34,9 +50,11 @@ end
 
 -- Runs all the defined tests.
 function runTests()
-	lutro.math.setRandomSeedTest()
-	lutro.math.randomTest()
 	LuaSocketTest()
+	lutro.filesystem.getUserDirectoryTest()
+	lutro.math.randomTest()
+	lutro.math.setRandomSeedTest()
+	UTF8Test()
 end
 
 -- Return a load and draw function for running the unit

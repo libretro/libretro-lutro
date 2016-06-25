@@ -6,7 +6,6 @@ local availableStates = {
 	"graphics/rectangle",
 	"graphics/line",
 	"audio/play",
-	"filesystem/getUserDirectory",
 	"joystick/getJoystickCount",
 	"window/close"
 }

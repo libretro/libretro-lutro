@@ -1,5 +1,8 @@
--- Load LuaUnit
-unit = require 'test/unit/luaunit/luaunit'
+-- Add all available include paths.
+package.path = package.path .. './test/?.lua;./test/unit/?.lua;./test/unit/luaunit/?.lua;./luaunit/?.lua'
+
+-- Dependencies
+unit = require 'luaunit'
 
 function lutro.math.setRandomSeedTest()
 	lutro.math.setRandomSeed(3)

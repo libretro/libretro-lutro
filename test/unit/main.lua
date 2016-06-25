@@ -7,14 +7,15 @@
     retroarch -L path/to/lutro_libretro.so test/unit
 ]]--
 
--- LuaUnit
-test = require 'luaunit/luaunit'
+-- Dependency paths.
+package.path = package.path .. './test/?.lua;./test/unit/?.lua;./test/unit/luaunit/?.lua;./luaunit/?.lua'
 
 -- Load the unit tests.
 require 'tests'
 
 -- Set up Lutro to run the tests at load.
 function lutro.load()
+
 	runTests()
 	io.write("Lutro unit test run complete\n")
 	lutro.event.quit()

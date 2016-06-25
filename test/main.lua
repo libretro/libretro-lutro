@@ -2,10 +2,10 @@
 local availableStates = {
 	"http/request",
 	"graphics/print",
+	"unit/tests",
 	"joystick/isDown",
 	"graphics/rectangle",
 	"graphics/line",
-	"math/random",
 	"audio/play",
 	"filesystem/getUserDirectory",
 	"joystick/getJoystickCount",
@@ -18,9 +18,8 @@ local intervalTime = 2.5
 local joystickButton = 0
 local keypressed = ""
 
-function lutro.conf(t)
-	t.width = 640
-	t.height = 480
+function lutro.load()
+	lutro.graphics.setBackgroundColor(0, 0, 0)
 
 	-- Initiate all available test states.
 	for i, state in ipairs(availableStates) do
@@ -28,10 +27,6 @@ function lutro.conf(t)
 		test['name'] = "lutro." .. string.gsub(state, "/", ".")
 		table.insert(states, test)
 	end
-end
-
-function lutro.load()
-	lutro.graphics.setBackgroundColor(0, 0, 0)
 
 	-- Load all states.
 	for i, state in ipairs(states) do

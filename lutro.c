@@ -397,21 +397,29 @@ int lutro_unzip(const char *path, const char *extraction_directory)
 int lutro_load(const char *path)
 {
    char mainfile[PATH_MAX_LENGTH];
+   // conf.lua https://love2d.org/wiki/Config_Files
+   char conffile[PATH_MAX_LENGTH];
    char gamedir[PATH_MAX_LENGTH];
 
    strlcpy(mainfile, path, PATH_MAX_LENGTH);
+   strlcpy(conffile, path, PATH_MAX_LENGTH);
    strlcpy(gamedir, path, PATH_MAX_LENGTH);
 
-   if (path_is_directory(mainfile))
+   if (path_is_directory(mainfile)) {
       fill_pathname_join(mainfile, gamedir, "main.lua", sizeof(mainfile));
-   else
+      fill_pathname_join(conffile, gamedir, "conf.lua", sizeof(conffile));
+   }
+   else {
       path_basedir(gamedir);
+   }
 
    if (!strcmp(path_get_extension(mainfile), "lutro"))
    {
       fill_pathname(gamedir, mainfile, "/", sizeof(gamedir));
+      fill_pathname(gamedir, conffile, "/", sizeof(gamedir));
       lutro_unzip(mainfile, gamedir);
       fill_pathname_join(mainfile, gamedir, "main.lua", sizeof(mainfile));
+      fill_pathname_join(conffile, gamedir, "conf.lua", sizeof(conffile));
    }
 
    fill_pathname_slash(gamedir, sizeof(gamedir));
@@ -420,6 +428,10 @@ int lutro_load(const char *path)
    snprintf(package_path, PATH_MAX_LENGTH, ";%s?.lua;%s?/init.lua", gamedir, gamedir);
    lutro_set_package_path(L, package_path);
 
+   // Load the configuration file, ignoring any errors.
+   dofile(L, conffile);
+
+   // Now that configuration is in place, load main.lua.
    if(dofile(L, mainfile))
    {
        fprintf(stderr, "%s\n", lua_tostring(L, -1));

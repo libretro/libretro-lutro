@@ -1,5 +1,3 @@
-local utf8 = require("utf8")
-
 return {
 	load = function()
 		font = lutro.graphics.newImageFont("graphics/font.png", " abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.,!?-+/")
@@ -7,9 +5,8 @@ return {
 	end,
 
 	draw = function()
-		text = "Tests switch every 3 seconds. UTF-8 length: "
-		len = utf8.len(text)
-		lutro.graphics.print(text .. len, 30, 100)
+		text = "Tests switch every 3 seconds."
+		lutro.graphics.print(text, 30, 100)
 
 		if lutro.mouse.isDown(1, 2) then
 			local x, y = lutro.mouse.getPosition()

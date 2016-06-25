@@ -1,10 +1,10 @@
 -- Lutro Tester
 local availableStates = {
 	"graphics/print",
+	"unit/tests",
 	"joystick/isDown",
 	"graphics/rectangle",
 	"graphics/line",
-	"math/random",
 	"audio/play",
 	"filesystem/getUserDirectory",
 	"joystick/getJoystickCount",

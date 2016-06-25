@@ -32,10 +32,18 @@ function lutro.math.randomTest()
 	end
 end
 
+function lutro.filesystem.getUserDirectoryTest()
+	local homeDir = lutro.filesystem.getUserDirectory()
+	-- @todo Find out how to make os.getenv('HOME') work on Windows?
+	local luaHomeDir = os.getenv("HOME")
+	unit.assertEquals(homeDir, luaHomeDir)
+end
+
 -- Runs all the defined tests.
 function runTests()
-	lutro.math.setRandomSeedTest()
+	lutro.filesystem.getUserDirectoryTest()
 	lutro.math.randomTest()
+	lutro.math.setRandomSeedTest()
 	UTF8Test()
 end
 

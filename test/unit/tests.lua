@@ -23,10 +23,20 @@ function lutro.math.randomTest()
 	end
 end
 
+function LuaSocketTest()
+	local http = require('socket.http')
+	local result = 'Result'
+	local err = 'Request not made yet...'
+	result, err = http.request("http://wrong.host/")
+	-- @todo Fix LuaSocket.
+	io.write(tostring(err))
+end
+
 -- Runs all the defined tests.
 function runTests()
 	lutro.math.setRandomSeedTest()
 	lutro.math.randomTest()
+	LuaSocketTest()
 end
 
 -- Return a load and draw function for running the unit

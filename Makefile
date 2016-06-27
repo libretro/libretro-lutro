@@ -271,4 +271,7 @@ docker:
 	docker build -t libretro-lutro .
 	docker run -v $(CURDIR):/app libretro-lutro make
 
+test: all
+	retroarch -L lutro_libretro.so test
+
 .PHONY: clean

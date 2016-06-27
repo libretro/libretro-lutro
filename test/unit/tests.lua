@@ -53,8 +53,8 @@ end
 
 function lutro.filesystem.getSourceBaseDirectoryTest()
 	local sourceDir = lutro.filesystem.getSourceBaseDirectory()
-	io.write(sourceDir)
 	unit.assertIsString(sourceDir)
+	unit.assertEquals(string.sub(sourceDir, 1, 4), 'test')
 end
 
 function lutro.getVersionTest()

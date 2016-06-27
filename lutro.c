@@ -388,21 +388,29 @@ int lutro_unzip(const char *path, const char *extraction_directory)
 int lutro_load(const char *path)
 {
    char mainfile[PATH_MAX_LENGTH];
+   // conf.lua https://love2d.org/wiki/Config_Files
+   char conffile[PATH_MAX_LENGTH];
    char gamedir[PATH_MAX_LENGTH];
 
    strlcpy(mainfile, path, PATH_MAX_LENGTH);
+   strlcpy(conffile, path, PATH_MAX_LENGTH);
    strlcpy(gamedir, path, PATH_MAX_LENGTH);
 
-   if (path_is_directory(mainfile))
+   if (path_is_directory(mainfile)) {
       fill_pathname_join(mainfile, gamedir, "main.lua", sizeof(mainfile));
-   else
+      fill_pathname_join(conffile, gamedir, "conf.lua", sizeof(conffile));
+   }
+   else {
       path_basedir(gamedir);
+   }
 
    if (!strcmp(path_get_extension(mainfile), "lutro"))
    {
       fill_pathname(gamedir, mainfile, "/", sizeof(gamedir));
+      fill_pathname(gamedir, conffile, "/", sizeof(gamedir));
       lutro_unzip(mainfile, gamedir);
       fill_pathname_join(mainfile, gamedir, "main.lua", sizeof(mainfile));
+      fill_pathname_join(conffile, gamedir, "conf.lua", sizeof(conffile));
    }
 
    fill_pathname_slash(gamedir, sizeof(gamedir));
@@ -411,6 +419,10 @@ int lutro_load(const char *path)
    snprintf(package_path, PATH_MAX_LENGTH, ";%s?.lua;%s?/init.lua", gamedir, gamedir);
    lutro_set_package_path(L, package_path);
 
+   // Load the configuration file, ignoring any errors.
+   dofile(L, conffile);
+
+   // Now that configuration is in place, load main.lua.
    if(dofile(L, mainfile))
    {
        fprintf(stderr, "%s\n", lua_tostring(L, -1));
@@ -426,11 +438,8 @@ int lutro_load(const char *path)
 
    lua_getfield(L, -1, "conf");
 
-   if (lua_isnoneornil(L, -1))
-   {
-      puts("skipping custom configuration.");
-   }
-   else
+   // Process the custom configuration, if it exists.
+   if (lua_isfunction(L, -1))
    {
       lua_getfield(L, -2, "settings");
 
@@ -467,6 +476,7 @@ int lutro_load(const char *path)
    lutro_audio_init();
    lutro_event_init();
    lutro_math_init();
+   lutro_joystick_init();
 
 #ifdef HAVE_INOTIFY
    if (settings.live_enable)
@@ -475,12 +485,10 @@ int lutro_load(const char *path)
 
    lua_getfield(L, -1, "load");
 
-   if (lua_isnoneornil(L, -1))
+   // Check if lutro.load() exists.
+   if (lua_isfunction(L, -1))
    {
-      puts("skipping custom initialization.");
-   }
-   else
-   {
+      // It exists, so call lutro.load().
       if(lua_pcall(L, 0, 0, 0))
       {
          fprintf(stderr, "%s\n", lua_tostring(L, -1));

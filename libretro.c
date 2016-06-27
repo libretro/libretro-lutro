@@ -49,6 +49,11 @@ void retro_init(void)
 {
    lutro_init();
 
+   if (environ_cb(RETRO_ENVIRONMENT_GET_LOG_INTERFACE, &logging))
+      log_cb = logging.log;
+   else
+      log_cb = fallback_log;
+
    // Always get the perf interface because we need it for the timers
    if (!environ_cb( RETRO_ENVIRONMENT_GET_PERF_INTERFACE, &perf_cb))
    {
@@ -119,10 +124,6 @@ void retro_set_environment(retro_environment_t cb)
    bool no_rom = false;
    cb(RETRO_ENVIRONMENT_SET_SUPPORT_NO_GAME, &no_rom);
 
-   if (cb(RETRO_ENVIRONMENT_GET_LOG_INTERFACE, &logging))
-      log_cb = logging.log;
-   else
-      log_cb = fallback_log;
 }
 
 void retro_set_audio_sample(retro_audio_sample_t cb)

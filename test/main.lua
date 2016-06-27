@@ -1,12 +1,11 @@
 -- Lutro Tester
 local availableStates = {
 	"graphics/print",
+	"unit/tests",
 	"joystick/isDown",
 	"graphics/rectangle",
 	"graphics/line",
-	"math/random",
 	"audio/play",
-	"filesystem/getUserDirectory",
 	"joystick/getJoystickCount",
 	"window/close"
 }
@@ -14,11 +13,11 @@ local states = {}
 local currentState = 1
 local currentTime = 0
 local intervalTime = 2.5
+local joystickButton = 0
 local keypressed = ""
 
-function lutro.conf(t)
-	t.width = 640
-	t.height = 480
+function lutro.load()
+	lutro.graphics.setBackgroundColor(0, 0, 0)
 
 	-- Initiate all available test states.
 	for i, state in ipairs(availableStates) do
@@ -26,10 +25,6 @@ function lutro.conf(t)
 		test['name'] = "lutro." .. string.gsub(state, "/", ".")
 		table.insert(states, test)
 	end
-end
-
-function lutro.load()
-	lutro.graphics.setBackgroundColor(0, 0, 0)
 
 	-- Load all states.
 	for i, state in ipairs(states) do
@@ -66,8 +61,17 @@ function lutro.draw()
 	local status = 'Test ' .. currentState .. ' - ' .. states[currentState]['name']
 	lutro.graphics.print(status, 10, 5)
 
-	-- Testing the key pressed event.
+	-- Testing the keyboard/joystick pressed event.
+	lutro.graphics.print(joystickButton, 50, 50)
 	lutro.graphics.print(keypressed, 500, 400)
+end
+
+function lutro.joystickpressed(joystick, button)
+	joystickButton = "Joystick Pressed"
+end
+
+function lutro.joystickreleased(joystick, button)
+	joystickButton = "Joystick Released"
 end
 
 -- Test the Key Pressed event

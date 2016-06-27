@@ -922,13 +922,13 @@ static int gfx_draw(lua_State *L)
       x + ox,
       y + oy,
       (int)data->width,
-      (int)data->width
+      (int)data->height
    };
 
    rect_t srect = {
       0, 0,
       (int)data->width,
-      (int)data->width
+      (int)data->height
    };
 
    canvas = get_canvas_ref(L, cur_canv);

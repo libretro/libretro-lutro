@@ -169,6 +169,18 @@ int fs_getUserDirectory(lua_State *L)
    return 1;
 }
 
+/**
+ * lutro.filesystem.getSourceBaseDirectory
+ *
+ * https://love2d.org/wiki/love.filesystem.getSourceBaseDirectory
+ */
+int fs_getSourceBaseDirectory(lua_State *L)
+{
+   lua_pushstring(L, lutro_settings_t.gamedir);
+
+   return 1;
+}
+
 int fs_isDirectory(lua_State *L)
 {
    const char *path = luaL_checkstring(L, 1);

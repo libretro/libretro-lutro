@@ -44,14 +44,23 @@ function LuaSocketTest()
 	local result = 'Result'
 	local err = 'Request not made yet...'
 	result, err = http.request("http://wrong.host/")
-	-- @todo Fix LuaSocket.
+	-- @todo Fix LuaSocket test, once LuaSocket works.
 	io.write(tostring(err))
+end
+
+function lutro.getVersionTest()
+	local major, minor, revision, codename = lutro.getVersion()
+	unit.assertIsNumber(major)
+	unit.assertIsNumber(minor)
+	unit.assertIsNumber(revision)
+	unit.assertEquals(codename, 'Lutro')
 end
 
 -- Runs all the defined tests.
 function runTests()
 	LuaSocketTest()
 	lutro.filesystem.getUserDirectoryTest()
+	lutro.getVersionTest()
 	lutro.math.randomTest()
 	lutro.math.setRandomSeedTest()
 	UTF8Test()

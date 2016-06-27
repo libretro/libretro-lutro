@@ -34,6 +34,7 @@ int lutro_preload(lua_State *L, lua_CFunction f, const char *name);
 int lutro_ensure_global_table(lua_State *L, const char *name);
 void lutro_namespace(lua_State *L);
 void lutro_stack_dump(lua_State *L);
+int lutro_getVersion(lua_State *L);
 
 /**
  * @brief Import a lua module

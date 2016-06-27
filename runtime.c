@@ -1,6 +1,7 @@
 #include "runtime.h"
 #include "compat/strl.h"
 #include "file/file_path.h"
+#include "lutro.h"
 #include <assert.h>
 #if LUA_VERSION_NUM < 502
 #ifdef HAVE_JIT
@@ -28,6 +29,12 @@ int lutro_ensure_global_table(lua_State *L, const char *name)
    if (!lua_istable(L, -1)) {
       lua_pop(L, 1);
       lua_newtable(L);
+
+      // Introduce lutro.getVersion().
+      lua_pushcfunction(L, lutro_getVersion);
+      lua_setfield(L, -2, "getVersion");
+
+      // Add the "lutro" Lua global.
       lua_pushvalue(L, -1);
       lua_setglobal(L, name);
    }
@@ -104,6 +111,20 @@ void lutro_relpath_to_modname(char *outmod, const char *relpath)
 
       outmod[i] = c;
    }
+}
+
+/**
+ * Retrieves the current version.
+ *
+ * https://love2d.org/wiki/love.getVersion
+ */
+int lutro_getVersion(lua_State *L) {
+  lua_pushnumber(L, VERSION_MAJOR);
+  lua_pushnumber(L, VERSION_MINOR);
+  lua_pushnumber(L, VERSION_PATCH);
+  lua_pushstring(L, "Lutro");
+
+  return 4;
 }
 
 #if LUA_VERSION_NUM < 502

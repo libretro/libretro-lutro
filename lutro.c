@@ -38,7 +38,6 @@
 
 static lua_State *L;
 static int16_t input_cache[16];
-static const char* lutro_game_path;
 
 lutro_settings_t settings = {
    .width = 320,

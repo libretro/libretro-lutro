@@ -33,3 +33,13 @@ Compile Lutro by [installing the RetroArch dependencies](https://github.com/libr
 To compile with [Docker](https://www.docker.com/), use:
 
     make docker
+
+## Test
+
+Run the Lutro testing suite by executing:
+
+    make test
+
+To run tests manually, run:
+
+    retroarch -L path/to/lutro_libretro.so test

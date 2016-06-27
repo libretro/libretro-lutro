@@ -972,7 +972,7 @@ static int gfx_print(lua_State *L)
    int dest_x = luaL_checknumber(L, 2);
    int dest_y = luaL_checknumber(L, 3);
 
-   pntr_print(canvas, dest_x, dest_y, message);
+   pntr_print(canvas, dest_x, dest_y, message, 0);
 
    return 0;
 }
@@ -997,11 +997,11 @@ static int gfx_printf(lua_State *L)
    const char* align = luaL_checkstring(L, 5);
 
    if (!strcmp(align, "right"))
-      pntr_print(canvas, dest_x + limit - pntr_text_width(canvas, message), dest_y, message);
+      pntr_print(canvas, dest_x + limit - pntr_text_width(canvas, message), dest_y, message, limit);
    else if (!strcmp(align, "center"))
-      pntr_print(canvas, dest_x + limit/2 - pntr_text_width(canvas, message)/2, dest_y, message);
+      pntr_print(canvas, dest_x + limit/2 - pntr_text_width(canvas, message)/2, dest_y, message, limit);
    else
-      pntr_print(canvas, dest_x, dest_y, message);
+      pntr_print(canvas, dest_x, dest_y, message, limit);
 
    return 0;
 }

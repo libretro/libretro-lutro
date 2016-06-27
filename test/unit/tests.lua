@@ -10,6 +10,22 @@ function UTF8Test()
 	unit.assertEquals(actual, 12)
 end
 
+function lutro.filesystem.setRequirePathTest()
+	local paths = lutro.filesystem.getRequirePath()
+	paths = paths .. ';/lutro.filesystem.setRequirePathTest/?.lua'
+	lutro.filesystem.setRequirePath(paths)
+
+	local paths = lutro.filesystem.getRequirePath()
+	local index = string.find(paths, 'setRequirePathTest')
+	unit.assertTrue(index > 1)
+end
+
+function lutro.filesystem.getRequirePathTest()
+	local paths = lutro.filesystem.getRequirePath()
+	unit.assertIsString(paths)
+	unit.assertEquals(paths, package.path)
+end
+
 function lutro.keyboard.getScancodeFromKeyTest()
 	local scancode = lutro.keyboard.getScancodeFromKey('f')
 	unit.assertIsNumber(scancode)
@@ -68,6 +84,8 @@ function runTests()
 	lutro.math.randomTest()
 	lutro.math.setRandomSeedTest()
 	UTF8Test()
+	lutro.filesystem.getRequirePathTest()
+	lutro.filesystem.setRequirePathTest()
 end
 
 -- Return a load and draw function for running the unit

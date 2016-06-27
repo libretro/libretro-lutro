@@ -5,9 +5,11 @@ return {
 	end,
 
 	draw = function()
+		-- Display test instructions.
 		text = "Tests switch every 3 seconds."
 		lutro.graphics.print(text, 30, 100)
 
+		-- Show mouse information.
 		if lutro.mouse.isDown(1, 2) then
 			local x, y = lutro.mouse.getPosition()
 			lutro.graphics.print("Mouse " .. lutro.mouse.getX() .. "-" .. lutro.mouse.getY(), x, y)

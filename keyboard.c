@@ -155,6 +155,7 @@ int lutro_keyboard_preload(lua_State *L)
 {
    static luaL_Reg keyboard_funcs[] =  {
       { "isDown", keyboard_isDown },
+      { "getKeyFromScancode", keyboard_getKeyFromScancode },
       { "getScancodeFromKey", keyboard_getScancodeFromKey },
       {NULL, NULL}
    };
@@ -251,8 +252,8 @@ int keyboard_isDown(lua_State *L)
  */
 int keyboard_getScancodeFromKey(lua_State *L) {
   int n = lua_gettop(L);
-  if (n < 1) {
-      return luaL_error(L, "lutro.keyboard.getScancodeFromKey requires 1 or more arguments, %d given.", n);
+  if (n != 1) {
+      return luaL_error(L, "lutro.keyboard.getScancodeFromKey requires 1 argument, %d given.", n);
   }
 
   const char* buttonToCheck = luaL_checkstring(L, 1);
@@ -261,6 +262,23 @@ int keyboard_getScancodeFromKey(lua_State *L) {
   if (!keyboard_find_value(keyboard_enum, buttonToCheck, &id))
      return luaL_error(L, "invalid button");
   lua_pushnumber(L, id);
+
+  return 1;
+}
+/**
+ * lutro.keyboard.getKeyFromScancode(key)
+ *
+ * https://love2d.org/wiki/love.keyboard.getKeyFromScancode
+ */
+int keyboard_getKeyFromScancode(lua_State *L) {
+  int n = lua_gettop(L);
+  if (n != 1) {
+      return luaL_error(L, "lutro.keyboard.getKeyFromScancode requires 1 argument, %d given.", n);
+  }
+
+  unsigned scancode = luaL_checknumber(L, 1);
+  const char* key = keyboard_find_name(keyboard_enum, scancode);
+  lua_pushstring(L, key);
 
   return 1;
 }

@@ -10,6 +10,18 @@ function UTF8Test()
 	unit.assertEquals(actual, 12)
 end
 
+function lutro.keyboard.getScancodeFromKeyTest()
+	local scancode = lutro.keyboard.getScancodeFromKey('f')
+	unit.assertIsNumber(scancode)
+	unit.assertEquals(scancode, 102)
+end
+
+function lutro.keyboard.getKeyFromScancodeTest()
+	local key = lutro.keyboard.getKeyFromScancode(102)
+	unit.assertIsString(key)
+	unit.assertEquals(key, 'f')
+end
+
 function lutro.math.setRandomSeedTest()
 	lutro.math.setRandomSeed(3)
 	lutro.math.setRandomSeed(3, 10)
@@ -49,6 +61,8 @@ end
 
 -- Runs all the defined tests.
 function runTests()
+	lutro.keyboard.getKeyFromScancodeTest()
+	lutro.keyboard.getScancodeFromKeyTest()
 	lutro.filesystem.getUserDirectoryTest()
 	lutro.getVersionTest()
 	lutro.math.randomTest()

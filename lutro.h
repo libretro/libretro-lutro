@@ -9,6 +9,11 @@
 #define PATH_MAX_LENGTH 4096
 #endif
 
+#define VERSION_MAJOR 0
+#define VERSION_MINOR 0
+#define VERSION_PATCH 1
+#define VERSION_STRING "0.0.1"
+
 typedef struct lutro_settings_t {
    int width;
    int height;

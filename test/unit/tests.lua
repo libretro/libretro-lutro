@@ -67,6 +67,12 @@ function lutro.filesystem.getUserDirectoryTest()
 	unit.assertEquals(homeDir, luaHomeDir)
 end
 
+function lutro.filesystem.getSourceBaseDirectoryTest()
+	local sourceDir = lutro.filesystem.getSourceBaseDirectory()
+	unit.assertIsString(sourceDir)
+	unit.assertEquals(string.sub(sourceDir, 1, 4), 'test')
+end
+
 function lutro.getVersionTest()
 	local major, minor, revision, codename = lutro.getVersion()
 	unit.assertIsNumber(major)
@@ -80,6 +86,7 @@ function runTests()
 	lutro.keyboard.getKeyFromScancodeTest()
 	lutro.keyboard.getScancodeFromKeyTest()
 	lutro.filesystem.getUserDirectoryTest()
+	lutro.filesystem.getSourceBaseDirectoryTest()
 	lutro.getVersionTest()
 	lutro.math.randomTest()
 	lutro.math.setRandomSeedTest()

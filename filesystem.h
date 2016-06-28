@@ -21,5 +21,6 @@ int fs_isFile(lua_State *L);
 int fs_isDirectory(lua_State *L);
 int fs_createDirectory(lua_State *L);
 int fs_getUserDirectory(lua_State *L);
+int fs_getSourceBaseDirectory(lua_State *L);
 
 #endif // FILESYSTEM_H

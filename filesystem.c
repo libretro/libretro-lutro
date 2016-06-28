@@ -17,6 +17,7 @@ int lutro_filesystem_preload(lua_State *L)
       { "load",        fs_load },
       { "setIdentity", fs_setIdentity },
       { "getUserDirectory", fs_getUserDirectory },
+      { "getSourceBaseDirectory", fs_getSourceBaseDirectory },
       { "isDirectory", fs_isDirectory },
       { "isFile",      fs_isFile },
       { "createDirectory", fs_createDirectory },
@@ -201,6 +202,18 @@ int fs_getUserDirectory(lua_State *L)
       }
    }
    lua_pushstring(L, homedir);
+
+   return 1;
+}
+
+/**
+ * lutro.filesystem.getSourceBaseDirectory
+ *
+ * https://love2d.org/wiki/love.filesystem.getSourceBaseDirectory
+ */
+int fs_getSourceBaseDirectory(lua_State *L)
+{
+   lua_pushstring(L, settings.gamedir);
 
    return 1;
 }

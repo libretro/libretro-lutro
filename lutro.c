@@ -28,7 +28,7 @@
 #include "deps/luautf8/lutf8lib.h"
 
 // LuaSocket
-#include "deps/luasocket/luasocket.h"
+#include "deps/luasocket/src/luasocket.h"
 
 #include <stdio.h>
 #include <stdlib.h>

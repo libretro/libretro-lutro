@@ -48,9 +48,9 @@ SOURCES_C += $(CORE_DIR)/deps/luasocket/src/auxiliar.c \
 	$(CORE_DIR)/deps/luasocket/src/udp.c \
 	$(CORE_DIR)/deps/luasocket/src/unix.c
 ifeq ($(system_platform),unix)
-	SOURCES_C += $(CORE_DIR)/deps/luasocket/libluasocket/usocket.c
+	SOURCES_C += $(CORE_DIR)/deps/luasocket/src/usocket.c
 else
-	SOURCES_C += $(CORE_DIR)/deps/luasocket/libluasocket/wsocket.c
+	SOURCES_C += $(CORE_DIR)/deps/luasocket/src/wsocket.c
 endif
 
 ifeq ($(WANT_ZLIB),1)

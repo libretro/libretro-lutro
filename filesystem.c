@@ -200,6 +200,14 @@ int fs_getUserDirectory(lua_State *L)
          homedir = ".";
       }
    }
+
+   // If needed, append a / at the end of the homedir.
+   size_t len = strlen(homedir);
+   if (homedir[len] != '/') {
+      homedir[len++] = '/';
+      homedir[len] = '\0';
+   }
+
    lua_pushstring(L, homedir);
 
    return 1;

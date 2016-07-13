@@ -53,7 +53,7 @@ ifeq ($(platform), unix)
    SHARED := -shared -Wl,--no-as-needed,--no-undefined
    LUA_SYSCFLAGS := -DLUA_USE_POSIX
    HAVE_INOTIFY=1
-   LDFLAGS += -Wl,-E -pthread
+   LDFLAGS += -Wl,-E
 
 ifeq ($(ARCH), $(filter $(ARCH), intel))
 	WANT_JIT = 1

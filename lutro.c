@@ -261,10 +261,9 @@ void lutro_deinit()
       lutro_live_deinit();
 #endif
 
-   lua_close(L);
-
-   /* Has to be deinitialized later. */
    lutro_audio_deinit();
+
+   lua_close(L);
 }
 
 int lutro_set_package_path(lua_State* L, const char* path)

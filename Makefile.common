@@ -3,6 +3,7 @@ LUALIB_DIR := $(CORE_DIR)/deps/lua/src
 INCFLAGS := -I$(CORE_DIR) \
 				-I$(CORE_DIR)/libretro-common/include \
 				-I$(CORE_DIR)/deps/zlib \
+				-I$(CORE_DIR)/deps/retroluxury/src \
 				-I$(CORE_DIR)/deps \
 				-I$(LUALIB_DIR)
 
@@ -58,6 +59,11 @@ SOURCES_C += $(LUALIB_DIR)/lapi.c \
 				 $(LUALIB_DIR)/lundump.c \
 				 $(LUALIB_DIR)/ldump.c
 endif
+
+SOURCES_C += $(CORE_DIR)/deps/retroluxury/src/external/resample.c \
+				 $(CORE_DIR)/deps/retroluxury/src/rl_resample.c \
+				 $(CORE_DIR)/deps/retroluxury/src/rl_sound.c \
+				 $(CORE_DIR)/deps/retroluxury/src/rl_snddata.c
 
 SOURCES_C += $(CORE_DIR)/libretro-common/formats/png/rpng_decode.c \
 				 $(CORE_DIR)/libretro-common/formats/png/rpng_fbio.c \

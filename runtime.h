@@ -28,6 +28,7 @@
 #define lutro_checked_stack_begin()
 #define lutro_checked_stack_return(delta)
 #define lutro_checked_stack_end(delta)
+#define lutro_checked_stack_assert(delta)
 #endif
 
 int lutro_preload(lua_State *L, lua_CFunction f, const char *name);

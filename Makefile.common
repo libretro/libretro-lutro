@@ -73,6 +73,10 @@ SOURCES_C += $(CORE_DIR)/libretro-common/formats/png/rpng_decode.c \
 # Lua UTF-8
 SOURCES_C += $(CORE_DIR)/deps/luautf8/lutf8lib.c
 
+ifeq ($(WANT_UNZIP),1)
+SOURCES_C += $(CORE_DIR)/deps/zlib/ioapi.c \
+		$(CORE_DIR)/deps/zlib/unzip.c
+endif
 ifeq ($(WANT_ZLIB),1)
 SOURCES_C += $(CORE_DIR)/deps/zlib/adler32.c \
 				 $(CORE_DIR)/deps/zlib/compress.c \
@@ -87,9 +91,7 @@ SOURCES_C += $(CORE_DIR)/deps/zlib/adler32.c \
 				 $(CORE_DIR)/deps/zlib/inftrees.c \
 				 $(CORE_DIR)/deps/zlib/trees.c \
 				 $(CORE_DIR)/deps/zlib/uncompr.c \
-				 $(CORE_DIR)/deps/zlib/zutil.c \
-				 $(CORE_DIR)/deps/zlib/ioapi.c \
-				 $(CORE_DIR)/deps/zlib/unzip.c
+				 $(CORE_DIR)/deps/zlib/zutil.c
 endif
 
 ifeq ($(HAVE_INOTIFY),1)

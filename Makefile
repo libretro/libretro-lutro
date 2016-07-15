@@ -186,7 +186,7 @@ else ifeq ($(platform), sncps3)
    MMD :=
 else
    CC = gcc
-   TARGET := $(TARGET_NAME)_retro.dll
+   TARGET := $(TARGET_NAME)_libretro.dll
    SHARED := -shared -static-libgcc -static-libstdc++ -s -Wl,--no-undefined
 endif
 

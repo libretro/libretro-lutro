@@ -14,6 +14,11 @@ int lutro_window_preload(lua_State *L)
       { "setMode",  win_setMode },
       { "setIcon", win_setIcon },
       { "isCreated", win_isCreated },
+      { "maximize", win_maximize },
+      { "minimize", win_minimize },
+      { "getTitle", win_getTitle },
+      { "setPosition", win_setPosition },
+      { "getPosition", win_getPosition },
       {NULL, NULL}
    };
 
@@ -30,8 +35,19 @@ void lutro_window_init()
 {
 }
 
+/**
+ * lutro.window.setTitle
+ *
+ * https://love2d.org/wiki/love.window.setTitle
+ */
 int win_setTitle(lua_State *L)
 {
+   int n = lua_gettop(L);
+
+   if (n != 1)
+      return luaL_error(L, "lutro.window.setTitle expects 1 arguments, %d given.", n);
+
+   // Setting the title is ignored in Lutro.
    return 0;
 }
 
@@ -95,4 +111,88 @@ int win_isCreated(lua_State *L)
    lua_pushboolean(L, true);
 
    return 1;
+}
+
+/**
+ * lutro.window.maximize
+ *
+ * https://love2d.org/wiki/love.window.maximize
+ */
+int win_maximize(lua_State *L)
+{
+   int n = lua_gettop(L);
+
+   if (n > 0)
+      return luaL_error(L, "lutro.window.maximize expects 0 arguments, %d given.", n);
+
+   // Lutro does not support maximizing the window.
+   return 0;
+}
+
+/**
+ * lutro.window.minimize
+ *
+ * https://love2d.org/wiki/love.window.minimize
+ */
+int win_minimize(lua_State *L)
+{
+   int n = lua_gettop(L);
+
+   if (n > 0)
+      return luaL_error(L, "lutro.window.minimize expects 0 arguments, %d given.", n);
+
+   // Lutro does not support minimizing the window.
+   return 0;
+}
+
+/**
+ * lutro.window.getTitle
+ *
+ * https://love2d.org/wiki/love.window.getTitle
+ */
+int win_getTitle(lua_State *L)
+{
+   int n = lua_gettop(L);
+
+   if (n > 0)
+      return luaL_error(L, "lutro.window.getTitle expects 0 arguments, %d given.", n);
+
+   // Return a standard title.
+   lua_pushstring(L, "Lutro");
+
+   return 1;
+}
+
+/**
+ * lutro.window.setPosition
+ *
+ * https://love2d.org/wiki/love.window.setPosition
+ */
+int win_setPosition(lua_State *L)
+{
+   int n = lua_gettop(L);
+   if (n < 2 || n > 3)
+      return luaL_error(L, "lutro.window.setPosition expects 2-3 arguments, %d given.", n);
+
+   // Setting position in Lutro is ignored.
+   return 0;
+}
+
+/**
+ * lutro.window.getPosition
+ *
+ * https://love2d.org/wiki/love.window.getPosition
+ */
+int win_getPosition(lua_State *L)
+{
+   int n = lua_gettop(L);
+   if (n > 0)
+      return luaL_error(L, "lutro.window.getPosition expects 0 arguments, %d given.", n);
+
+   // The position is a fixed point.
+   lua_pushnumber(L, 0); // x
+   lua_pushnumber(L, 0); // y
+   lua_pushnumber(L, 1); // display
+
+   return 3;
 }

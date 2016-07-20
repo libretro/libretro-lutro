@@ -15,5 +15,10 @@ int win_setTitle(lua_State *L);
 int win_setIcon(lua_State *L);
 int win_setMode(lua_State *L);
 int win_isCreated(lua_State *L);
+int win_maximize(lua_State *L);
+int win_minimize(lua_State *L);
+int win_getTitle(lua_State *L);
+int win_setPosition(lua_State *L);
+int win_getPosition(lua_State *L);
 
 #endif // WINDOW_H

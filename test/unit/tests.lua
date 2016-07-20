@@ -75,6 +75,27 @@ function lutro.getVersionTest()
 	unit.assertEquals(codename, 'Lutro')
 end
 
+function lutro.system.getProcessorCountTest()
+	local count = lutro.system.getProcessorCount()
+	unit.assertIsNumber(count)
+	unit.assertEquals(count, 1)
+end
+
+function lutro.system.getClipboardTextTest()
+	local clipboard = lutro.system.getClipboardText()
+	unit.assertIsString(clipboard)
+	unit.assertEquals(clipboard, "")
+end
+
+function lutro.system.setClipboardTextTest()
+	local clipboard = "Hello, World!"
+	lutro.system.setClipboardText(clipboard)
+
+	clipboard = "Goodbye, World!"
+	clipboard = lutro.system.getClipboardText()
+	unit.assertEquals(clipboard, "Hello, World!")
+end
+
 -- Runs all the defined tests.
 function runTests()
 	lutro.keyboard.getKeyFromScancodeTest()
@@ -86,6 +107,10 @@ function runTests()
 	UTF8Test()
 	lutro.filesystem.getRequirePathTest()
 	lutro.filesystem.setRequirePathTest()
+
+	lutro.system.getProcessorCountTest()
+	lutro.system.getClipboardTextTest()
+	lutro.system.setClipboardTextTest()
 end
 
 -- Return a load and draw function for running the unit

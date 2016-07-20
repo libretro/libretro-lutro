@@ -11,5 +11,8 @@ void lutro_system_init();
 int lutro_system_preload(lua_State *L);
 
 int sys_getOS(lua_State *L);
+int sys_getProcessorCount(lua_State *L);
+int sys_getClipboardText(lua_State *L);
+int sys_setClipboardText(lua_State *L);
 
 #endif // SYSTEM_H

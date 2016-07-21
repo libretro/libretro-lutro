@@ -403,12 +403,17 @@ int lutro_load(const char *path)
       path_basedir(gamedir);
    }
 
+   // Loading a .lutro file.
    if (!strcmp(path_get_extension(mainfile), "lutro"))
    {
       fill_pathname(gamedir, mainfile, "/", sizeof(gamedir));
       fill_pathname(gamedir, conffile, "/", sizeof(gamedir));
       lutro_unzip(mainfile, gamedir);
       fill_pathname_join(mainfile, gamedir, "main.lua", sizeof(mainfile));
+      fill_pathname_join(conffile, gamedir, "conf.lua", sizeof(conffile));
+   }
+   else {
+      // Loading a main.lua file, so construct the config file.
       fill_pathname_join(conffile, gamedir, "conf.lua", sizeof(conffile));
    }
 
@@ -422,7 +427,7 @@ int lutro_load(const char *path)
    dofile(L, conffile);
 
    // Now that configuration is in place, load main.lua.
-   if(dofile(L, mainfile))
+   if (dofile(L, mainfile))
    {
        fprintf(stderr, "%s\n", lua_tostring(L, -1));
        lua_pop(L, 1);

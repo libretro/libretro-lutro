@@ -96,6 +96,39 @@ function lutro.system.setClipboardTextTest()
 	unit.assertEquals(clipboard, "Hello, World!")
 end
 
+function lutro.window.minimizeTest()
+	lutro.window.minimize()
+end
+
+function lutro.window.maximizeTest()
+	lutro.window.maximize()
+end
+
+function lutro.window.getTitleTest()
+	local title = lutro.window.getTitle()
+	unit.assertIsString(title)
+	unit.assertEquals(title, "Lutro")
+end
+
+function lutro.window.setTitleTest()
+	lutro.window.setTitle("Hello World!")
+end
+
+function lutro.window.setPositionTest()
+	lutro.window.setPosition(1, 1)
+	lutro.window.setPosition(100, 200, 2)
+end
+
+function lutro.window.getPositionTest()
+	local x, y, display = lutro.window.getPosition()
+	unit.assertIsNumber(x)
+	unit.assertIsNumber(y)
+	unit.assertIsNumber(display)
+	unit.assertEquals(x, 0)
+	unit.assertEquals(y, 0)
+	unit.assertEquals(display, 1)
+end
+
 -- Runs all the defined tests.
 function runTests()
 	lutro.keyboard.getKeyFromScancodeTest()
@@ -111,6 +144,13 @@ function runTests()
 	lutro.system.getProcessorCountTest()
 	lutro.system.getClipboardTextTest()
 	lutro.system.setClipboardTextTest()
+
+	lutro.window.maximizeTest()
+	lutro.window.minimizeTest()
+	lutro.window.getTitleTest()
+	lutro.window.setTitleTest()
+	lutro.window.setPositionTest()
+	lutro.window.getPositionTest()
 end
 
 -- Return a load and draw function for running the unit

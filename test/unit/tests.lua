@@ -129,6 +129,25 @@ function lutro.window.getPositionTest()
 	unit.assertEquals(display, 1)
 end
 
+function lutro.window.requestAttentionTest()
+	lutro.window.requestAttention()
+	lutro.window.requestAttention("Test")
+end
+
+function lutro.window.getDisplayNameTest()
+	local display = lutro.window.getDisplayName()
+	unit.assertIsString(display)
+	unit.assertEquals(display, "libretro")
+
+	display = lutro.window.getDisplayName(3)
+	unit.assertIsString(display)
+	unit.assertEquals(display, "libretro")
+end
+
+function lutro.window.setDisplaySleepEnabledTest()
+	lutro.window.setDisplaySleepEnabled(true)
+end
+
 -- Runs all the defined tests.
 function runTests()
 	lutro.keyboard.getKeyFromScancodeTest()
@@ -151,6 +170,9 @@ function runTests()
 	lutro.window.setTitleTest()
 	lutro.window.setPositionTest()
 	lutro.window.getPositionTest()
+	lutro.window.requestAttentionTest()
+	lutro.window.getDisplayNameTest()
+	lutro.window.setDisplaySleepEnabledTest()
 end
 
 -- Return a load and draw function for running the unit

@@ -19,6 +19,9 @@ int lutro_window_preload(lua_State *L)
       { "getTitle", win_getTitle },
       { "setPosition", win_setPosition },
       { "getPosition", win_getPosition },
+      { "requestAttention", win_requestAttention },
+      { "getDisplayName", win_getDisplayName },
+      { "setDisplaySleepEnabled", win_setDisplaySleepEnabled },
       {NULL, NULL}
    };
 
@@ -195,4 +198,50 @@ int win_getPosition(lua_State *L)
    lua_pushnumber(L, 1); // display
 
    return 3;
+}
+
+/**
+ * lutro.window.requestAttention
+ *
+ * https://love2d.org/wiki/love.window.requestAttention
+ */
+int win_requestAttention(lua_State *L)
+{
+   int n = lua_gettop(L);
+   if (n < 0 || n > 1)
+      return luaL_error(L, "lutro.window.requestAttention expects 0 or 1 arguments, %d given.", n);
+
+   return 0;
+}
+
+/**
+ * lutro.window.getDisplayName
+ *
+ * https://love2d.org/wiki/love.window.getDisplayName
+ */
+int win_getDisplayName(lua_State *L)
+{
+   int n = lua_gettop(L);
+   if (n < 0 || n > 1)
+      return luaL_error(L, "lutro.window.getDisplayName expects 0 or 1 arguments, %d given.", n);
+
+   // Lutro does not support multiple displays.
+   lua_pushstring(L, "libretro");
+
+   return 1;
+}
+
+/**
+ * lutro.window.setDisplaySleepEnabled
+ *
+ * https://love2d.org/wiki/love.window.setDisplaySleepEnabled
+ */
+int win_setDisplaySleepEnabled(lua_State *L)
+{
+   int n = lua_gettop(L);
+   if (n != 1)
+      return luaL_error(L, "lutro.window.win_setDisplaySleepEnabled expects 1 argument, %d given.", n);
+
+   // Ignore setting the display sleep.
+   return 0;
 }

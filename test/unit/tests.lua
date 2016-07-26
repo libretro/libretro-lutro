@@ -75,6 +75,25 @@ function lutro.getVersionTest()
 	unit.assertEquals(codename, 'Lutro')
 end
 
+function lutro.system.getPowerInfoTest()
+	local state, percent, seconds = lutro.system.getPowerInfo()
+	unit.assertIsString(state)
+	unit.assertEquals(state, 'unknown')
+	unit.assertIsNil(percent)
+	unit.assertIsNil(seconds)
+end
+
+function lutro.system.openURLTest()
+	local success = lutro.system.openURL('http://libretro.com')
+	unit.assertIsBoolean(success)
+	unit.assertEquals(success, false)
+end
+
+function lutro.system.vibrate()
+	local success = lutro.system.vibrate()
+	local success = lutro.system.vibrate(0.5)
+end
+
 function lutro.system.getProcessorCountTest()
 	local count = lutro.system.getProcessorCount()
 	unit.assertIsNumber(count)
@@ -141,6 +160,9 @@ function runTests()
 	lutro.filesystem.getRequirePathTest()
 	lutro.filesystem.setRequirePathTest()
 
+	lutro.getVersionTest()
+	lutro.system.getPowerInfoTest()
+	lutro.system.openURLTest()
 	lutro.system.getProcessorCountTest()
 	lutro.system.getClipboardTextTest()
 	lutro.system.setClipboardTextTest()

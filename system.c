@@ -16,6 +16,9 @@ int lutro_system_preload(lua_State *L)
       { "getProcessorCount", sys_getProcessorCount },
       { "setClipboardText", sys_setClipboardText },
       { "getClipboardText", sys_getClipboardText },
+      { "getPowerInfo", sys_getPowerInfo },
+      { "openURL", sys_openURL },
+      { "vibrate", sys_vibrate },
       {NULL, NULL}
    };
 
@@ -37,6 +40,25 @@ int sys_getOS(lua_State *L)
    lua_pushstring(L, "Lutro");
 
    return 1;
+}
+
+int sys_getPowerInfo(lua_State *L)
+{
+   lua_pushstring(L, "unknown");
+
+   return 1;
+}
+
+int sys_openURL(lua_State *L)
+{
+   lua_pushboolean(L, false);
+
+   return 1;
+}
+
+int sys_vibrate(lua_State *L)
+{
+   return 0;
 }
 
 /**

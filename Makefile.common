@@ -4,6 +4,7 @@ INCFLAGS := -I$(CORE_DIR) \
 				-I$(CORE_DIR)/libretro-common/include \
 				-I$(CORE_DIR)/deps/zlib \
 				-I$(CORE_DIR)/deps/retroluxury/src \
+				-I$(CORE_DIR)/deps/physfs/src \
 				-I$(CORE_DIR)/deps \
 				-I$(LUALIB_DIR)
 
@@ -59,6 +60,27 @@ SOURCES_C += $(LUALIB_DIR)/lapi.c \
 				 $(LUALIB_DIR)/lundump.c \
 				 $(LUALIB_DIR)/ldump.c
 endif
+
+# PhysFS
+PHYSFS_ARCHIVE_ZIP=1
+SOURCES_C += $(CORE_DIR)/deps/physfs/src/physfs.c \
+    $(CORE_DIR)/deps/physfs/src/physfs_byteorder.c \
+    $(CORE_DIR)/deps/physfs/src/physfs_unicode.c \
+    $(CORE_DIR)/deps/physfs/src/platform_posix.c \
+    $(CORE_DIR)/deps/physfs/src/platform_unix.c \
+    $(CORE_DIR)/deps/physfs/src/platform_macosx.c \
+    $(CORE_DIR)/deps/physfs/src/platform_windows.c \
+    $(CORE_DIR)/deps/physfs/src/archiver_dir.c \
+    $(CORE_DIR)/deps/physfs/src/archiver_unpacked.c \
+    $(CORE_DIR)/deps/physfs/src/archiver_grp.c \
+    $(CORE_DIR)/deps/physfs/src/archiver_hog.c \
+    $(CORE_DIR)/deps/physfs/src/archiver_lzma.c \
+    $(CORE_DIR)/deps/physfs/src/archiver_mvl.c \
+    $(CORE_DIR)/deps/physfs/src/archiver_qpak.c \
+    $(CORE_DIR)/deps/physfs/src/archiver_wad.c \
+    $(CORE_DIR)/deps/physfs/src/archiver_zip.c \
+    $(CORE_DIR)/deps/physfs/src/archiver_slb.c \
+    $(CORE_DIR)/deps/physfs/src/archiver_iso9660.c
 
 SOURCES_C += $(CORE_DIR)/deps/retroluxury/src/external/resample.c \
 				 $(CORE_DIR)/deps/retroluxury/src/rl_resample.c \

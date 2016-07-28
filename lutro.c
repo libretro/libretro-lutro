@@ -30,6 +30,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <physfs.h>
 #include <assert.h>
 #ifndef __CELLOS_LV2__
 #include <libgen.h>
@@ -156,6 +157,21 @@ static int db_errorfb (lua_State *L) {
 
 static int dofile(lua_State *L, const char *path)
 {
+   /*
+   char *buffer;
+   if (PHYSFS_exists(path)) {
+      PHYSFS_file* myfile = PHYSFS_openRead(path);
+      PHYSFS_sint64 file_size = PHYSFS_fileLength(myfile);
+      int length_read = PHYSFS_read(myfile, buffer, 1, file_size);
+      PHYSFS_close(myfile);
+
+      luaL_dostring(L, buffer);
+   }
+   else {
+      printf("Couldn't dofile(%s)", path);
+   }
+   */
+
    int res;
 
    lua_pushcfunction(L, db_errorfb);
@@ -198,6 +214,12 @@ static void init_settings(lua_State *L)
 
 void lutro_init()
 {
+   // Initialize PhysFS.
+   if (PHYSFS_init(NULL) == 0) {
+      printf("Failed to initialize PhysFS: %s\n", PHYSFS_getLastError());
+   }
+
+   // Initialize Lua.
    L = luaL_newstate();
    luaL_openlibs(L);
 
@@ -256,6 +278,11 @@ void lutro_init()
 
 void lutro_deinit()
 {
+   // Kill PhysFS.
+   if (PHYSFS_deinit() == 0) {
+      printf("Failed to deinitialize PhysFS: %s\n", PHYSFS_getLastError());
+   }
+
 #ifdef HAVE_INOTIFY
    if (settings.live_enable)
       lutro_live_deinit();
@@ -406,6 +433,9 @@ int lutro_load(const char *path)
    // Loading a .lutro file.
    if (!strcmp(path_get_extension(mainfile), "lutro"))
    {
+      // Allow loading files from the .lutro file through PhysFS.
+      //PHYSFS_AddToSearchPath(mainfile, 1);
+
       fill_pathname(gamedir, mainfile, "/", sizeof(gamedir));
       fill_pathname(gamedir, conffile, "/", sizeof(gamedir));
       lutro_unzip(mainfile, gamedir);
@@ -413,9 +443,12 @@ int lutro_load(const char *path)
       fill_pathname_join(conffile, gamedir, "conf.lua", sizeof(conffile));
    }
    else {
+
       // Loading a main.lua file, so construct the config file.
       fill_pathname_join(conffile, gamedir, "conf.lua", sizeof(conffile));
    }
+   // Allow loading files in the game directory through PhysFS.
+   //PHYSFS_AddToSearchPath(gamedir, 1);
 
    fill_pathname_slash(gamedir, sizeof(gamedir));
 
@@ -541,7 +574,6 @@ void lutro_run(double delta)
    if (settings.live_enable)
       lutro_live_update(L);
 #endif
-
    lua_pushcfunction(L, db_errorfb);
 
    lua_getglobal(L, "lutro");

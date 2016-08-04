@@ -11,5 +11,6 @@ void lutro_timer_init();
 int lutro_timer_preload(lua_State *L);
 
 int timer_getTime(lua_State *L);
+int timer_getDelta(lua_State *L);
 
 #endif // TIMER_H

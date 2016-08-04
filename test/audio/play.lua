@@ -1,10 +1,13 @@
-local audio = "audio/test.wav"
-local playTime = 0.75
+local sound = "audio/test.wav"
+local music = "audio/flute.ogg"
+local playTime = 1
 local timer = 0
 
 return {
 	load = function()
-		audio = lutro.audio.newSource(audio)
+		audio = lutro.audio.newSource(sound)
+		music = lutro.audio.newSource(music)
+		lutro.audio.play(music)
 	end,
 
 	update = function(dt)

@@ -4,6 +4,8 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <rl_sound.h>
+
 
 /* TODO/FIXME - no sound on big-endian */
 
@@ -89,6 +91,39 @@ void lutro_audio_deinit()
    }
 }
 
+static void ReadFile(char *name, int *buffer)
+{
+   FILE *file;
+   unsigned long fileLen;
+
+   file = fopen(name, "rb");
+   if (!file)
+   {
+      fprintf(stderr, "Unable to open file %s", name);
+      return;
+   }
+
+   fseek(file, 0, SEEK_END);
+   fileLen=ftell(file);
+
+   fseek(file, 0, SEEK_SET);
+
+   //Allocate memory
+   buffer=(int *)malloc(fileLen+1);
+   if (!buffer)
+   {
+      fprintf(stderr, "Memory error!");
+                                fclose(file);
+      return;
+   }
+
+   //Read file contents into buffer
+   fread(buffer, fileLen, 1, file);
+   fclose(file);
+}
+
+int* buffer;
+
 int audio_newSource(lua_State *L)
 {
    int n = lua_gettop(L);
@@ -106,29 +141,13 @@ int audio_newSource(lua_State *L)
       char fullpath[PATH_MAX_LENGTH];
       strlcpy(fullpath, settings.gamedir, sizeof(fullpath));
       strlcat(fullpath, path, sizeof(fullpath));
-
-      FILE *fp = fopen(fullpath, "rb");
-      if (!fp)
-         return -1;
-
-      fread(&self->sndta.head, sizeof(uint8_t), WAV_HEADER_SIZE, fp);
-      self->sndta.fp = fp;
+      ReadFile(fullpath, buffer);
    }
    else
    {
       snd_SoundData* sndta = (snd_SoundData*)luaL_checkudata(L, 1, "SoundData");
       self->sndta = *sndta;
    }
-
-   self->bps = self->sndta.head.NumChannels * self->sndta.head.BitsPerSample / 8;
-   self->loop = false;
-   self->volume = 1.0;
-   self->state = AUDIO_STOPPED;
-   fseek(self->sndta.fp, 0, SEEK_END);
-
-   num_sources++;
-   sources = (audio_Source**)realloc(sources, num_sources * sizeof(audio_Source));
-   sources[num_sources-1] = self;
 
    if (luaL_newmetatable(L, "Source") != 0)
    {
@@ -272,11 +291,13 @@ int source_gc(lua_State *L)
 
 int audio_play(lua_State *L)
 {
-   audio_Source* self = (audio_Source*)luaL_checkudata(L, 1, "Source");
-   bool success = fseek(self->sndta.fp, WAV_HEADER_SIZE, SEEK_SET) == 0;
-   if (success)
-      self->state = AUDIO_PLAYING;
-   lua_pushboolean(L, success);
+   printf("FUU\n");
+   rl_voice_t* music = rl_sound_play_ogg(buffer, sizeof(buffer), 1, NULL);
+   if (music == NULL)
+   {
+      printf("error\n");
+   }
+   lua_pushboolean(L, true);
    return 1;
 }
 

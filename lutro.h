@@ -25,6 +25,7 @@ typedef struct lutro_settings_t {
    int live_call_load;
    char gamedir[PATH_MAX_LENGTH];
    char identity[PATH_MAX_LENGTH];
+   double delta;
 } lutro_settings_t;
 
 extern lutro_settings_t settings;

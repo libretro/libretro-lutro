@@ -115,6 +115,11 @@ function lutro.system.setClipboardTextTest()
 	unit.assertEquals(clipboard, "Hello, World!")
 end
 
+function lutro.timer.getDeltaTest()
+	local delta = lutro.timer.getDelta()
+	unit.assertIsNumber(delta)
+end
+
 function lutro.window.minimizeTest()
 	lutro.window.minimize()
 end
@@ -185,6 +190,8 @@ function runTests()
 	lutro.system.getProcessorCountTest()
 	lutro.system.getClipboardTextTest()
 	lutro.system.setClipboardTextTest()
+
+	lutro.timer.getDeltaTest()
 
 	lutro.window.maximizeTest()
 	lutro.window.minimizeTest()

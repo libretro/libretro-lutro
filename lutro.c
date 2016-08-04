@@ -46,7 +46,8 @@ lutro_settings_t settings = {
    .framebuffer = NULL,
    .live_enable = 0,
    .live_call_load = 0,
-   .input_cb = NULL
+   .input_cb = NULL,
+   .delta = 0
 };
 
 #if 0
@@ -537,6 +538,7 @@ void lutro_gamepadevent(lua_State* L)
 
 void lutro_run(double delta)
 {
+   settings.delta = delta;
 #ifdef HAVE_INOTIFY
    if (settings.live_enable)
       lutro_live_update(L);

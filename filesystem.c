@@ -12,6 +12,8 @@ int lutro_filesystem_preload(lua_State *L)
       { "exists",      fs_exists },
       { "read",        fs_read },
       { "write",       fs_write },
+      { "setRequirePath", fs_setRequirePath },
+      { "getRequirePath", fs_getRequirePath },
       { "load",        fs_load },
       { "setIdentity", fs_setIdentity },
       { "getUserDirectory", fs_getUserDirectory },
@@ -90,6 +92,40 @@ int fs_write(lua_State *L)
    return 1;
 }
 
+/**
+ * lutro.filesystem.setRequirePath
+ *
+ * @see https://love2d.org/wiki/love.filesystem.setRequirePath
+ */
+int fs_setRequirePath(lua_State *L)
+{
+   const char *path = luaL_checkstring(L, 1);
+   lua_getglobal(L, "package");
+   lua_pushstring(L, path) ;
+   lua_setfield(L, -2, "path");
+   lua_pop(L, 1);
+
+   return 0;
+}
+
+/**
+ * lutro.filesystem.getRequirePath
+ *
+ * @see https://love2d.org/wiki/love.filesystem.getRequirePath
+ */
+int fs_getRequirePath(lua_State *L)
+{
+   const char *cur_path;
+   lua_getglobal(L, "package");
+   lua_getfield(L, -1, "path");
+   cur_path = lua_tostring( L, -1);
+   lua_pop(L, 1);
+
+   lua_pushstring(L, cur_path);
+
+   return 1;
+}
+
 int fs_load(lua_State *L)
 {
    const char *path = luaL_checkstring(L, 1);
@@ -164,6 +200,14 @@ int fs_getUserDirectory(lua_State *L)
          homedir = ".";
       }
    }
+
+   // If needed, append a / at the end of the homedir.
+   size_t len = strlen(homedir);
+   if (homedir[len] != '/') {
+      homedir[len++] = '/';
+      homedir[len] = '\0';
+   }
+
    lua_pushstring(L, homedir);
 
    return 1;

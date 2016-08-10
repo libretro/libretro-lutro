@@ -1,0 +1,16 @@
+*.[oa]
+*.exe
+*.dll
+*.so
+*.png
+*.tmx
+*.tsx
+*~
+rl_version.c
+boot_lua.h
+bounce.h
+sketch008.h
+smile.h
+GPATH
+GRTAGS
+GTAGS

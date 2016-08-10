@@ -2,10 +2,9 @@
 
 Experimental [Lua](http://lua.org) game framework for [libretro](http://libretro.com), following the [LÖVE](http://love2d.org) API.
 
-Lutro is software rendered and implements only a subset of the LÖVE API. It targets portability though the libretro API and backed in dependancies.
+[Lutro](https://github.com/libretro/libretro-lutro) is software rendered and implements only a [subset of the LÖVE API](https://github.com/libretro/lutro-status). It targets portability though the libretro API and backed in dependancies.
 
 ## Sample Games
-
 
  * https://github.com/libretro/lutro-platformer
  * https://github.com/libretro/lutro-game-of-life

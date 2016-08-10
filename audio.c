@@ -1,83 +1,29 @@
 #include "audio.h"
 #include "lutro.h"
 #include "compat/strl.h"
-#include "rthreads/rthreads.h"
 
 #include <stdlib.h>
 #include <string.h>
 
 /* TODO/FIXME - no sound on big-endian */
 
-static audio_Source** sources           = NULL;
-static size_t         sources_count     = 0;
-static size_t         sources_allocated = 0;
-static slock_t*       sources_lock      = NULL;
-
+static unsigned num_sources = 0;
+static audio_Source** sources = NULL;
 static float volume = 1.0;
-
-static void add_source(audio_Source *src)
-{
-   slock_lock(sources_lock);
-
-   if (sources_count == sources_allocated)
-   {
-      size_t new_size = (sources_allocated + 1) * 2;
-      sources = (audio_Source**)realloc(sources, new_size * sizeof(audio_Source*));
-      memset(&sources[sources_allocated], 0, (new_size - sources_allocated) * sizeof(audio_Source*));
-
-      sources_allocated = new_size;
-   }
-
-   sources[sources_count++] = src;
-
-   slock_unlock(sources_lock);
-}
-
-static void remove_source(const audio_Source *src)
-{
-   unsigned i;
-
-   slock_lock(sources_lock);
-
-   for (i = 0; i < sources_count; ++i)
-   {
-      if (sources[i] == src)
-      {
-         memmove(&sources[i], sources[i+1], (sources_count-i-1) * sizeof(audio_Source*));
-         sources_count--;
-         break;
-      }
-   }
-
-   slock_unlock(sources_lock);
-}
 
 void mixer_render(int16_t *buffer)
 {
-   uint8_t* rawsamples8     = NULL;
-   size_t   rawsamples8_bps = 0;
-
    // Clear buffer
    memset(buffer, 0, AUDIO_FRAMES * 2 * sizeof(int16_t));
 
-   /* Audio subsystem not ready */
-   if (!sources_count || !sources)
-      return;
-
-   slock_lock(sources_lock);
-
    // Loop over audio sources
-   for (unsigned i = 0; i < sources_count; i++)
+   for (unsigned i = 0; i < num_sources; i++)
    {
       if (sources[i]->state == AUDIO_STOPPED)
          continue;
 
-      if (sources[i]->bps > rawsamples8_bps)
-      {
-         rawsamples8_bps = sources[i]->bps;
-         rawsamples8     = realloc(rawsamples8, rawsamples8_bps * AUDIO_FRAMES);
-         memset(rawsamples8, 0, rawsamples8_bps * AUDIO_FRAMES);
-      }
+      uint8_t* rawsamples8 = calloc(
+         AUDIO_FRAMES * sources[i]->bps, sizeof(uint8_t));
 
       bool end = ! fread(rawsamples8,
             sizeof(uint8_t),
@@ -105,12 +51,8 @@ void mixer_render(int16_t *buffer)
          fseek(sources[i]->sndta.fp, WAV_HEADER_SIZE, SEEK_SET);
       }
 
-   }
-
-   if (rawsamples8)
       free(rawsamples8);
-
-   slock_unlock(sources_lock);
+   }
 }
 
 int lutro_audio_preload(lua_State *L)
@@ -135,28 +77,15 @@ int lutro_audio_preload(lua_State *L)
 
 void lutro_audio_init()
 {
-   sources_lock = slock_new();
 }
 
 void lutro_audio_deinit()
 {
-   if (sources_lock)
-      slock_lock(sources_lock);
-
    if (sources)
-      free(sources);
-
-   sources           = NULL;
-   sources_count     = 0;
-   sources_allocated = 0;
-
-   if (sources_lock)
    {
-      slock_t *tmp = sources_lock;
-      sources_lock = NULL;
-
-      slock_unlock(tmp);
-      slock_free(tmp);
+      free(sources);
+      sources = NULL;
+      num_sources = 0;
    }
 }
 
@@ -197,7 +126,9 @@ int audio_newSource(lua_State *L)
    self->state = AUDIO_STOPPED;
    fseek(self->sndta.fp, 0, SEEK_END);
 
-   add_source(self);
+   num_sources++;
+   sources = (audio_Source**)realloc(sources, num_sources * sizeof(audio_Source));
+   sources[num_sources-1] = self;
 
    if (luaL_newmetatable(L, "Source") != 0)
    {
@@ -335,16 +266,7 @@ int source_getPitch(lua_State *L)
 int source_gc(lua_State *L)
 {
    audio_Source* self = (audio_Source*)luaL_checkudata(L, 1, "Source");
-   remove_source(self);
-
-   self->state = AUDIO_STOPPED;
-
-   /* TODO: do this at SoundData's gc method */
-   if (self->sndta.fp)
-      fclose(self->sndta.fp);
-
-   self->sndta.fp   = NULL;
-
+   (void)self;
    return 0;
 }
 

@@ -2,6 +2,7 @@ HAVE_INOTIFY=0
 HAVE_COMPOSITION=0
 WANT_JIT=0
 WANT_ZLIB=1
+WANT_UNZIP=1
 
 MMD := -MMD
 
@@ -53,7 +54,7 @@ ifeq ($(platform), unix)
    SHARED := -shared -Wl,--no-as-needed,--no-undefined
    LUA_SYSCFLAGS := -DLUA_USE_POSIX
    HAVE_INOTIFY=1
-   LDFLAGS += -Wl,-E -pthread
+   LDFLAGS += -Wl,-E
 
 ifeq ($(ARCH), $(filter $(ARCH), intel))
 	WANT_JIT = 1
@@ -185,7 +186,7 @@ else ifeq ($(platform), sncps3)
    MMD :=
 else
    CC = gcc
-   TARGET := $(TARGET_NAME)_retro.dll
+   TARGET := $(TARGET_NAME)_libretro.dll
    SHARED := -shared -static-libgcc -static-libstdc++ -s -Wl,--no-undefined
 endif
 
@@ -214,7 +215,7 @@ ifeq ($(WANT_JIT),1)
    CFLAGS += -DHAVE_JIT
 endif
 
-CFLAGS += -I$(LUADIR) $(DEFINES)
+CFLAGS += -I$(LUADIR) $(DEFINES) -DOUTSIDE_SPEEX -DRANDOM_PREFIX=speex -DEXPORT= -DFIXED_POINT
 
 LIBS += $(LUALIB) $(LIBM)
 
@@ -254,7 +255,7 @@ else
 endif
 
 deps/lua/src/liblua.a:
-	$(MAKE) -C deps/lua/src CC="$(CC)" CXX="$(CXX)" MYCFLAGS="$(LUA_MYCFLAGS) -w -g $(fpic)" MYLDFLAGS="$(LFLAGS) $(fpic)" SYSCFLAGS="$(LUA_SYSCFLAGS) $(fpic)" a
+	$(MAKE) -C deps/lua/src CC="$(CC)" CXX="$(CXX)" MYCFLAGS="$(LUA_MYCFLAGS) -w -g $(fpic)" MYLDFLAGS="$(LFLAGS) $(fpic)" SYSCFLAGS="$(LUA_SYSCFLAGS) $(fpic)" generic
 
 deps/luajit/src/libluajit.a:
 	$(MAKE) -C deps/luajit/src BUILDMODE=static CFLAGS="$(LUA_MYCFLAGS) $(fpic)" Q= LDFLAGS="$(fpic)"

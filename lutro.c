@@ -541,10 +541,11 @@ void lutro_gamepadevent(lua_State* L)
 
 void lutro_run(double delta)
 {
+   // Update the Delta and FPS.
    settings.delta = delta;
    settings.deltaCounter += delta;
    settings.frameCounter += 1;
-   if (settings.deltaCounter >= 1000.0) {
+   if (settings.deltaCounter >= 1.0) {
       settings.fps = settings.frameCounter;
       settings.frameCounter = 0;
       settings.deltaCounter = 0;

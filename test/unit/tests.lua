@@ -67,6 +67,15 @@ function lutro.filesystem.getUserDirectoryTest()
 	unit.assertEquals(homeDir, luaHomeDir)
 end
 
+function LuaSocketTest()
+	local http = require('socket.http')
+	local result = 'Result'
+	local err = 'Request not made yet...'
+	result, err = http.request("http://wrong.host/")
+	-- @todo Fix LuaSocket test, once LuaSocket works.
+	io.write(tostring(err))
+end
+
 function lutro.getVersionTest()
 	local major, minor, revision, codename = lutro.getVersion()
 	unit.assertIsNumber(major)
@@ -174,6 +183,7 @@ end
 
 -- Runs all the defined tests.
 function runTests()
+	LuaSocketTest()
 	lutro.keyboard.getKeyFromScancodeTest()
 	lutro.keyboard.getScancodeFromKeyTest()
 	lutro.filesystem.getUserDirectoryTest()

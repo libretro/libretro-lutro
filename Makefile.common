@@ -73,10 +73,32 @@ SOURCES_C += $(CORE_DIR)/libretro-common/formats/png/rpng_decode.c \
 # Lua UTF-8
 SOURCES_C += $(CORE_DIR)/deps/luautf8/lutf8lib.c
 
+# LuaSocket
+SOURCES_C += $(CORE_DIR)/deps/luasocket/libluasocket/auxiliar.c \
+	$(CORE_DIR)/deps/luasocket/libluasocket/buffer.c \
+	$(CORE_DIR)/deps/luasocket/libluasocket/except.c \
+	$(CORE_DIR)/deps/luasocket/libluasocket/inet.c \
+	$(CORE_DIR)/deps/luasocket/libluasocket/io.c \
+	$(CORE_DIR)/deps/luasocket/libluasocket/luasocket.c \
+	$(CORE_DIR)/deps/luasocket/libluasocket/mime.c \
+	$(CORE_DIR)/deps/luasocket/libluasocket/options.c \
+	$(CORE_DIR)/deps/luasocket/libluasocket/select.c \
+	$(CORE_DIR)/deps/luasocket/libluasocket/tcp.c \
+	$(CORE_DIR)/deps/luasocket/libluasocket/timeout.c \
+	$(CORE_DIR)/deps/luasocket/libluasocket/udp.c \
+	$(CORE_DIR)/deps/luasocket/libluasocket/unix.c \
+	$(CORE_DIR)/deps/luasocket/luasocket.c
+ifeq ($(system_platform),unix)
+	SOURCES_C += $(CORE_DIR)/deps/luasocket/libluasocket/usocket.c
+else
+	SOURCES_C += $(CORE_DIR)/deps/luasocket/libluasocket/wsocket.c
+endif
+
 ifeq ($(WANT_UNZIP),1)
 SOURCES_C += $(CORE_DIR)/deps/zlib/ioapi.c \
 		$(CORE_DIR)/deps/zlib/unzip.c
 endif
+
 ifeq ($(WANT_ZLIB),1)
 SOURCES_C += $(CORE_DIR)/deps/zlib/adler32.c \
 				 $(CORE_DIR)/deps/zlib/compress.c \

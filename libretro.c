@@ -25,7 +25,7 @@ static retro_input_state_t input_state_cb;
 
 double frame_time = 0;
 
-static void emit_audio()
+static void emit_audio(void)
 {
    mixer_render(audio_buffer);
    audio_batch_cb(audio_buffer, AUDIO_FRAMES);

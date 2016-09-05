@@ -368,7 +368,7 @@ void pntr_draw(painter_t *p, const bitmap_t *bmp, const rect_t *src_rect, const 
 }
 
 
-void pntr_print(painter_t *p, int x, int y, const char *text)
+void pntr_print(painter_t *p, int x, int y, const char *text, int limit)
 {
    assert(p->font != NULL);
 
@@ -400,6 +400,12 @@ void pntr_print(painter_t *p, int x, int y, const char *text)
          pntr_draw(p, atlas, &srect, &drect);
 
          drect.x += srect.width + 1;
+
+	 if (limit > 0 && drect.x - x > limit)
+	 {
+            drect.x = x;
+	    drect.y += atlas->height;
+	 }
       }
    }
 }
@@ -443,7 +449,7 @@ void pntr_printf(painter_t *p, int x, int y, const char *format, ...)
    va_start(v, format);
    vasprintf(&buf,  format, v);
    va_end(v);
-   pntr_print(p, x, y, buf);
+   pntr_print(p, x, y, buf, 0);
    free(buf);
 }
 

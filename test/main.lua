@@ -64,6 +64,10 @@ function lutro.draw()
 	-- Testing the keyboard/joystick pressed event.
 	lutro.graphics.print(joystickButton, 50, 50)
 	lutro.graphics.print(keypressed, 500, 400)
+
+	-- Display the FPS
+	local fps = lutro.timer.getFPS()
+	lutro.graphics.print('FPS ' .. fps, 10, 350)
 end
 
 function lutro.joystickpressed(joystick, button)

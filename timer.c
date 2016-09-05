@@ -9,6 +9,7 @@ int lutro_timer_preload(lua_State *L)
    static luaL_Reg gfx_funcs[] =  {
       { "getTime", timer_getTime },
       { "getDelta", timer_getDelta },
+      { "getFPS", timer_getFPS },
       {NULL, NULL}
    };
 
@@ -40,6 +41,18 @@ int timer_getTime(lua_State *L)
 int timer_getDelta(lua_State *L)
 {
    lua_pushnumber(L, settings.delta);
+
+   return 1;
+}
+
+/**
+ * lutro.timer.getFPS()
+ *
+ * @see https://love2d.org/wiki/love.timer.getFPS
+ */
+int timer_getFPS(lua_State *L)
+{
+   lua_pushnumber(L, settings.fps);
 
    return 1;
 }

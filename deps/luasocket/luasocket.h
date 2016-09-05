@@ -29,7 +29,7 @@
 //namespace luasocket
 //{
 
-int __open(lua_State * L);
+int _o_open(lua_State * L);
 
 // Loaders for all lua files. We want to be able
 // to load these dynamically. (Identical in the LuaSocket 

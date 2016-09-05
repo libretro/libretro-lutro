@@ -40,7 +40,7 @@
 //namespace luasocket
 //{
 
-int __open(lua_State * L)
+int _o_open(lua_State * L)
 {
 
 	// Preload code from LuaSocket.

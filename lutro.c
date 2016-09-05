@@ -237,7 +237,7 @@ void lutro_init()
    lutro_preload(L, luaopen_luautf8, "utf8");
 
    // LuaSocket
-   __open(L);
+   _o_open(L);
 
 #ifdef HAVE_INOTIFY
    lutro_preload(L, lutro_live_preload, "lutro.live");

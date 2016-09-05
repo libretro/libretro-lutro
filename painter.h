@@ -75,7 +75,7 @@ void pntr_fill_poly(painter_t *p, const int *points, int nb_points);
 void pntr_strike_ellipse(painter_t *p, int x, int y, int radius_x, int radius_y, int nb_segments);
 void pntr_fill_ellipse(painter_t *p, int x, int y, int radius_x, int radius_y, int nb_segments);
 void pntr_draw(painter_t *p, const bitmap_t *bmp, const rect_t *src_rect, const rect_t *dst_rect);
-void pntr_print(painter_t *p, int x, int y, const char *text);
+void pntr_print(painter_t *p, int x, int y, const char *text, int limit);
 int  pntr_text_width(painter_t *p, const char *text);
 void pntr_printf(painter_t *p, int x, int y, const char *format, ...);
 

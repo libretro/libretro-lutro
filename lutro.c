@@ -50,7 +50,8 @@ lutro_settings_t settings = {
    .framebuffer = NULL,
    .live_enable = 0,
    .live_call_load = 0,
-   .input_cb = NULL
+   .input_cb = NULL,
+   .delta = 0
 };
 
 #if 0
@@ -270,10 +271,9 @@ void lutro_deinit()
       lutro_live_deinit();
 #endif
 
-   lua_close(L);
-
-   /* Has to be deinitialized later. */
    lutro_audio_deinit();
+
+   lua_close(L);
 }
 
 int lutro_set_package_path(lua_State* L, const char* path)
@@ -413,12 +413,17 @@ int lutro_load(const char *path)
       path_basedir(gamedir);
    }
 
+   // Loading a .lutro file.
    if (!strcmp(path_get_extension(mainfile), "lutro"))
    {
       fill_pathname(gamedir, mainfile, "/", sizeof(gamedir));
       fill_pathname(gamedir, conffile, "/", sizeof(gamedir));
       lutro_unzip(mainfile, gamedir);
       fill_pathname_join(mainfile, gamedir, "main.lua", sizeof(mainfile));
+      fill_pathname_join(conffile, gamedir, "conf.lua", sizeof(conffile));
+   }
+   else {
+      // Loading a main.lua file, so construct the config file.
       fill_pathname_join(conffile, gamedir, "conf.lua", sizeof(conffile));
    }
 
@@ -432,7 +437,7 @@ int lutro_load(const char *path)
    dofile(L, conffile);
 
    // Now that configuration is in place, load main.lua.
-   if(dofile(L, mainfile))
+   if (dofile(L, mainfile))
    {
        fprintf(stderr, "%s\n", lua_tostring(L, -1));
        lua_pop(L, 1);
@@ -542,6 +547,7 @@ void lutro_gamepadevent(lua_State* L)
 
 void lutro_run(double delta)
 {
+   settings.delta = delta;
 #ifdef HAVE_INOTIFY
    if (settings.live_enable)
       lutro_live_update(L);

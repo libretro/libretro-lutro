@@ -1,4 +1,4 @@
-# Lutro
+# Lutro [![Build Status](https://travis-ci.org/libretro/libretro-lutro.svg?branch=master)](https://travis-ci.org/libretro/libretro-lutro)
 
 Experimental [Lua](http://lua.org) game framework for [libretro](http://libretro.com), following the [LÖVE](http://love2d.org) API.
 

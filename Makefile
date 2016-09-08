@@ -267,25 +267,9 @@ clean:
 	-make -C $(LUADIR) clean
 	-rm -f $(OBJS) $(TARGET)
 
-docker-build:
-	@docker build -t libretro-lutro .
-
-docker: docker-build
-	@docker run -it \
-		-v $(CURDIR):/app \
-		libretro-lutro \
-			make
-
-docker-test: docker
-	@docker run -it \
-		-v $(CURDIR):/app \
-		--name retroarch \
-		libretro-lutro \
-			retroarch -L lutro_libretro.so test/unit
-
-docker-kill:
-	@-docker kill retroarch
-	@-docker rm -f retroarch
+docker:
+	docker build -t libretro-lutro .
+	docker run -v $(CURDIR):/app libretro-lutro make
 
 test: all
 	retroarch -L lutro_libretro.so test

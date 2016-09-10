@@ -51,7 +51,10 @@ lutro_settings_t settings = {
    .live_enable = 0,
    .live_call_load = 0,
    .input_cb = NULL,
-   .delta = 0
+   .delta = 0,
+   .deltaCounter = 0,
+   .frameCounter = 0,
+   .fps = 0
 };
 
 #if 0
@@ -547,7 +550,16 @@ void lutro_gamepadevent(lua_State* L)
 
 void lutro_run(double delta)
 {
+   // Update the Delta and FPS.
    settings.delta = delta;
+   settings.deltaCounter += delta;
+   settings.frameCounter += 1;
+   if (settings.deltaCounter >= 1.0) {
+      settings.fps = settings.frameCounter;
+      settings.frameCounter = 0;
+      settings.deltaCounter = 0;
+   }
+
 #ifdef HAVE_INOTIFY
    if (settings.live_enable)
       lutro_live_update(L);

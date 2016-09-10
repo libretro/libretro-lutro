@@ -26,6 +26,9 @@ typedef struct lutro_settings_t {
    char gamedir[PATH_MAX_LENGTH];
    char identity[PATH_MAX_LENGTH];
    double delta;
+   double deltaCounter;
+   int frameCounter;
+   int fps;
 } lutro_settings_t;
 
 extern lutro_settings_t settings;

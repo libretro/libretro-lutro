@@ -104,18 +104,17 @@ endif
    CC += $(IPHONEMINVER)
    CXX += $(IPHONEMINVER)
 else ifeq ($(platform), qnx)
-   TARGET := $(TARGET_NAME)_libretro_qnx.so
+   TARGET := $(TARGET_NAME)_libretro_$(platform).so
    fpic := -fPIC
    SHARED := -shared -Wl,--no-undefined
    MMD :=
 else ifeq ($(platform), emscripten)
-   TARGET := $(TARGET_NAME)_libretro_emscripten.so
-   fpic := -fPIC
-   SHARED := -shared -Wl,--no-undefined
+   TARGET := $(TARGET_NAME)_libretro_$(platform).bc
+   STATIC_LINKING = 1
 
 # PSP
 else ifeq ($(platform), psp1)
-   TARGET := $(TARGET_NAME)_libretro_psp1.a
+   TARGET := $(TARGET_NAME)_libretro_$(platform).a
    fpic :=
    CC = psp-gcc$(EXE_EXT)
    CXX = psp-g++$(EXE_EXT)
@@ -131,7 +130,7 @@ else ifeq ($(platform), psp1)
 
 # Vita
 else ifeq ($(platform), vita)
-   TARGET := $(TARGET_NAME)_libretro_vita.a
+   TARGET := $(TARGET_NAME)_libretro_$(platform).a
    fpic :=
 	CC = arm-vita-eabi-gcc$(EXE_EXT)
 	CXX = arm-vita-eabi-g++$(EXE_EXT)
@@ -142,7 +141,7 @@ else ifeq ($(platform), vita)
    MMD :=
 
 else ifeq ($(platform), ngc)
-	TARGET := $(TARGET_NAME)_libretro_ngc.a
+	TARGET := $(TARGET_NAME)_libretro_$(platform).a
 	CC = $(DEVKITPPC)/bin/powerpc-eabi-gcc$(EXE_EXT)
 	CC_AS = $(DEVKITPPC)/bin/powerpc-eabi-gcc$(EXE_EXT)
 	CXX = $(DEVKITPPC)/bin/powerpc-eabi-g++$(EXE_EXT)
@@ -152,7 +151,7 @@ else ifeq ($(platform), ngc)
 	STATIC_LINKING = 1
    MMD :=
 else ifeq ($(platform), wii)
-	TARGET := $(TARGET_NAME)_libretro_wii.a
+	TARGET := $(TARGET_NAME)_libretro_$(platform).a
 	CC = $(DEVKITPPC)/bin/powerpc-eabi-gcc$(EXE_EXT)
 	CC_AS = $(DEVKITPPC)/bin/powerpc-eabi-gcc$(EXE_EXT)
 	CXX = $(DEVKITPPC)/bin/powerpc-eabi-g++$(EXE_EXT)
@@ -163,7 +162,7 @@ else ifeq ($(platform), wii)
    MMD :=
 # PS3
 else ifeq ($(platform), ps3)
-	TARGET := $(TARGET_NAME)_libretro_ps3.a
+	TARGET := $(TARGET_NAME)_libretro_$(platform).a
 	CC = $(CELL_SDK)/host-win32/ppu/bin/ppu-lv2-gcc.exe
 	CC_AS = $(CELL_SDK)/host-win32/ppu/bin/ppu-lv2-gcc.exe
 	CXX = $(CELL_SDK)/host-win32/ppu/bin/ppu-lv2-g++.exe
@@ -268,9 +267,25 @@ clean:
 	-make -C $(LUADIR) clean
 	-rm -f $(OBJS) $(TARGET)
 
-docker:
-	docker build -t libretro-lutro .
-	docker run -v $(CURDIR):/app libretro-lutro make
+docker-build:
+	@docker build -t libretro-lutro .
+
+docker: docker-build
+	@docker run -it \
+		-v $(CURDIR):/app \
+		libretro-lutro \
+			make
+
+docker-test: docker
+	@docker run -it \
+		-v $(CURDIR):/app \
+		--name retroarch \
+		libretro-lutro \
+			retroarch -L lutro_libretro.so test/unit
+
+docker-kill:
+	@-docker kill retroarch
+	@-docker rm -f retroarch
 
 test: all
 	retroarch -L lutro_libretro.so test

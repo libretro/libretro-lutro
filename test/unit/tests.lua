@@ -3,6 +3,7 @@ package.path = package.path .. './test/?.lua;./test/unit/?.lua;./test/unit/luaun
 
 -- Dependencies
 unit = require 'luaunit'
+http = require 'socket.http'
 
 function UTF8Test()
 	local utf8 = require("utf8")
@@ -65,6 +66,12 @@ function lutro.filesystem.getUserDirectoryTest()
 	-- @todo Find out how to make os.getenv('HOME') work on Windows?
 	local luaHomeDir = os.getenv("HOME")
 	unit.assertEquals(homeDir, luaHomeDir)
+end
+
+function http.requestTest()
+	local http = require('socket.http')
+	local result = http.request('http://buildbot.libretro.com/assets/frontend/info/lutro_libretro.info')
+	unit.assertStrContains(result, 'display_name = "Lutro"')
 end
 
 function lutro.getVersionTest()
@@ -174,6 +181,7 @@ end
 
 -- Runs all the defined tests.
 function runTests()
+	http.requestTest()
 	lutro.keyboard.getKeyFromScancodeTest()
 	lutro.keyboard.getScancodeFromKeyTest()
 	lutro.filesystem.getUserDirectoryTest()

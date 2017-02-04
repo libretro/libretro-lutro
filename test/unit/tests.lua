@@ -71,7 +71,7 @@ end
 function http.requestTest()
 	local http = require('socket.http')
 	local result = http.request('http://buildbot.libretro.com/assets/frontend/info/lutro_libretro.info')
-	unit.assertStrContains(result, 'display_name = "Lutro"')
+	unit.assertStrContains(result, 'display_name = "LUA Engine (Lutro)"')
 end
 
 function lutro.getVersionTest()

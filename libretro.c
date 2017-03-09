@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdarg.h>
+#include <rl_sound.h>
 #include "joystick.h"
 
 static bool use_audio_cb;
@@ -17,8 +18,7 @@ static struct retro_log_callback logging;
 
 static retro_log_printf_t log_cb;
 static retro_video_refresh_t video_cb;
-static retro_audio_sample_t audio_cb;
-static retro_audio_sample_batch_t audio_batch_cb;
+static retro_audio_sample_batch_t audio_cb;
 static retro_environment_t environ_cb;
 static retro_input_poll_t input_poll_cb;
 static retro_input_state_t input_state_cb;
@@ -131,12 +131,12 @@ void retro_set_environment(retro_environment_t cb)
 
 void retro_set_audio_sample(retro_audio_sample_t cb)
 {
-   audio_cb = cb;
+   (void)cb;
 }
 
 void retro_set_audio_sample_batch(retro_audio_sample_batch_t cb)
 {
-   audio_batch_cb = cb;
+   audio_cb = cb;
 }
 
 void retro_set_input_poll(retro_input_poll_t cb)
@@ -170,6 +170,7 @@ void retro_run(void)
 
    lutro_run(frame_time);
    video_cb(settings.framebuffer, settings.width, settings.height, settings.pitch);
+   audio_cb(rl_sound_mix(), RL_SAMPLES_PER_FRAME);
 }
 
 bool retro_load_game(const struct retro_game_info *info)
@@ -196,9 +197,6 @@ bool retro_load_game(const struct retro_game_info *info)
 
    struct retro_frame_time_callback frame_cb = { frame_time_cb, 1000000 / 60 };
    environ_cb(RETRO_ENVIRONMENT_SET_FRAME_TIME_CALLBACK, &frame_cb);
-
-   struct retro_audio_callback audio_cb = { emit_audio, audio_set_state };
-   use_audio_cb = environ_cb(RETRO_ENVIRONMENT_SET_AUDIO_CALLBACK, &audio_cb);
 
    if (!perf_cb.get_time_usec)
    {

@@ -24,7 +24,7 @@
 
 #ifdef HAVE_COMPOSITION
 /* from http://www.codeguru.com/cpp/cpp/algorithms/general/article.php/c15989/Tip-An-Optimized-Formula-for-Alpha-Blending-Pixels.htm */
-#define COMPOSE_FAST(S, D, A) (((S * A) + (D * (255U - A))) >> 8U)
+#define COMPOSE_FAST(S, D, A) (((S * A) + (D * (256U - A))) >> 8U)
 #define DISASSEMBLE_RGB(COLOR, R, G, B) \
    R = ((COLOR & 0xff0000)>>16);\
    G = ((COLOR & 0xff00)>>8);\

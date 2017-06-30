@@ -38,7 +38,7 @@ endif
 TARGET_NAME := lutro
 GIT_VERSION := " $(shell git rev-parse --short HEAD || echo unknown)"
 ifneq ($(GIT_VERSION)," unknown")
-	CFLAGS += -DGIT_VERSION=\"$(GIT_VERSION)\"
+	GVFLAGS += -DGIT_VERSION=\"$(GIT_VERSION)\"
 endif
 LUA_MYCFLAGS :=
 LUA_SYSCFLAGS :=
@@ -279,7 +279,7 @@ deps/luajit/src/libluajit.a:
 
 obj/%.o: %.c
 	@mkdir -p $(dir $@)
-	$(CC) $(CFLAGS) $(MMD) -c -o $@ $<
+	$(CC) $(CFLAGS) $(GVFLAGS) $(MMD) -c -o $@ $<
 
 clean:
 	-make -C $(LUADIR) clean

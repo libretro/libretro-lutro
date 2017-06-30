@@ -102,7 +102,7 @@ IPHONEMINVER :=
 ifeq ($(platform),ios9)
 	IPHONEMINVER = -miphoneos-version-min=8.0
 else
-	IPHONEMINVER = -miphoneos-version-min=5.0
+	IPHONEMINVER = -miphoneos-version-min=6.0
 endif
    LDFLAGS += $(IPHONEMINVER)
    FLAGS += $(IPHONEMINVER)

@@ -129,7 +129,6 @@ else ifeq ($(platform), psp1)
    CFLAGS += -fomit-frame-pointer -fstrict-aliasing
    CFLAGS += -falign-functions=32 -falign-loops -falign-labels -falign-jumps
    CFLAGS += -I$(shell psp-config --pspsdk-path)/include
-   LDFLAGS += $(DEVKITPSP)/lib/libc.a
    LUA_MYCFLAGS := $(DEFINES) $(CFLAGS)
    STATIC_LINKING = 1
    MMD :=

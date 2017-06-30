@@ -79,16 +79,6 @@ else ifeq ($(platform), osx)
    LUA_SYSCFLAGS := -DLUA_USE_MACOSX
    CFLAGS += -DHAVE_STRL
    MMD :=
-
-ifeq ($(ARCH), $(filter $(ARCH), intel))
-	WANT_JIT = 1
-endif
-
-   # for 64bit osx:
-   #ifeq ($(WANT_JIT))
-   #   LDFLAGS += -Wl,-pagezero_size,10000 -Wl,-image_base,100000000
-   #endif
-
 # iOS
 else ifneq (,$(findstring ios,$(platform)))
 

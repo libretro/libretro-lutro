@@ -28,7 +28,9 @@
 #include "deps/luautf8/lutf8lib.h"
 
 // LuaSocket
+#ifdef WANT_LUASOCKET
 #include "deps/luasocket/luasocket.h"
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -237,7 +239,9 @@ void lutro_init()
    lutro_preload(L, luaopen_luautf8, "utf8");
 
    // LuaSocket
+#ifdef WANT_LUASOCKET
    _o_open(L);
+#endif
 
 #ifdef HAVE_INOTIFY
    lutro_preload(L, lutro_live_preload, "lutro.live");

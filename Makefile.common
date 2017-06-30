@@ -74,6 +74,7 @@ SOURCES_C += $(CORE_DIR)/libretro-common/formats/png/rpng_decode.c \
 SOURCES_C += $(CORE_DIR)/deps/luautf8/lutf8lib.c
 
 # LuaSocket
+ifeq ($(WANT_LUASOCKET),1)
 SOURCES_C += $(CORE_DIR)/deps/luasocket/libluasocket/auxiliar.c \
 	$(CORE_DIR)/deps/luasocket/libluasocket/buffer.c \
 	$(CORE_DIR)/deps/luasocket/libluasocket/except.c \
@@ -92,6 +93,7 @@ ifeq ($(system_platform),unix)
 	SOURCES_C += $(CORE_DIR)/deps/luasocket/libluasocket/usocket.c
 else
 	SOURCES_C += $(CORE_DIR)/deps/luasocket/libluasocket/wsocket.c
+endif
 endif
 
 ifeq ($(WANT_UNZIP),1)

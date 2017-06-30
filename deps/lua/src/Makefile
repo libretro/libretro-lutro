@@ -95,6 +95,9 @@ freebsd:
 generic:
 	$(MAKE) all MYCFLAGS=
 
+libretro:
+	$(MAKE) all
+
 linux:
 	$(MAKE) all MYCFLAGS=-DLUA_USE_LINUX MYLIBS="-Wl,-E -ldl -lreadline -lhistory -lncurses"
 

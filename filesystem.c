@@ -2,6 +2,7 @@
 #include "lutro.h"
 #include "compat/strl.h"
 #include "file/file_path.h"
+#include "physfs.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -34,6 +35,7 @@ int lutro_filesystem_preload(lua_State *L)
 
 void lutro_filesystem_init()
 {
+   PHYSFS_init(NULL);
 }
 
 /**

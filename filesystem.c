@@ -42,6 +42,13 @@ void lutro_filesystem_init()
    #endif
 }
 
+void lutro_filesystem_deinit()
+{
+   #if WANT_PHYSFS
+   PHYSFS_deinit();
+   #endif
+}
+
 /**
  * contents, size = lutro.filesystem.read(name, size)
  *

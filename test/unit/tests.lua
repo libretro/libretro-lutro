@@ -3,7 +3,7 @@ package.path = package.path .. './test/?.lua;./test/unit/?.lua;./test/unit/luaun
 
 -- Dependencies
 unit = require 'luaunit'
-http = require 'socket.http'
+--http = require 'socket.http'
 
 function UTF8Test()
 	local utf8 = require("utf8")
@@ -68,11 +68,11 @@ function lutro.filesystem.getUserDirectoryTest()
 	unit.assertEquals(homeDir, luaHomeDir)
 end
 
-function http.requestTest()
-	local http = require('socket.http')
-	local result = http.request('http://buildbot.libretro.com/assets/frontend/info/lutro_libretro.info')
-	unit.assertStrContains(result, 'display_name = "LUA Engine (Lutro)"')
-end
+-- function http.requestTest()
+--	local http = require('socket.http')
+--	local result = http.request('http://buildbot.libretro.com/assets/frontend/info/lutro_libretro.info')
+--	unit.assertStrContains(result, 'display_name = "LUA Engine (Lutro)"')
+--end
 
 function lutro.getVersionTest()
 	local major, minor, revision, codename = lutro.getVersion()
@@ -181,7 +181,7 @@ end
 
 -- Runs all the defined tests.
 function runTests()
-	http.requestTest()
+--	http.requestTest()
 	lutro.keyboard.getKeyFromScancodeTest()
 	lutro.keyboard.getScancodeFromKeyTest()
 	lutro.filesystem.getUserDirectoryTest()

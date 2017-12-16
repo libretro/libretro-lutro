@@ -1,7 +1,7 @@
-/* Copyright  (C) 2010-2015 The RetroArch team
+/* Copyright  (C) 2010-2017 The RetroArch team
  *
  * ---------------------------------------------------------------------------------------
- * The following license statement only applies to this file (compat.c).
+ * The following license statement only applies to this file (compat_strl.c).
  * ---------------------------------------------------------------------------------------
  *
  * Permission is hereby granted, free of charge,
@@ -20,17 +20,19 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include <compat/strl.h>
-#include <compat/posix_string.h>
+#include <stdlib.h>
+#include <ctype.h>
 
-#ifndef HAVE_STRL
+#include <compat/strl.h>
 
 /* Implementation of strlcpy()/strlcat() based on OpenBSD. */
+
+#ifndef __MACH__
 
 size_t strlcpy(char *dest, const char *source, size_t size)
 {
    size_t src_size = 0;
-   size_t n = size;
+   size_t        n = size;
 
    if (n)
       while (--n && (*dest++ = *source++)) src_size++;
@@ -47,6 +49,7 @@ size_t strlcpy(char *dest, const char *source, size_t size)
 size_t strlcat(char *dest, const char *source, size_t size)
 {
    size_t len = strlen(dest);
+
    dest += len;
 
    if (len > size)
@@ -56,84 +59,11 @@ size_t strlcat(char *dest, const char *source, size_t size)
 
    return len + strlcpy(dest, source, size);
 }
-
 #endif
 
-#ifdef _WIN32
-
-#undef strcasecmp
-#undef strdup
-#undef isblank
-#undef strtok_r
-#include <ctype.h>
-#include <stdlib.h>
-#include <stddef.h>
-#include <compat/strl.h>
-
-#include <string.h>
-
-int rarch_strcasecmp__(const char *a, const char *b)
+char *strldup(const char *s, size_t n)
 {
-   while (*a && *b)
-   {
-      int a_ = tolower(*a);
-      int b_ = tolower(*b);
-      if (a_ != b_)
-         return a_ - b_;
-
-      a++;
-      b++;
-   }
-
-   return tolower(*a) - tolower(*b);
+   char *dst = (char*)malloc(sizeof(char) * (n + 1));
+   strlcpy(dst, s, n);
+   return dst;
 }
-
-char *rarch_strdup__(const char *orig)
-{
-   size_t len = strlen(orig) + 1;
-   char *ret = (char*)malloc(len);
-   if (!ret)
-      return NULL;
-
-   strlcpy(ret, orig, len);
-   return ret;
-}
-
-int rarch_isblank__(int c)
-{
-   return (c == ' ') || (c == '\t');
-}
-
-char *rarch_strtok_r__(char *str, const char *delim, char **saveptr)
-{
-   char *first = NULL;
-   if (!saveptr || !delim)
-      return NULL;
-
-   if (str)
-      *saveptr = str;
-
-   do
-   {
-      char *ptr = NULL;
-      first = *saveptr;
-      while (*first && strchr(delim, *first))
-         *first++ = '\0';
-
-      if (*first == '\0')
-         return NULL;
-
-      ptr = first + 1;
-
-      while (*ptr && !strchr(delim, *ptr))
-         ptr++;
-
-      *saveptr = ptr + (*ptr ? 1 : 0);
-      *ptr     = '\0';
-   } while (strlen(first) == 0);
-
-   return first;
-}
-
-#endif
-

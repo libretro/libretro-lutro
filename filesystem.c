@@ -1,7 +1,9 @@
 #include "filesystem.h"
 #include "lutro.h"
-#include "compat/strl.h"
-#include "file/file_path.h"
+#include <compat/strl.h>
+#include <file/file_path.h>
+#include <streams/file_stream.h>
+
 #if WANT_PHYSFS
 #include "physfs.h"
 #endif
@@ -182,7 +184,7 @@ int fs_exists(lua_State *L)
    strlcpy(fullpath, settings.gamedir, sizeof(fullpath));
    strlcat(fullpath, path, sizeof(fullpath));
 
-   bool exists = path_file_exists(fullpath);
+   bool exists = filestream_exists(fullpath);
 
    lua_pushboolean(L, exists);
    return 1;
@@ -242,13 +244,14 @@ int fs_isDirectory(lua_State *L)
 
 int fs_isFile(lua_State *L)
 {
+   char fullpath[PATH_MAX_LENGTH];
+   bool res         = false;
    const char *path = luaL_checkstring(L, 1);
 
-   char fullpath[PATH_MAX_LENGTH];
    strlcpy(fullpath, settings.gamedir, sizeof(fullpath));
    strlcat(fullpath, path, sizeof(fullpath));
 
-   bool res = path_file_exists(fullpath) && !path_is_directory(fullpath);
+   res = filestream_exists(fullpath) && !path_is_directory(fullpath);
 
    lua_pushboolean(L, res);
    return 1;
@@ -256,13 +259,13 @@ int fs_isFile(lua_State *L)
 
 int fs_createDirectory(lua_State *L)
 {
-   const char *path = luaL_checkstring(L, 1);
-
+   bool res;
    char fullpath[PATH_MAX_LENGTH];
+   const char *path = luaL_checkstring(L, 1);
    strlcpy(fullpath, settings.gamedir, sizeof(fullpath));
    strlcat(fullpath, path, sizeof(fullpath));
 
-   bool res = path_mkdir(fullpath);
+   res = path_mkdir(fullpath);
 
    lua_pushboolean(L, res);
    return 1;

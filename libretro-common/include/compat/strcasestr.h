@@ -1,7 +1,7 @@
 /* Copyright  (C) 2010-2017 The RetroArch team
  *
  * ---------------------------------------------------------------------------------------
- * The following license statement only applies to this file (posix_string.h).
+ * The following license statement only applies to this file (strcasestr.h).
  * ---------------------------------------------------------------------------------------
  *
  * Permission is hereby granted, free of charge,
@@ -20,42 +20,30 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef __LIBRETRO_SDK_COMPAT_POSIX_STRING_H
-#define __LIBRETRO_SDK_COMPAT_POSIX_STRING_H
+#ifndef __LIBRETRO_SDK_COMPAT_STRCASESTR_H
+#define __LIBRETRO_SDK_COMPAT_STRCASESTR_H
+
+#include <string.h>
+
+#if defined(RARCH_INTERNAL) && defined(HAVE_CONFIG_H)
+#include "../../../config.h"
+#endif
+
+#ifndef HAVE_STRCASESTR
 
 #include <retro_common_api.h>
 
-#ifdef _MSC_VER
-#include <compat/msvc.h>
-#endif
-
 RETRO_BEGIN_DECLS
 
-#ifdef _WIN32
-#undef strtok_r
-#define strtok_r(str, delim, saveptr) retro_strtok_r__(str, delim, saveptr)
+/* Avoid possible naming collisions during link
+ * since we prefer to use the actual name. */
+#define strcasestr(haystack, needle) strcasestr_retro__(haystack, needle)
 
-char *strtok_r(char *str, const char *delim, char **saveptr);
-#endif
-
-#ifdef _MSC_VER
-#undef strcasecmp
-#undef strdup
-#define strcasecmp(a, b) retro_strcasecmp__(a, b)
-#define strdup(orig)     retro_strdup__(orig)
-int strcasecmp(const char *a, const char *b);
-char *strdup(const char *orig);
-
-/* isblank is available since MSVC 2013 */
-#if _MSC_VER < 1800
-#undef isblank
-#define isblank(c)       retro_isblank__(c)
-int isblank(int c);
-#endif
-
-#endif
-
+char *strcasestr(const char *haystack, const char *needle);
 
 RETRO_END_DECLS
 
 #endif
+
+#endif
+

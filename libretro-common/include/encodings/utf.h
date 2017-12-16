@@ -1,7 +1,7 @@
 /* Copyright  (C) 2010-2017 The RetroArch team
  *
  * ---------------------------------------------------------------------------------------
- * The following license statement only applies to this file (posix_string.h).
+ * The following license statement only applies to this file (utf.h).
  * ---------------------------------------------------------------------------------------
  *
  * Permission is hereby granted, free of charge,
@@ -20,41 +20,47 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef __LIBRETRO_SDK_COMPAT_POSIX_STRING_H
-#define __LIBRETRO_SDK_COMPAT_POSIX_STRING_H
+#ifndef _LIBRETRO_ENCODINGS_UTF_H
+#define _LIBRETRO_ENCODINGS_UTF_H
+
+#include <stdint.h>
+#include <stddef.h>
+
+#include <boolean.h>
 
 #include <retro_common_api.h>
 
-#ifdef _MSC_VER
-#include <compat/msvc.h>
-#endif
-
 RETRO_BEGIN_DECLS
 
-#ifdef _WIN32
-#undef strtok_r
-#define strtok_r(str, delim, saveptr) retro_strtok_r__(str, delim, saveptr)
+enum CodePage
+{
+   CODEPAGE_LOCAL = 0, /* CP_ACP */
+   CODEPAGE_UTF8 = 65001 /* CP_UTF8 */
+};
 
-char *strtok_r(char *str, const char *delim, char **saveptr);
-#endif
+size_t utf8_conv_utf32(uint32_t *out, size_t out_chars,
+      const char *in, size_t in_size);
 
-#ifdef _MSC_VER
-#undef strcasecmp
-#undef strdup
-#define strcasecmp(a, b) retro_strcasecmp__(a, b)
-#define strdup(orig)     retro_strdup__(orig)
-int strcasecmp(const char *a, const char *b);
-char *strdup(const char *orig);
+bool utf16_conv_utf8(uint8_t *out, size_t *out_chars,
+      const uint16_t *in, size_t in_size);
 
-/* isblank is available since MSVC 2013 */
-#if _MSC_VER < 1800
-#undef isblank
-#define isblank(c)       retro_isblank__(c)
-int isblank(int c);
-#endif
+size_t utf8len(const char *string);
 
-#endif
+size_t utf8cpy(char *d, size_t d_len, const char *s, size_t chars);
 
+const char *utf8skip(const char *str, size_t chars);
+
+uint32_t utf8_walk(const char **string);
+
+bool utf16_to_char_string(const uint16_t *in, char *s, size_t len);
+
+char* utf8_to_local_string_alloc(const char *str);
+
+char* local_to_utf8_string_alloc(const char *str);
+
+wchar_t* utf8_to_utf16_string_alloc(const char *str);
+
+char* utf16_to_utf8_string_alloc(const wchar_t *str);
 
 RETRO_END_DECLS
 

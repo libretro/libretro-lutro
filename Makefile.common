@@ -59,9 +59,11 @@ SOURCES_C += $(LUALIB_DIR)/lapi.c \
                  $(LUALIB_DIR)/ldump.c
 endif
 
-ifneq ($(STATIC_LINKING), 1)
 SOURCES_C += $(CORE_DIR)/libretro-common/formats/png/rpng_decode.c \
-				 $(CORE_DIR)/libretro-common/formats/png/rpng_fbio.c \
+				 $(CORE_DIR)/libretro-common/formats/png/rpng_fbio.c 
+
+ifneq ($(STATIC_LINKING), 1)
+SOURCES_C += \
 				 $(CORE_DIR)/libretro-common/file/file_path.c \
 				 $(CORE_DIR)/libretro-common/compat/compat_posix_string.c \
 				 $(CORE_DIR)/libretro-common/memmap/memmap.c \

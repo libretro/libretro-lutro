@@ -79,6 +79,7 @@ else ifeq ($(platform), osx)
    SHARED := -dynamiclib
    LUA_SYSCFLAGS := -DLUA_USE_MACOSX
    CFLAGS += -DHAVE_STRL
+WANT_PHYSFS=0
    MMD :=
 # iOS
 else ifneq (,$(findstring ios,$(platform)))

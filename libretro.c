@@ -8,6 +8,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdarg.h>
+
+#include <streams/file_stream.h>
+
 #include "joystick.h"
 
 static bool use_audio_cb;
@@ -122,11 +125,14 @@ void retro_get_system_av_info(struct retro_system_av_info *info)
 
 void retro_set_environment(retro_environment_t cb)
 {
+   struct retro_vfs_interface_info vfs_iface_info = { 1, NULL };
    environ_cb = cb;
 
    bool no_rom = false;
    cb(RETRO_ENVIRONMENT_SET_SUPPORT_NO_GAME, &no_rom);
 
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VFS_INTERFACE, &vfs_iface_info))
+      filestream_vfs_init(&vfs_iface_info);
 }
 
 void retro_set_audio_sample(retro_audio_sample_t cb)

@@ -100,6 +100,7 @@ endif
    FLAGS += $(IPHONEMINVER)
    CC += $(IPHONEMINVER)
    CXX += $(IPHONEMINVER)
+	WANT_PHYSFS=0
 else ifeq ($(platform), qnx)
    TARGET := $(TARGET_NAME)_libretro_$(platform).so
    fpic := -fPIC

@@ -13,15 +13,6 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 
-#ifndef max
-#define max(a, b) ((a) > (b) ? (a) : (b))
-#endif
-
-#ifndef min
-#define min(a, b) ((a) < (b) ? (a) : (b))
-#endif
-
-
 #ifdef HAVE_COMPOSITION
 /* from http://www.codeguru.com/cpp/cpp/algorithms/general/article.php/c15989/Tip-An-Optimized-Formula-for-Alpha-Blending-Pixels.htm */
 #define COMPOSE_FAST(S, D, A) (((S * A) + (D * (256U - A))) >> 8U)
@@ -143,13 +134,13 @@ void pntr_fill_rect(painter_t *p, const rect_t *rect)
 
 rect_t rect_intersect(const rect_t *a, const rect_t *b)
 {
-   int left   = max(a->x, b->x);
-   int right  = min(a->x + a->width, b->x + b->width);
-   int top    = max(a->y, b->y);
-   int bottom = min(a->y + a->height, b->y + b->height);
+   int left   = MAX(a->x, b->x);
+   int right  = MIN(a->x + a->width, b->x + b->width);
+   int top    = MAX(a->y, b->y);
+   int bottom = MIN(a->y + a->height, b->y + b->height);
    int width  = right - left;
    int height = bottom - top;
-   rect_t c = { left, top, max(width, 0), max(height, 0) };
+   rect_t c = { left, top, MAX(width, 0), MAX(height, 0) };
 
    return c;
 }
@@ -203,8 +194,8 @@ void pntr_fill_poly(painter_t *p, const int *points, int nb_points)
    int ymax = -1;
    for (int i = 0; i < (nb_points / 2); ++i)
    {
-     ymin = min(ymin, points[(2 * i) + 1]);
-     ymax = max(ymax, points[(2 * i) + 1]);
+     ymin = MIN(ymin, points[(2 * i) + 1]);
+     ymax = MAX(ymax, points[(2 * i) + 1]);
    }
 
    // Note: the following algorithm is correct for convex polygons only.
@@ -232,8 +223,8 @@ void pntr_fill_poly(painter_t *p, const int *points, int nb_points)
          if ((y1 > yy) != (y2 > yy))
          {
             int testx = x1 + ((x2 - x1) * (yy - y1)) / (y2 - y1);
-            xmin = min(xmin, testx);
-            xmax = max(xmax, testx);
+            xmin = MIN(xmin, testx);
+            xmax = MAX(xmax, testx);
          }
       }
 
@@ -278,8 +269,8 @@ void pntr_fill_ellipse(painter_t *p, int x, int y, int radius_x, int radius_y, i
          if ((y1 > yy) != (y2 > yy))
          {
             int testx = x1 + ((x2 - x1) * (yy - y1)) / (y2 - y1);
-            xmin = min(xmin, testx);
-            xmax = max(xmax, testx);
+            xmin = MIN(xmin, testx);
+            xmax = MAX(xmax, testx);
          }
       }
 
@@ -316,8 +307,8 @@ void pntr_draw(painter_t *p, const bitmap_t *bmp, const rect_t *src_rect, const 
    }
 
    drect        = rect_intersect(&drect, &p->clip);
-   drect.width  = min(drect.width, srect.width);
-   drect.height = min(drect.height, srect.height);
+   drect.width  = MIN(drect.width, srect.width);
+   drect.height = MIN(drect.height, srect.height);
 
    if (rect_is_null(&drect) || rect_is_null(&srect))
       return;

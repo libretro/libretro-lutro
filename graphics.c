@@ -1,8 +1,8 @@
 #include "graphics.h"
 #include "image.h"
 #include "lutro.h"
-#include "compat/strl.h"
-#include "retro_miscellaneous.h"
+#include <compat/strl.h>
+#include <retro_miscellaneous.h>
 
 #include <stdlib.h>
 #include <string.h>
@@ -720,7 +720,7 @@ static int gfx_circle(lua_State *L)
    if (n == 5)
      nb_segments = luaL_checknumber(L, 5);
    if (nb_segments <= 0)
-     nb_segments = max(10, radius);
+     nb_segments = MAX(10, radius);
 
    canvas = get_canvas_ref(L, cur_canv);
 
@@ -757,7 +757,7 @@ static int gfx_ellipse(lua_State *L)
    if (n == 6)
      nb_segments = luaL_checknumber(L, 6);
    if (nb_segments <= 0)
-     nb_segments = max(10, max(x_radius, y_radius));
+     nb_segments = MAX(10, MAX(x_radius, y_radius));
 
    canvas = get_canvas_ref(L, cur_canv);
 

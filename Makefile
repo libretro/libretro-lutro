@@ -4,7 +4,7 @@ WANT_JIT=0
 WANT_ZLIB=1
 WANT_UNZIP=1
 WANT_LUASOCKET=0
-WANT_PHYSFS:=1
+WANT_PHYSFS=1
 
 MMD := -MMD
 
@@ -123,6 +123,7 @@ else ifeq ($(platform), psp1)
    LDFLAGS += $(DEVKITPSP)psp/lib/libc.a $(DEVKITPSP)psp/sdk/lib/libpspkernel.a
    LUA_MYCFLAGS := $(DEFINES) $(CFLAGS)
    STATIC_LINKING = 1
+	WANT_PHYSFS=0
    MMD :=
 
 # Vita
@@ -155,6 +156,7 @@ else ifeq ($(platform), wii)
 	CXX = $(DEVKITPPC)/bin/powerpc-eabi-g++$(EXE_EXT)
 	AR = $(DEVKITPPC)/bin/powerpc-eabi-ar$(EXE_EXT)
 	DEFINES += -DGEKKO -DHW_RVL -mrvl -mcpu=750 -meabi -mhard-float
+	WANT_PHYSFS=0
    LUA_MYCFLAGS := $(DEFINES) $(CFLAGS)
 	STATIC_LINKING = 1
    MMD :=
@@ -168,6 +170,7 @@ else ifeq ($(platform), wiiu)
 	DEFINES += -DGEKKO -DWIIU -DHW_RVL -mrvl -mcpu=750 -meabi -mhard-float
    LUA_MYCFLAGS := $(DEFINES) $(CFLAGS)
 	STATIC_LINKING = 1
+	WANT_PHYSFS=0
    MMD :=
 
 # PS3

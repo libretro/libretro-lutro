@@ -221,7 +221,7 @@ void retro_unload_game(void)
 {
 }
 
-void retro_shutdown_game(void)
+void lutro_shutdown_game(void)
 {
    environ_cb(RETRO_ENVIRONMENT_SHUTDOWN, 0);
 }

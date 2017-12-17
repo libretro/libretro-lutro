@@ -62,7 +62,7 @@ int win_setTitle(lua_State *L)
  */
 int win_close(lua_State *L)
 {
-   retro_shutdown_game();
+   lutro_shutdown_game();
 
    return 0;
 }

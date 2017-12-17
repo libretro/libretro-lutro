@@ -41,4 +41,6 @@ int lutro_load(const char *path);
 
 void lutro_run(double delta);
 
+void lutro_shutdown_game(void)
+
 #endif // LUTRO_H

@@ -39,7 +39,7 @@ int event_quit(lua_State *L)
     }
 
     // Quit, ignoring the exit status.
-    retro_shutdown_game();
+    lutro_shutdown_game();
 
     return 0;
 }

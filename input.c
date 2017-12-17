@@ -1,6 +1,9 @@
+#include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
+
 #include "input.h"
 #include "lutro.h"
-#include <string.h>
 
 const struct int_const_map joystick_enum[17] = {
    {RETRO_DEVICE_ID_JOYPAD_B,      "b"},

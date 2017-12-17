@@ -1,10 +1,11 @@
+#include <stdlib.h>
+#include <string.h>
+
+#include <libretro.h>
+
 #include "window.h"
 #include "lutro.h"
 #include "graphics.h"
-#include "libretro.h"
-
-#include <stdlib.h>
-#include <string.h>
 
 int lutro_window_preload(lua_State *L)
 {

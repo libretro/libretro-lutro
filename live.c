@@ -1,7 +1,5 @@
 #include "live.h"
 #include "lutro.h"
-#include "compat/strl.h"
-#include "file/file_path.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -10,6 +8,9 @@
 #include <unistd.h>
 #include <assert.h>
 #include <time.h>
+
+#include <compat/strl.h>
+#include <file/file_path.h>
 
 static struct {
    int ifd; // inotify fd

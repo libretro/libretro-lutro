@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include "libretro.h"
+#include <libretro.h>
 
 #ifndef PATH_MAX_LENGTH
 #define PATH_MAX_LENGTH 4096

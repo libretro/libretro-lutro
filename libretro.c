@@ -1,4 +1,3 @@
-#include "libretro.h"
 #include "lutro.h"
 #include "audio.h"
 
@@ -9,6 +8,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 
+#include <libretro.h>
 #include <streams/file_stream.h>
 
 #include "joystick.h"

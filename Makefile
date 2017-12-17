@@ -281,6 +281,7 @@ obj/%.o: %.c
 clean:
 	-make -C $(LUADIR) clean
 	-rm -f $(OBJS) $(TARGET)
+	-rm -rf obj
 
 docker-build:
 	@docker build -t libretro-lutro .

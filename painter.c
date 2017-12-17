@@ -1,14 +1,14 @@
 #define _GNU_SOURCE
 
-#include "painter.h"
-#include "formats/rpng.h"
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
 #include <assert.h>
 #include <retro_miscellaneous.h>
+
+#include "painter.h"
+#include "formats/rpng.h"
 
 #define _USE_MATH_DEFINES
 #include <math.h>

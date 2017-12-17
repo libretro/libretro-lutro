@@ -3,8 +3,8 @@
 
 #include <stdlib.h>
 #include <string.h>
+
 #include "runtime.h"
-#include "libretro.h"
 
 extern const struct key_int_const_map {
    long value;
@@ -12,7 +12,7 @@ extern const struct key_int_const_map {
 } keyboard_enum[RETROK_LAST];
 
 int lutro_keyboard_preload(lua_State *L);
-void lutro_keyboard_init();
+void lutro_keyboard_init(void);
 void lutro_keyboardevent(lua_State* L);
 int keyboard_isDown(lua_State *L);
 int keyboard_getKeyFromScancode(lua_State *L);

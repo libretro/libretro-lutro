@@ -1,7 +1,5 @@
 #include "lutro.h"
 #include "runtime.h"
-#include "file/file_path.h"
-#include "compat/strl.h"
 #include "unzip.h"
 
 #include "image.h"
@@ -19,6 +17,9 @@
 #include "live.h"
 #include "mouse.h"
 #include "joystick.h"
+
+#include <file/file_path.h>
+#include <compat/strl.h>
 
 #ifdef HAVE_JIT
 #include "luajit.h"

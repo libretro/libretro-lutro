@@ -1,9 +1,10 @@
-#include "joystick.h"
-#include "lutro.h"
-#include "libretro.h"
-
 #include <stdlib.h>
 #include <string.h>
+
+#include <libretro.h>
+
+#include "joystick.h"
+#include "lutro.h"
 
 static int16_t joystick_cache[4][14];
 

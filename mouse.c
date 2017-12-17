@@ -1,9 +1,10 @@
-#include "mouse.h"
-#include "lutro.h"
-#include "libretro.h"
-
 #include <stdlib.h>
 #include <string.h>
+
+#include <libretro.h>
+
+#include "mouse.h"
+#include "lutro.h"
 
 static int16_t mouse_cache[8];
 

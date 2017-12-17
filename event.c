@@ -1,9 +1,10 @@
-#include "event.h"
-#include "lutro.h"
-#include "libretro.h"
-
 #include <stdlib.h>
 #include <string.h>
+
+#include <libretro.h>
+
+#include "event.h"
+#include "lutro.h"
 
 int lutro_event_preload(lua_State *L)
 {

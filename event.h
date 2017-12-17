@@ -3,11 +3,11 @@
 
 #include <stdlib.h>
 #include <string.h>
+
 #include "runtime.h"
-#include "libretro.h"
 
 int lutro_event_preload(lua_State *L);
-void lutro_event_init();
+void lutro_event_init(void);
 int event_quit(lua_State *L);
 
 #endif // EVENT_H

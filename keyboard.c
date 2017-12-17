@@ -1,9 +1,10 @@
-#include "keyboard.h"
-#include "lutro.h"
-#include "libretro.h"
-
 #include <stdlib.h>
 #include <string.h>
+
+#include <libretro.h>
+
+#include "keyboard.h"
+#include "lutro.h"
 
 static int16_t keyboard_cache[RETROK_LAST];
 

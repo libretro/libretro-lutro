@@ -5,8 +5,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-/* TODO/FIXME - no sound on big-endian */
-
 static unsigned num_sources = 0;
 static audio_Source** sources = NULL;
 static float volume = 1.0;

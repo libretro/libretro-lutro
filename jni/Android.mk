@@ -15,8 +15,6 @@ ANDROID_FLAGS := -DANDROID_ARM
 #arm speedups
 #default to thumb because its smaller and more can fit in the cpu cache
 LOCAL_ARM_MODE := thumb
-#switch to arm or thumb instruction set per function based on speed(dont restrict to only arm or thumb use both)
-LOCAL_CFLAGS += -mthumb-interwork
 
 #enable/disable optimization
 ifeq ($(TARGET_ARCH_ABI),armeabi-v7a)

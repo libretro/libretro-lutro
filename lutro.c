@@ -269,6 +269,8 @@ void lutro_init()
    lutro_require(L, "lutro.live", 1);
 #endif
 
+   lutro_filesystem_init();
+
    lutro_checked_stack_assert(0);
 }
 

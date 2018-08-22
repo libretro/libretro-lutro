@@ -169,7 +169,8 @@ static PHYSFS_Io *nativeIo_duplicate(PHYSFS_Io *io)
 
 static int nativeIo_flush(PHYSFS_Io *io)
 {
-    return __PHYSFS_platformFlush(io->opaque);
+    NativeIoInfo *info = (NativeIoInfo *) io->opaque;
+    return __PHYSFS_platformFlush(info->handle);
 } /* nativeIo_flush */
 
 static void nativeIo_destroy(PHYSFS_Io *io)
@@ -938,6 +939,10 @@ static int sanitizePlatformIndependentPath(const char *src, char *dst)
     while (*src == '/')  /* skip initial '/' chars... */
         src++;
 
+    /* Make sure the entire string isn't "." or ".." */
+    if ((strcmp(src, ".") == 0) || (strcmp(src, "..") == 0))
+        BAIL(PHYSFS_ERR_BAD_FILENAME, 0);
+
     prev = dst;
     do
     {
@@ -1011,6 +1016,8 @@ static DirHandle *createDirHandle(PHYSFS_Io *io, const char *newDir,
     DirHandle *dirHandle = NULL;
     char *tmpmntpnt = NULL;
 
+    assert(newDir != NULL);  /* should have caught this higher up. */
+
     if (mountPoint != NULL)
     {
         const size_t len = strlen(mountPoint) + 1;
@@ -1024,15 +1031,9 @@ static DirHandle *createDirHandle(PHYSFS_Io *io, const char *newDir,
     dirHandle = openDirectory(io, newDir, forWriting);
     GOTO_IF_ERRPASS(!dirHandle, badDirHandle);
 
-    if (newDir == NULL)
-        dirHandle->dirName = NULL;
-    else
-    {
-        dirHandle->dirName = (char *) allocator.Malloc(strlen(newDir) + 1);
-        if (!dirHandle->dirName)
-            GOTO(PHYSFS_ERR_OUT_OF_MEMORY, badDirHandle);
-        strcpy(dirHandle->dirName, newDir);
-    } /* else */
+    dirHandle->dirName = (char *) allocator.Malloc(strlen(newDir) + 1);
+    GOTO_IF(!dirHandle->dirName, PHYSFS_ERR_OUT_OF_MEMORY, badDirHandle);
+    strcpy(dirHandle->dirName, newDir);
 
     if ((mountPoint != NULL) && (*mountPoint != '\0'))
     {
@@ -1598,7 +1599,7 @@ const char *PHYSFS_getPrefDir(const char *org, const char *app)
     assert(*endstr == dirsep);
     *endstr = '\0';  /* mask out the final dirsep for now. */
 
-    if (!__PHYSFS_platformStat(prefDir, &statbuf))
+    if (!__PHYSFS_platformStat(prefDir, &statbuf, 1))
     {
         for (ptr = strchr(prefDir, dirsep); ptr; ptr = strchr(ptr+1, dirsep))
         {
@@ -1683,21 +1684,20 @@ static int doMount(PHYSFS_Io *io, const char *fname,
     DirHandle *prev = NULL;
     DirHandle *i;
 
+    BAIL_IF(!fname, PHYSFS_ERR_INVALID_ARGUMENT, 0);
+
     if (mountPoint == NULL)
         mountPoint = "/";
 
     __PHYSFS_platformGrabMutex(stateLock);
 
-    if (fname != NULL)
+    for (i = searchPath; i != NULL; i = i->next)
     {
-        for (i = searchPath; i != NULL; i = i->next)
-        {
-            /* already in search path? */
-            if ((i->dirName != NULL) && (strcmp(fname, i->dirName) == 0))
-                BAIL_MUTEX_ERRPASS(stateLock, 1);
-            prev = i;
-        } /* for */
-    } /* if */
+        /* already in search path? */
+        if ((i->dirName != NULL) && (strcmp(fname, i->dirName) == 0))
+            BAIL_MUTEX_ERRPASS(stateLock, 1);
+        prev = i;
+    } /* for */
 
     dh = createDirHandle(io, fname, mountPoint, 0);
     BAIL_IF_MUTEX_ERRPASS(!dh, stateLock, 0);
@@ -1724,6 +1724,7 @@ int PHYSFS_mountIo(PHYSFS_Io *io, const char *fname,
                    const char *mountPoint, int appendToPath)
 {
     BAIL_IF(!io, PHYSFS_ERR_INVALID_ARGUMENT, 0);
+    BAIL_IF(!fname, PHYSFS_ERR_INVALID_ARGUMENT, 0);
     BAIL_IF(io->version != 0, PHYSFS_ERR_UNSUPPORTED, 0);
     return doMount(io, fname, mountPoint, appendToPath);
 } /* PHYSFS_mountIo */
@@ -1737,6 +1738,7 @@ int PHYSFS_mountMemory(const void *buf, PHYSFS_uint64 len, void (*del)(void *),
     PHYSFS_Io *io = NULL;
 
     BAIL_IF(!buf, PHYSFS_ERR_INVALID_ARGUMENT, 0);
+    BAIL_IF(!fname, PHYSFS_ERR_INVALID_ARGUMENT, 0);
 
     io = __PHYSFS_createMemoryIo(buf, len, del);
     BAIL_IF_ERRPASS(!io, 0);
@@ -1759,7 +1761,8 @@ int PHYSFS_mountHandle(PHYSFS_File *file, const char *fname,
     int retval = 0;
     PHYSFS_Io *io = NULL;
 
-    BAIL_IF(file == NULL, PHYSFS_ERR_INVALID_ARGUMENT, 0);
+    BAIL_IF(!file, PHYSFS_ERR_INVALID_ARGUMENT, 0);
+    BAIL_IF(!fname, PHYSFS_ERR_INVALID_ARGUMENT, 0);
 
     io = __PHYSFS_createHandleIo(file);
     BAIL_IF_ERRPASS(!io, 0);
@@ -1784,7 +1787,7 @@ int PHYSFS_mount(const char *newDir, const char *mountPoint, int appendToPath)
 
 int PHYSFS_addToSearchPath(const char *newDir, int appendToPath)
 {
-    return doMount(NULL, newDir, NULL, appendToPath);
+    return PHYSFS_mount(newDir, NULL, appendToPath);
 } /* PHYSFS_addToSearchPath */
 
 
@@ -2712,59 +2715,43 @@ int PHYSFS_close(PHYSFS_File *_handle)
 } /* PHYSFS_close */
 
 
-static PHYSFS_sint64 doBufferedRead(FileHandle *fh, void *buffer, size_t len)
+static PHYSFS_sint64 doBufferedRead(FileHandle *fh, void *_buffer, size_t len)
 {
-    PHYSFS_Io *io = NULL;
+    PHYSFS_uint8 *buffer = (PHYSFS_uint8 *) _buffer;
     PHYSFS_sint64 retval = 0;
-    size_t buffered = 0;
-    PHYSFS_sint64 rc = 0;
 
-    if (len == 0)
-        return 0;
-
-    buffered = fh->buffill - fh->bufpos;
-    if (buffered >= len)  /* totally in the buffer, just copy and return! */
+    while (len > 0)
     {
-        memcpy(buffer, fh->buffer + fh->bufpos, len);
-        fh->bufpos += len;
-        return (PHYSFS_sint64) len;
-    } /* if */
+        const size_t avail = fh->buffill - fh->bufpos;
+        if (avail > 0)  /* data available in the buffer. */
+        {
+            const size_t cpy = (len < avail) ? len : avail;
+            memcpy(buffer, fh->buffer + fh->bufpos, cpy);
+            assert(len >= cpy);
+            buffer += cpy;
+            len -= cpy;
+            fh->bufpos += cpy;
+            retval += cpy;
+        } /* if */
 
-    else if (buffered > 0) /* partially in the buffer... */
-    {
-        memcpy(buffer, fh->buffer + fh->bufpos, buffered);
-        buffer = ((PHYSFS_uint8 *) buffer) + buffered;
-        len -= buffered;
-        retval = (PHYSFS_sint64) buffered;
-    } /* if */
+        else   /* buffer is empty, refill it. */
+        {
+            PHYSFS_Io *io = fh->io;
+            const PHYSFS_sint64 rc = io->read(io, fh->buffer, fh->bufsize);
+            fh->bufpos = 0;
+            if (rc > 0)
+                fh->buffill = (size_t) rc;
+            else
+            {
+                fh->buffill = 0;
+                if (retval == 0)  /* report already-read data, or failure. */
+                    retval = rc;
+                break;
+            } /* else */
+        } /* else */
+    } /* while */
 
-    /* if you got here, the buffer is drained and we still need bytes. */
-    assert(len > 0);
-
-    fh->buffill = fh->bufpos = 0;
-
-    io = fh->io;
-    if (len >= fh->bufsize)  /* need more than the buffer takes. */
-    {
-        /* leave buffer empty, go right to output instead. */
-        rc = io->read(io, buffer, len);
-        if (rc < 0)
-            return ((retval == 0) ? rc : retval);
-        return retval + rc;
-    } /* if */
-
-    /* need less than buffer can take. Fill buffer. */
-    rc = io->read(io, fh->buffer, fh->bufsize);
-    if (rc < 0)
-        return ((retval == 0) ? rc : retval);
-
-    assert(fh->bufpos == 0);
-    fh->buffill = (size_t) rc;
-    rc = doBufferedRead(fh, buffer, len);  /* go from the start, again. */
-    if (rc < 0)
-        return ((retval == 0) ? rc : retval);
-
-    return retval + rc;
+    return retval;
 } /* doBufferedRead */
 
 
@@ -2904,7 +2891,7 @@ int PHYSFS_seek(PHYSFS_File *handle, PHYSFS_uint64 pos)
             /* backward? */
             ((offset < 0) && (((size_t) -offset) <= fh->bufpos)) )
         {
-            fh->bufpos += (PHYSFS_uint32) offset;
+            fh->bufpos = (size_t) (((PHYSFS_sint64) fh->bufpos) + offset);
             return 1; /* successful seek */
         } /* if */
     } /* if */

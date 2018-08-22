@@ -67,8 +67,6 @@ void retro_init(void)
 
 void retro_deinit(void)
 {
-   lutro_deinit();
-
    if (settings.framebuffer) {
       free(settings.framebuffer);
       settings.framebuffer = NULL;
@@ -219,6 +217,7 @@ bool retro_load_game(const struct retro_game_info *info)
 
 void retro_unload_game(void)
 {
+   lutro_deinit();
 }
 
 void lutro_shutdown_game(void)

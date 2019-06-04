@@ -199,7 +199,7 @@ else ifeq ($(platform), sncps3)
 	STATIC_LINKING = 1
    MMD :=
 else
-   CC = gcc
+   CC ?= gcc
    TARGET := $(TARGET_NAME)_libretro.dll
    SHARED := -shared -static-libgcc -static-libstdc++ -s -Wl,--no-undefined
 endif

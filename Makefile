@@ -41,8 +41,6 @@ GIT_VERSION := " $(shell git rev-parse --short HEAD || echo unknown)"
 ifneq ($(GIT_VERSION)," unknown")
 	GVFLAGS += -DGIT_VERSION=\"$(GIT_VERSION)\"
 endif
-LUA_MYCFLAGS :=
-LUA_SYSCFLAGS :=
 LIBM := -lm
 STATIC_LINKING := 0
 

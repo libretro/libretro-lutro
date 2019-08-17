@@ -41,8 +41,6 @@ GIT_VERSION := " $(shell git rev-parse --short HEAD || echo unknown)"
 ifneq ($(GIT_VERSION)," unknown")
 	GVFLAGS += -DGIT_VERSION=\"$(GIT_VERSION)\"
 endif
-LUA_MYCFLAGS :=
-LUA_SYSCFLAGS :=
 LIBM := -lm
 STATIC_LINKING := 0
 
@@ -147,6 +145,7 @@ else ifeq ($(platform), ngc)
 	CXX = $(DEVKITPPC)/bin/powerpc-eabi-g++$(EXE_EXT)
 	AR = $(DEVKITPPC)/bin/powerpc-eabi-ar$(EXE_EXT)
 	DEFINES += -DGEKKO -DHW_DOL -mrvl -mcpu=750 -meabi -mhard-float
+	WANT_PHYSFS=0
    LUA_MYCFLAGS := $(DEFINES) $(CFLAGS)
 	STATIC_LINKING = 1
    MMD :=
@@ -175,6 +174,29 @@ else ifeq ($(platform), wiiu)
 	WANT_PHYSFS=0
    MMD :=
 
+# CTR(3DS)
+else ifeq ($(platform), ctr)
+	TARGET := $(TARGET_NAME)_libretro_$(platform).a
+	CC = $(DEVKITARM)/bin/arm-none-eabi-gcc$(EXE_EXT)
+	CXX = $(DEVKITARM)/bin/arm-none-eabi-g++$(EXE_EXT)
+	AR = $(DEVKITARM)/bin/arm-none-eabi-ar$(EXE_EXT)
+	DEFINES += -DARM11 -D_3DS -march=armv6k -mtune=mpcore -mfloat-abi=hard
+	LUA_MYCFLAGS := $(DEFINES) $(CFLAGS)
+	STATIC_LINKING = 1
+	WANT_PHYSFS=0
+	MMD :=
+
+# Nintendo Switch (libnx)
+else ifeq ($(platform), libnx)
+	include $(DEVKITPRO)/libnx/switch_rules
+	TARGET := $(TARGET_NAME)_libretro_$(platform).a
+	DEFINES += -D__SWITCH__ -DHAVE_LIBNX -I$(LIBNX)/include/ -specs=$(LIBNX)/switch.specs
+	DEFINES += -march=armv8-a -mtune=cortex-a57 -mtp=soft -mcpu=cortex-a57+crc+fp+simd -ffast-math
+	LUA_MYCFLAGS := $(DEFINES) $(CFLAGS)
+	STATIC_LINKING=1
+	WANT_PHYSFS=0
+	MMD :=
+
 # PS3
 else ifeq ($(platform), ps3)
 	TARGET := $(TARGET_NAME)_libretro_$(platform).a
@@ -199,7 +221,7 @@ else ifeq ($(platform), sncps3)
 	STATIC_LINKING = 1
    MMD :=
 else
-   CC = gcc
+   CC ?= gcc
    TARGET := $(TARGET_NAME)_libretro.dll
    SHARED := -shared -static-libgcc -static-libstdc++ -s -Wl,--no-undefined
 endif

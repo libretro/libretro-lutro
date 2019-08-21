@@ -209,6 +209,35 @@ else ifeq ($(platform), ps3)
 	STATIC_LINKING = 1
    MMD :=
 
+# ARM
+else ifneq (,$(findstring armv,$(platform)))
+   TARGET := $(TARGET_NAME)_libretro.so
+   SHARED := -shared -Wl,--no-undefined
+   fpic := -fPIC
+   CFLAGS += -D_GNU_SOURCE=1
+   CC = gcc
+ifneq (,$(findstring cortexa8,$(platform)))
+   CFLAGS += -marm -mcpu=cortex-a8
+   ASFLAGS += -mcpu=cortex-a8
+else ifneq (,$(findstring cortexa9,$(platform)))
+   CFLAGS += -marm -mcpu=cortex-a9
+   ASFLAGS += -mcpu=cortex-a9
+endif
+   CFLAGS += -marm
+ifneq (,$(findstring neon,$(platform)))
+   CFLAGS += -mfpu=neon
+   ASFLAGS += -mfpu=neon
+   HAVE_NEON = 1
+endif
+ifneq (,$(findstring softfloat,$(platform)))
+   CFLAGS += -mfloat-abi=softfp
+   ASFLAGS += -mfloat-abi=softfp
+else ifneq (,$(findstring hardfloat,$(platform)))
+   CFLAGS += -mfloat-abi=hard
+   ASFLAGS += -mfloat-abi=hard
+endif
+   CFLAGS += -DARM
+
 # sncps3
 else ifeq ($(platform), sncps3)
 	TARGET := $(TARGET_NAME)_libretro_ps3.a

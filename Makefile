@@ -87,6 +87,7 @@ else ifneq (,$(findstring ios,$(platform)))
    SHARED := -dynamiclib
    DEFINES := -DIOS
    CC = cc -arch armv7 -isysroot $(IOSSDK)
+   CFLAGS += -DHAVE_STRL
 IPHONEMINVER :=
 ifeq ($(platform),ios9)
 	IPHONEMINVER = -miphoneos-version-min=8.0

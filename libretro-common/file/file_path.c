@@ -1,4 +1,4 @@
-/* Copyright  (C) 2010-2017 The RetroArch team
+/* Copyright  (C) 2010-2019 The RetroArch team
  *
  * ---------------------------------------------------------------------------------------
  * The following license statement only applies to this file (file_path.c).
@@ -30,7 +30,18 @@
 
 #include <boolean.h>
 #include <file/file_path.h>
+#include <retro_assert.h>
+#include <string/stdstring.h>
+#define VFS_FRONTEND
+#include <vfs/vfs_implementation.h>
 
+/* TODO: There are probably some unnecessary things on this huge include list now but I'm too afraid to touch it */
+#ifdef __APPLE__
+#include <CoreFoundation/CoreFoundation.h>
+#endif
+#ifdef __HAIKU__
+#include <kernel/image.h>
+#endif
 #ifndef __MACH__
 #include <compat/strl.h>
 #include <compat/posix_string.h>
@@ -71,6 +82,11 @@
 #include <pspkernel.h>
 #endif
 
+#if defined(PS2)
+#include <fileXio_rpc.h>
+#include <fileXio.h>
+#endif
+
 #if defined(__CELLOS_LV2__)
 #include <cell/cell_fs.h>
 #endif
@@ -79,8 +95,14 @@
 #define FIO_S_ISDIR SCE_S_ISDIR
 #endif
 
-#if (defined(__CELLOS_LV2__) && !defined(__PSL1GHT__)) || defined(__QNX__) || defined(PSP)
+#if (defined(__CELLOS_LV2__) && !defined(__PSL1GHT__)) || defined(__QNX__) || defined(PSP) || defined(PS2)
 #include <unistd.h> /* stat() is defined here */
+#endif
+
+#if !defined(RARCH_CONSOLE) && defined(RARCH_INTERNAL)
+#ifdef __WINRT__
+#include <uwp/uwp_func.h>
+#endif
 #endif
 
 /* Assume W-functions do not work below Win2K and Xbox platforms */
@@ -92,98 +114,27 @@
 
 #endif
 
-enum stat_mode
+static retro_vfs_stat_t path_stat_cb   = retro_vfs_stat_impl;
+static retro_vfs_mkdir_t path_mkdir_cb = retro_vfs_mkdir_impl;
+
+void path_vfs_init(const struct retro_vfs_interface_info* vfs_info)
 {
-   IS_DIRECTORY = 0,
-   IS_CHARACTER_SPECIAL,
-   IS_VALID
-};
+   const struct retro_vfs_interface* 
+      vfs_iface           = vfs_info->iface;
 
-static bool path_stat(const char *path, enum stat_mode mode, int32_t *size)
+   path_stat_cb           = retro_vfs_stat_impl;
+   path_mkdir_cb          = retro_vfs_mkdir_impl;
+
+   if (vfs_info->required_interface_version < PATH_REQUIRED_VFS_VERSION || !vfs_iface)
+      return;
+
+   path_stat_cb           = vfs_iface->stat;
+   path_mkdir_cb          = vfs_iface->mkdir;
+}
+
+int path_stat(const char *path)
 {
-#if defined(VITA) || defined(PSP)
-   SceIoStat buf;
-   char *tmp  = strdup(path);
-   size_t len = strlen(tmp);
-   if (tmp[len-1] == '/')
-      tmp[len-1]='\0';
-
-   if (sceIoGetstat(tmp, &buf) < 0)
-   {
-      free(tmp);
-      return false;
-   }
-   free(tmp);
-
-#elif defined(__CELLOS_LV2__)
-    CellFsStat buf;
-    if (cellFsStat(path, &buf) < 0)
-       return false;
-#elif defined(_WIN32)
-   struct _stat buf;
-   char *path_local;
-   wchar_t *path_wide;
-   DWORD file_info;
-
-   if (!path || !*path)
-      return false;
-
-   (void)path_wide;
-   (void)path_local;
-   (void)file_info;
-
-#if defined(LEGACY_WIN32)
-   path_local = utf8_to_local_string_alloc(path);
-   file_info  = GetFileAttributes(path_local);
-
-   _stat(path_local, &buf);
-
-   if (path_local)
-     free(path_local);
-#else
-   path_wide = utf8_to_utf16_string_alloc(path);
-   file_info = GetFileAttributesW(path_wide);
-
-   _wstat(path_wide, &buf);
-
-   if (path_wide)
-      free(path_wide);
-#endif
-
-   if (file_info == INVALID_FILE_ATTRIBUTES)
-      return false;
-#else
-   struct stat buf;
-   if (stat(path, &buf) < 0)
-      return false;
-#endif
-
-   if (size)
-      *size = (int32_t)buf.st_size;
-
-   switch (mode)
-   {
-      case IS_DIRECTORY:
-#if defined(VITA) || defined(PSP)
-         return FIO_S_ISDIR(buf.st_mode);
-#elif defined(__CELLOS_LV2__)
-         return ((buf.st_mode & S_IFMT) == S_IFDIR);
-#elif defined(_WIN32)
-         return (file_info & FILE_ATTRIBUTE_DIRECTORY);
-#else
-         return S_ISDIR(buf.st_mode);
-#endif
-      case IS_CHARACTER_SPECIAL:
-#if defined(VITA) || defined(PSP) || defined(__CELLOS_LV2__) || defined(_WIN32)
-         return false;
-#else
-         return S_ISCHR(buf.st_mode);
-#endif
-      case IS_VALID:
-         return true;
-   }
-
-   return false;
+   return path_stat_cb(path, NULL);
 }
 
 /**
@@ -196,37 +147,26 @@ static bool path_stat(const char *path, enum stat_mode mode, int32_t *size)
  */
 bool path_is_directory(const char *path)
 {
-   return path_stat(path, IS_DIRECTORY, NULL);
+   return (path_stat_cb(path, NULL) & RETRO_VFS_STAT_IS_DIRECTORY) != 0;
 }
 
 bool path_is_character_special(const char *path)
 {
-   return path_stat(path, IS_CHARACTER_SPECIAL, NULL);
+   return (path_stat_cb(path, NULL) & RETRO_VFS_STAT_IS_CHARACTER_SPECIAL) != 0;
 }
 
 bool path_is_valid(const char *path)
 {
-   return path_stat(path, IS_VALID, NULL);
+   return (path_stat_cb(path, NULL) & RETRO_VFS_STAT_IS_VALID) != 0;
 }
 
 int32_t path_get_size(const char *path)
 {
    int32_t filesize = 0;
-   if (path_stat(path, IS_VALID, &filesize))
+   if (path_stat_cb(path, &filesize) != 0)
       return filesize;
 
    return -1;
-}
-
-static bool path_mkdir_error(int ret)
-{
-#if defined(VITA)
-   return (ret == SCE_ERROR_ERRNO_EEXIST);
-#elif defined(PSP) || defined(_3DS) || defined(WIIU)
-   return (ret == -1);
-#else
-   return (ret < 0 && errno == EEXIST);
-#endif
 }
 
 /**
@@ -239,66 +179,65 @@ static bool path_mkdir_error(int ret)
  **/
 bool path_mkdir(const char *dir)
 {
-   /* Use heap. Real chance of stack overflow if we recurse too hard. */
-   const char *target = NULL;
    bool         sret  = false;
    bool norecurse     = false;
    char     *basedir  = NULL;
 
-   if (dir && *dir)
-      basedir         = strdup(dir);
-
-   if (!basedir)
+   if (!(dir && *dir))
       return false;
 
+   /* Use heap. Real chance of stack 
+    * overflow if we recurse too hard. */
+   basedir            = strdup(dir);
+
+   if (!basedir)
+	   return false;
+
    path_parent_dir(basedir);
+
    if (!*basedir || !strcmp(basedir, dir))
-      goto end;
+   {
+      free(basedir);
+      return false;
+   }
+
+#if defined(GEKKO)
+   {
+      size_t len = strlen(basedir);
+
+      /* path_parent_dir() keeps the trailing slash.
+       * On Wii, mkdir() fails if the path has a
+       * trailing slash...
+       * We must therefore remove it. */
+      if (len > 0)
+         if (basedir[len - 1] == '/')
+            basedir[len - 1] = '\0';
+   }
+#endif
 
    if (path_is_directory(basedir))
-   {
-      target    = dir;
       norecurse = true;
-   }
    else
    {
-      target    = basedir;
       sret      = path_mkdir(basedir);
 
       if (sret)
-      {
-         target    = dir;
          norecurse = true;
-      }
    }
+
+   free(basedir);
 
    if (norecurse)
    {
-#if defined(_WIN32)
-      int ret = _mkdir(dir);
-#elif defined(IOS)
-      int ret = mkdir(dir, 0755);
-#elif defined(VITA) || defined(PSP)
-      int ret = sceIoMkdir(dir, 0777);
-#elif defined(__QNX__)
-      int ret = mkdir(dir, 0777);
-#else
-      int ret = mkdir(dir, 0750);
-#endif
+      int ret = path_mkdir_cb(dir);
 
       /* Don't treat this as an error. */
-      if (path_mkdir_error(ret) && path_is_directory(dir))
-         ret = 0;
+      if (ret == -2 && path_is_directory(dir))
+         return true;
 
-      if (ret < 0)
-         printf("mkdir(%s) error: %s.\n", dir, strerror(errno));
-      sret = (ret == 0);
+      return (ret == 0);
    }
 
-end:
-   if (target && !sret)
-      printf("Failed to create directory: \"%s\".\n", target);
-   free(basedir);
    return sret;
 }
 
@@ -317,19 +256,20 @@ const char *path_get_archive_delim(const char *path)
    const char *last  = find_last_slash(path);
    const char *delim = NULL;
 
-   if (last)
-   {
-      delim = strcasestr(last, ".zip#");
+   if (!last)
+      return NULL;
 
-      if (!delim)
-         delim = strcasestr(last, ".apk#");
-   }
+   /* Test if it's .zip */
+   delim = strcasestr(last, ".zip#");
+
+   if (!delim) /* If it's not a .zip, test if it's .apk */
+      delim = strcasestr(last, ".apk#");
 
    if (delim)
       return delim + 4;
 
-   if (last)
-      delim = strcasestr(last, ".7z#");
+   /* If it's not a .zip or .apk file, test if it's .7z */
+   delim = strcasestr(last, ".7z#");
 
    if (delim)
       return delim + 3;
@@ -348,30 +288,35 @@ const char *path_get_archive_delim(const char *path)
  */
 const char *path_get_extension(const char *path)
 {
-   const char *ext = strrchr(path_basename(path), '.');
-   if (!ext)
-      return "";
-   return ext + 1;
+   const char *ext;
+   if (!string_is_empty(path) && ((ext = strrchr(path_basename(path), '.'))))
+      return ext + 1;
+   return "";
 }
 
 /**
  * path_remove_extension:
  * @path               : path
  *
- * Removes the extension from the path and returns the result.
- * Removes all text after and including the last '.'.
+ * Mutates path by removing its extension. Removes all
+ * text after and including the last '.'.
  * Only '.'s after the last slash are considered.
  *
- * Returns: path with the extension part removed.
+ * Returns:
+ * 1) If path has an extension, returns path with the
+ *    extension removed.
+ * 2) If there is no extension, returns NULL.
+ * 3) If path is empty or NULL, returns NULL
  */
 char *path_remove_extension(char *path)
 {
-   char *last = (char*)strrchr(path_basename(path), '.');
+   char *last = !string_is_empty(path)
+      ? (char*)strrchr(path_basename(path), '.') : NULL;
    if (!last)
       return NULL;
    if (*last)
       *last = '\0';
-   return last;
+   return path;
 }
 
 /**
@@ -444,11 +389,11 @@ void fill_pathname(char *out_path, const char *in_path,
  * present in 'in_path', it will be ignored.
  *
  */
-void fill_pathname_noext(char *out_path, const char *in_path,
+size_t fill_pathname_noext(char *out_path, const char *in_path,
       const char *replace, size_t size)
 {
    strlcpy(out_path, in_path, size);
-   strlcat(out_path, replace, size);
+   return strlcat(out_path, replace, size);
 }
 
 char *find_last_slash(const char *str)
@@ -457,10 +402,9 @@ char *find_last_slash(const char *str)
 #ifdef _WIN32
    const char *backslash = strrchr(str, '\\');
 
-   if (backslash && ((slash && backslash > slash) || !slash))
-      slash = backslash;
+   if (!slash || (backslash > slash))
+      return (char*)backslash;
 #endif
-
    return (char*)slash;
 }
 
@@ -474,21 +418,22 @@ char *find_last_slash(const char *str)
  **/
 void fill_pathname_slash(char *path, size_t size)
 {
-   size_t path_len = strlen(path);
+   size_t path_len;
    const char *last_slash = find_last_slash(path);
 
-   /* Try to preserve slash type. */
-   if (last_slash && (last_slash != (path + path_len - 1)))
+   if (!last_slash)
    {
-      char join_str[2];
-
-      join_str[0] = '\0';
-
-      strlcpy(join_str, last_slash, sizeof(join_str));
-      strlcat(path, join_str, size);
-   }
-   else if (!last_slash)
       strlcat(path, path_default_slash(), size);
+      return;
+   }
+
+   path_len               = strlen(path);
+   /* Try to preserve slash type. */
+   if (last_slash != (path + path_len - 1))
+   {
+      path[path_len]   = last_slash[0];
+      path[path_len+1] = '\0';
+   }
 }
 
 /**
@@ -508,7 +453,7 @@ void fill_pathname_slash(char *path, size_t size)
  * E.g..: in_dir = "/tmp/some_dir", in_basename = "/some_content/foo.c",
  * replace = ".asm" => in_dir = "/tmp/some_dir/foo.c.asm"
  **/
-void fill_pathname_dir(char *in_dir, const char *in_basename,
+size_t fill_pathname_dir(char *in_dir, const char *in_basename,
       const char *replace, size_t size)
 {
    const char *base = NULL;
@@ -516,7 +461,7 @@ void fill_pathname_dir(char *in_dir, const char *in_basename,
    fill_pathname_slash(in_dir, size);
    base = path_basename(in_basename);
    strlcat(in_dir, base, size);
-   strlcat(in_dir, replace, size);
+   return strlcat(in_dir, replace, size);
 }
 
 /**
@@ -527,27 +472,29 @@ void fill_pathname_dir(char *in_dir, const char *in_basename,
  *
  * Copies basename of @in_path into @out_path.
  **/
-void fill_pathname_base(char *out, const char *in_path, size_t size)
+size_t fill_pathname_base(char *out, const char *in_path, size_t size)
 {
    const char     *ptr = path_basename(in_path);
 
    if (!ptr)
       ptr = in_path;
 
-   strlcpy(out, ptr, size);
+   return strlcpy(out, ptr, size);
 }
 
-void fill_pathname_base_noext(char *out, const char *in_path, size_t size)
+void fill_pathname_base_noext(char *out,
+      const char *in_path, size_t size)
 {
    fill_pathname_base(out, in_path, size);
    path_remove_extension(out);
 }
 
-void fill_pathname_base_ext(char *out, const char *in_path, const char *ext,
+size_t fill_pathname_base_ext(char *out,
+      const char *in_path, const char *ext,
       size_t size)
 {
    fill_pathname_base_noext(out, in_path, size);
-   strlcat(out, ext, size);
+   return strlcat(out, ext, size);
 }
 
 /**
@@ -576,6 +523,43 @@ void fill_pathname_basedir_noext(char *out_dir,
 }
 
 /**
+ * fill_pathname_parent_dir_name:
+ * @out_dir            : output directory
+ * @in_dir             : input directory
+ * @size               : size of output directory
+ *
+ * Copies only the parent directory name of @in_dir into @out_dir.
+ * The two buffers must not overlap. Removes trailing '/'.
+ * Returns true on success, false if a slash was not found in the path.
+ **/
+bool fill_pathname_parent_dir_name(char *out_dir,
+      const char *in_dir, size_t size)
+{
+   bool success = false;
+   char *temp   = strdup(in_dir);
+   char *last   = find_last_slash(temp);
+
+   if (last && last[1] == 0)
+   {
+      *last     = '\0';
+      last      = find_last_slash(temp);
+   }
+
+   if (last)
+      *last     = '\0';
+
+   in_dir       = find_last_slash(temp);
+
+   success      = in_dir && in_dir[1];
+
+   if (success)
+      strlcpy(out_dir, in_dir + 1, size);
+
+   free(temp);
+   return success;
+}
+
+/**
  * fill_pathname_parent_dir:
  * @out_dir            : output directory
  * @in_dir             : input directory
@@ -583,6 +567,7 @@ void fill_pathname_basedir_noext(char *out_dir,
  *
  * Copies parent directory of @in_dir into @out_dir.
  * Assumes @in_dir is a directory. Keeps trailing '/'.
+ * If the path was already at the root directory, @out_dir will be an empty string.
  **/
 void fill_pathname_parent_dir(char *out_dir,
       const char *in_dir, size_t size)
@@ -604,14 +589,15 @@ void fill_pathname_parent_dir(char *out_dir,
  * E.g.:
  * out_filename = "RetroArch-{month}{day}-{Hours}{Minutes}.{@ext}"
  **/
-void fill_dated_filename(char *out_filename,
+size_t fill_dated_filename(char *out_filename,
       const char *ext, size_t size)
 {
-   time_t cur_time = time(NULL);
+   time_t       cur_time = time(NULL);
+   const struct tm* tm_  = localtime(&cur_time);
 
    strftime(out_filename, size,
-         "RetroArch-%m%d-%H%M%S.", localtime(&cur_time));
-   strlcat(out_filename, ext, size);
+         "RetroArch-%m%d-%H%M%S", tm_);
+   return strlcat(out_filename, ext, size);
 }
 
 /**
@@ -631,14 +617,24 @@ void fill_str_dated_filename(char *out_filename,
       const char *in_str, const char *ext, size_t size)
 {
    char format[256];
-   time_t cur_time = time(NULL);
+   time_t cur_time      = time(NULL);
+   const struct tm* tm_ = localtime(&cur_time);
 
-   format[0] = '\0';
+   format[0]            = '\0';
 
-   strftime(format, sizeof(format), "-%y%m%d-%H%M%S.", localtime(&cur_time));
-   strlcpy(out_filename, in_str, size);
-   strlcat(out_filename, format, size);
-   strlcat(out_filename, ext, size);
+   if (string_is_empty(ext))
+   {
+      strftime(format, sizeof(format), "-%y%m%d-%H%M%S", tm_);
+      fill_pathname_noext(out_filename, in_str, format, size);
+   }
+   else
+   {
+      strftime(format, sizeof(format), "-%y%m%d-%H%M%S.", tm_);
+
+      fill_pathname_join_concat_noext(out_filename,
+            in_str, format, ext,
+            size);
+   }
 }
 
 /**
@@ -651,6 +647,7 @@ void fill_str_dated_filename(char *out_filename,
 void path_basedir(char *path)
 {
    char *last = NULL;
+
    if (strlen(path) < 2)
       return;
 
@@ -668,12 +665,34 @@ void path_basedir(char *path)
  *
  * Extracts parent directory by mutating path.
  * Assumes that path is a directory. Keeps trailing '/'.
+ * If the path was already at the root directory, returns empty string
  **/
 void path_parent_dir(char *path)
 {
-   size_t len = strlen(path);
+   size_t len = 0;
+
+   if (!path)
+      return;
+   
+   len = strlen(path);
+
    if (len && path_char_is_slash(path[len - 1]))
+   {
+      bool path_was_absolute = path_is_absolute(path);
+
       path[len - 1] = '\0';
+
+      if (path_was_absolute && !find_last_slash(path))
+      {
+         /* We removed the only slash from what used to be an absolute path.
+          * On Linux, this goes from "/" to an empty string and everything works fine,
+          * but on Windows, we went from C:\ to C:, which is not a valid path and that later
+          * gets errornously treated as a relative one by path_basedir and returns "./".
+          * What we really wanted is an empty string. */
+         path[0] = '\0';
+         return;
+      }
+   }
    path_basedir(path);
 }
 
@@ -687,16 +706,17 @@ void path_parent_dir(char *path)
  **/
 const char *path_basename(const char *path)
 {
-   /* We cut either at the first compression-related hash
-    * or the last slash; whichever comes last */
-   const char *last  = find_last_slash(path);
+   /* We cut at the first compression-related hash */
    const char *delim = path_get_archive_delim(path);
-
    if (delim)
       return delim + 1;
 
-   if (last)
-      return last + 1;
+   {
+      /* We cut at the last slash */
+      const char *last  = find_last_slash(path);
+      if (last)
+         return last + 1;
+   }
 
    return path;
 }
@@ -720,40 +740,183 @@ bool path_is_absolute(const char *path)
          || strstr(path, ":\\")
          || strstr(path, ":\\\\"))
       return true;
+#elif defined(__wiiu__)
+   if (strstr(path, ":/"))
+      return true;
 #endif
    return false;
 }
 
 /**
  * path_resolve_realpath:
- * @buf                : buffer for path
+ * @buf                : input and output buffer for path
  * @size               : size of buffer
+ * @resolve_symlinks   : whether to resolve symlinks or not
  *
- * Turns relative paths into absolute path.
- * If relative, rebases on current working dir.
+ * Resolves use of ".", "..", multiple slashes etc in absolute paths.
+ *
+ * Relative paths are rebased on the current working dir.
+ *
+ * Returns: @buf if successful, NULL otherwise.
+ * Note: Not implemented on consoles
+ * Note: Symlinks are only resolved on Unix-likes
+ * Note: The current working dir might not be what you expect,
+ *       e.g. on Android it is "/"
+ *       Use of fill_pathname_resolve_relative() should be prefered
  **/
-void path_resolve_realpath(char *buf, size_t size)
+char *path_resolve_realpath(char *buf, size_t size, bool resolve_symlinks)
 {
-#ifndef RARCH_CONSOLE
+#if !defined(RARCH_CONSOLE) && defined(RARCH_INTERNAL)
    char tmp[PATH_MAX_LENGTH];
-
-   tmp[0] = '\0';
-
+#ifdef _WIN32
    strlcpy(tmp, buf, sizeof(tmp));
+   if (!_fullpath(buf, tmp, size))
+   {
+      strlcpy(buf, tmp, size);
+      return NULL;
+   }
+   return buf;
+#else
+   size_t t;
+   char *p;
+   const char *next;
+   const char *buf_end;
+
+   if (resolve_symlinks)
+   {
+      strlcpy(tmp, buf, sizeof(tmp));
+
+      /* NOTE: realpath() expects at least PATH_MAX_LENGTH bytes in buf.
+       * Technically, PATH_MAX_LENGTH needn't be defined, but we rely on it anyways.
+       * POSIX 2008 can automatically allocate for you,
+       * but don't rely on that. */
+      if (!realpath(tmp, buf))
+      {
+         strlcpy(buf, tmp, size);
+         return NULL;
+      }
+
+      return buf;
+   }
+
+   t = 0; /* length of output */
+   buf_end = buf + strlen(buf);
+
+   if (!path_is_absolute(buf))
+   {
+      size_t len;
+      /* rebase on working directory */
+      if (!getcwd(tmp, PATH_MAX_LENGTH-1))
+         return NULL;
+
+      len = strlen(tmp);
+      t += len;
+
+      if (tmp[len-1] != '/')
+         tmp[t++] = '/';
+
+      if (string_is_empty(buf))
+         goto end;
+
+      p = buf;
+   }
+   else
+   {
+      /* UNIX paths can start with multiple '/', copy those */
+      for (p = buf; *p == '/'; p++)
+         tmp[t++] = '/';
+   }
+
+   /* p points to just after a slash while 'next' points to the next slash
+    * if there are no slashes, they point relative to where one would be */
+   do
+   {
+      next = strchr(p, '/');
+      if (!next)
+         next = buf_end;
+
+      if ((next - p == 2 && p[0] == '.' && p[1] == '.'))
+      {
+         p += 3;
+
+         /* fail for illegal /.., //.. etc */
+         if (t == 1 || tmp[t-2] == '/')
+            return NULL;
+
+         /* delete previous segment in tmp by adjusting size t
+          * tmp[t-1] == '/', find '/' before that */
+         t = t-2;
+         while (tmp[t] != '/')
+            t--;
+         t++;
+      }
+      else if (next - p == 1 && p[0] == '.')
+         p += 2;
+      else if (next - p == 0)
+         p += 1;
+      else
+      {
+         /* fail when truncating */
+         if (t + next-p+1 > PATH_MAX_LENGTH-1)
+            return NULL;
+
+         while (p <= next)
+            tmp[t++] = *p++;
+      }
+
+   }
+   while (next < buf_end);
+
+end:
+   tmp[t] = '\0';
+   strlcpy(buf, tmp, size);
+   return buf;
+#endif
+#endif
+   return NULL;
+}
+
+/**
+ * path_relative_to:
+ * @out                : buffer to write the relative path to
+ * @path               : path to be expressed relatively
+ * @base               : base directory to start out on
+ * @size               : size of output buffer
+ *
+ * Turns @path into a path relative to @base and writes it to @out.
+ *
+ * @base is assumed to be a base directory, i.e. a path ending with '/' or '\'.
+ * Both @path and @base are assumed to be absolute paths without "." or "..".
+ *
+ * E.g. path /a/b/e/f.cg with base /a/b/c/d/ turns into ../../e/f.cg
+ **/
+size_t path_relative_to(char *out,
+      const char *path, const char *base, size_t size)
+{
+   size_t i;
+   const char *trimmed_path, *trimmed_base;
 
 #ifdef _WIN32
-   if (!_fullpath(buf, tmp, size))
-      strlcpy(buf, tmp, size);
-#else
+   /* For different drives, return absolute path */
+   if (strlen(path) >= 2 && strlen(base) >= 2
+         && path[1] == ':' && base[1] == ':'
+         && path[0] != base[0])
+      return strlcpy(out, path, size);
+#endif
 
-   /* NOTE: realpath() expects at least PATH_MAX_LENGTH bytes in buf.
-    * Technically, PATH_MAX_LENGTH needn't be defined, but we rely on it anyways.
-    * POSIX 2008 can automatically allocate for you,
-    * but don't rely on that. */
-   if (!realpath(tmp, buf))
-      strlcpy(buf, tmp, size);
-#endif
-#endif
+   /* Trim common beginning */
+   for (i = 0; path[i] && base[i] && path[i] == base[i]; )
+      i++;
+   trimmed_path = path+i;
+   trimmed_base = base+i;
+
+   /* Each segment of base turns into ".." */
+   out[0] = '\0';
+   for (i = 0; trimmed_base[i]; i++)
+      if (trimmed_base[i] == path_default_slash_c())
+         strlcat(out, ".." path_default_slash(), size);
+
+   return strlcat(out, trimmed_path, size);
 }
 
 /**
@@ -779,6 +942,7 @@ void fill_pathname_resolve_relative(char *out_path,
 
    fill_pathname_basedir(out_path, in_refpath, size);
    strlcat(out_path, in_path, size);
+   path_resolve_realpath(out_path, size, false);
 }
 
 /**
@@ -792,7 +956,7 @@ void fill_pathname_resolve_relative(char *out_path,
  * Makes sure not to get  two consecutive slashes
  * between directory and path.
  **/
-void fill_pathname_join(char *out_path,
+size_t fill_pathname_join(char *out_path,
       const char *dir, const char *path, size_t size)
 {
    if (out_path != dir)
@@ -801,10 +965,10 @@ void fill_pathname_join(char *out_path,
    if (*out_path)
       fill_pathname_slash(out_path, size);
 
-   strlcat(out_path, path, size);
+   return strlcat(out_path, path, size);
 }
 
-void fill_pathname_join_special_ext(char *out_path,
+size_t fill_pathname_join_special_ext(char *out_path,
       const char *dir,  const char *path,
       const char *last, const char *ext,
       size_t size)
@@ -814,16 +978,25 @@ void fill_pathname_join_special_ext(char *out_path,
       fill_pathname_slash(out_path, size);
 
    strlcat(out_path, last, size);
-   strlcat(out_path, ext, size);
+   return strlcat(out_path, ext, size);
 }
 
-void fill_pathname_join_concat(char *out_path,
+size_t fill_pathname_join_concat_noext(char *out_path,
+      const char *dir, const char *path,
+      const char *concat,
+      size_t size)
+{
+   fill_pathname_noext(out_path, dir, path, size);
+   return strlcat(out_path, concat, size);
+}
+
+size_t fill_pathname_join_concat(char *out_path,
       const char *dir, const char *path,
       const char *concat,
       size_t size)
 {
    fill_pathname_join(out_path, dir, path, size);
-   strlcat(out_path, concat, size);
+   return strlcat(out_path, concat, size);
 }
 
 void fill_pathname_join_noext(char *out_path,
@@ -832,7 +1005,6 @@ void fill_pathname_join_noext(char *out_path,
    fill_pathname_join(out_path, dir, path, size);
    path_remove_extension(out_path);
 }
-
 
 /**
  * fill_pathname_join_delim:
@@ -845,23 +1017,30 @@ void fill_pathname_join_noext(char *out_path,
  * Joins a directory (@dir) and path (@path) together
  * using the given delimiter (@delim).
  **/
-void fill_pathname_join_delim(char *out_path, const char *dir,
+size_t fill_pathname_join_delim(char *out_path, const char *dir,
       const char *path, const char delim, size_t size)
 {
-   size_t copied      = strlcpy(out_path, dir, size);
+   size_t copied;
+   /* behavior of strlcpy is undefined if dst and src overlap */
+   if (out_path == dir)
+      copied = strlen(dir);
+   else
+      copied = strlcpy(out_path, dir, size);
 
    out_path[copied]   = delim;
    out_path[copied+1] = '\0';
 
-   strlcat(out_path, path, size);
+   if (path)
+      copied = strlcat(out_path, path, size);
+   return copied;
 }
 
-void fill_pathname_join_delim_concat(char *out_path, const char *dir,
+size_t fill_pathname_join_delim_concat(char *out_path, const char *dir,
       const char *path, const char delim, const char *concat,
       size_t size)
 {
    fill_pathname_join_delim(out_path, dir, path, delim, size);
-   strlcat(out_path, concat, size);
+   return strlcat(out_path, concat, size);
 }
 
 /**
@@ -879,7 +1058,7 @@ void fill_pathname_join_delim_concat(char *out_path, const char *dir,
  * E.g.: "/path/to/game.img" -> game.img
  *       "/path/to/myarchive.7z#folder/to/game.img" -> game.img
  */
-void fill_short_pathname_representation(char* out_rep,
+size_t fill_short_pathname_representation(char* out_rep,
       const char *in_path, size_t size)
 {
    char path_short[PATH_MAX_LENGTH];
@@ -889,7 +1068,7 @@ void fill_short_pathname_representation(char* out_rep,
    fill_pathname(path_short, path_basename(in_path), "",
             sizeof(path_short));
 
-   strlcpy(out_rep, path_short, size);
+   return strlcpy(out_rep, path_short, size);
 }
 
 void fill_short_pathname_representation_noext(char* out_rep,
@@ -897,4 +1076,319 @@ void fill_short_pathname_representation_noext(char* out_rep,
 {
    fill_short_pathname_representation(out_rep, in_path, size);
    path_remove_extension(out_rep);
+}
+
+void fill_pathname_expand_special(char *out_path,
+      const char *in_path, size_t size)
+{
+#if !defined(RARCH_CONSOLE) && defined(RARCH_INTERNAL)
+   if (in_path[0] == '~')
+   {
+      char *home_dir = (char*)malloc(PATH_MAX_LENGTH * sizeof(char));
+
+      home_dir[0] = '\0';
+
+      fill_pathname_home_dir(home_dir,
+         PATH_MAX_LENGTH * sizeof(char));
+
+      if (*home_dir)
+      {
+         size_t src_size = strlcpy(out_path, home_dir, size);
+         retro_assert(src_size < size);
+
+         out_path  += src_size;
+         size      -= src_size;
+
+         if (!path_char_is_slash(out_path[-1]))
+         {
+            src_size = strlcpy(out_path, path_default_slash(), size);
+            retro_assert(src_size < size);
+
+            out_path += src_size;
+            size -= src_size;
+         }
+
+         in_path += 2;
+      }
+
+      free(home_dir);
+   }
+   else if (in_path[0] == ':')
+   {
+      char *application_dir = (char*)malloc(PATH_MAX_LENGTH * sizeof(char));
+
+      application_dir[0]    = '\0';
+
+      fill_pathname_application_dir(application_dir,
+            PATH_MAX_LENGTH * sizeof(char));
+
+      if (*application_dir)
+      {
+         size_t src_size   = strlcpy(out_path, application_dir, size);
+         retro_assert(src_size < size);
+
+         out_path  += src_size;
+         size      -= src_size;
+
+         if (!path_char_is_slash(out_path[-1]))
+         {
+            src_size = strlcpy(out_path, path_default_slash(), size);
+            retro_assert(src_size < size);
+
+            out_path += src_size;
+            size     -= src_size;
+         }
+
+         in_path += 2;
+      }
+
+      free(application_dir);
+   }
+#endif
+
+   retro_assert(strlcpy(out_path, in_path, size) < size);
+}
+
+void fill_pathname_abbreviate_special(char *out_path,
+      const char *in_path, size_t size)
+{
+#if !defined(RARCH_CONSOLE) && defined(RARCH_INTERNAL)
+   unsigned i;
+   const char *candidates[3];
+   const char *notations[3];
+   char *application_dir     = (char*)malloc(PATH_MAX_LENGTH * sizeof(char));
+   char *home_dir            = (char*)malloc(PATH_MAX_LENGTH * sizeof(char));
+
+   application_dir[0] = '\0';
+
+   /* application_dir could be zero-string. Safeguard against this.
+    *
+    * Keep application dir in front of home, moving app dir to a
+    * new location inside home would break otherwise. */
+
+   /* ugly hack - use application_dir pointer
+    * before filling it in. C89 reasons */
+   candidates[0] = application_dir;
+   candidates[1] = home_dir;
+   candidates[2] = NULL;
+
+   notations [0] = ":";
+   notations [1] = "~";
+   notations [2] = NULL;
+
+   fill_pathname_application_dir(application_dir,
+         PATH_MAX_LENGTH * sizeof(char));
+   fill_pathname_home_dir(home_dir,
+         PATH_MAX_LENGTH * sizeof(char));
+
+   for (i = 0; candidates[i]; i++)
+   {
+      if (!string_is_empty(candidates[i]) &&
+            strstr(in_path, candidates[i]) == in_path)
+      {
+         size_t src_size  = strlcpy(out_path, notations[i], size);
+
+         retro_assert(src_size < size);
+
+         out_path        += src_size;
+         size            -= src_size;
+         in_path         += strlen(candidates[i]);
+
+         if (!path_char_is_slash(*in_path))
+         {
+            retro_assert(strlcpy(out_path,
+                     path_default_slash(), size) < size);
+            out_path++;
+            size--;
+         }
+
+         break; /* Don't allow more abbrevs to take place. */
+      }
+   }
+
+   free(application_dir);
+   free(home_dir);
+#endif
+
+   retro_assert(strlcpy(out_path, in_path, size) < size);
+}
+
+/**
+ * path_basedir:
+ * @path               : path
+ *
+ * Extracts base directory by mutating path.
+ * Keeps trailing '/'.
+ **/
+void path_basedir_wrapper(char *path)
+{
+   char *last = NULL;
+   if (strlen(path) < 2)
+      return;
+
+#ifdef HAVE_COMPRESSION
+   /* We want to find the directory with the archive in basedir. */
+   last = (char*)path_get_archive_delim(path);
+   if (last)
+      *last = '\0';
+#endif
+
+   last = find_last_slash(path);
+
+   if (last)
+      last[1] = '\0';
+   else
+      snprintf(path, 3, ".%s", path_default_slash());
+}
+
+#if !defined(RARCH_CONSOLE) && defined(RARCH_INTERNAL)
+void fill_pathname_application_path(char *s, size_t len)
+{
+   size_t i;
+#ifdef __APPLE__
+  CFBundleRef bundle = CFBundleGetMainBundle();
+#endif
+#ifdef _WIN32
+   DWORD ret = 0;
+   wchar_t wstr[PATH_MAX_LENGTH] = {0};
+#endif
+#ifdef __HAIKU__
+   image_info info;
+   int32_t cookie = 0;
+#endif
+   (void)i;
+
+   if (!len)
+      return;
+
+#if defined(_WIN32)
+#ifdef LEGACY_WIN32
+   ret    = GetModuleFileNameA(NULL, s, len);
+#else
+   ret    = GetModuleFileNameW(NULL, wstr, ARRAY_SIZE(wstr));
+
+   if (*wstr)
+   {
+      char *str = utf16_to_utf8_string_alloc(wstr);
+
+      if (str)
+      {
+         strlcpy(s, str, len);
+         free(str);
+      }
+   }
+#endif
+   s[ret] = '\0';
+#elif defined(__APPLE__)
+   if (bundle)
+   {
+      CFURLRef bundle_url     = CFBundleCopyBundleURL(bundle);
+      CFStringRef bundle_path = CFURLCopyPath(bundle_url);
+      CFStringGetCString(bundle_path, s, len, kCFStringEncodingUTF8);
+#ifdef HAVE_COCOATOUCH
+      {
+         /* This needs to be done so that the path becomes 
+          * /private/var/... and this
+          * is used consistently throughout for the iOS bundle path */
+         char resolved_bundle_dir_buf[PATH_MAX_LENGTH] = {0};
+         if (realpath(s, resolved_bundle_dir_buf))
+         {
+            strlcpy(s, resolved_bundle_dir_buf, len - 1);
+            strlcat(s, "/", len);
+         }
+      }
+#endif
+
+      CFRelease(bundle_path);
+      CFRelease(bundle_url);
+#ifndef HAVE_COCOATOUCH
+      /* Not sure what this does but it breaks 
+       * stuff for iOS, so skipping */
+      retro_assert(strlcat(s, "nobin", len) < len);
+#endif
+      return;
+   }
+#elif defined(__HAIKU__)
+   while (get_next_image_info(0, &cookie, &info) == B_OK)
+   {
+      if (info.type == B_APP_IMAGE)
+      {
+         strlcpy(s, info.name, len);
+         return;
+      }
+   }
+#elif defined(__QNX__)
+   char *buff = malloc(len);
+
+   if (_cmdname(buff))
+      strlcpy(s, buff, len);
+
+   free(buff);
+#else
+   {
+      pid_t pid;
+      static const char *exts[] = { "exe", "file", "path/a.out" };
+      char link_path[255];
+
+      link_path[0] = *s = '\0';
+      pid       = getpid();
+
+      /* Linux, BSD and Solaris paths. Not standardized. */
+      for (i = 0; i < ARRAY_SIZE(exts); i++)
+      {
+         ssize_t ret;
+
+         snprintf(link_path, sizeof(link_path), "/proc/%u/%s",
+               (unsigned)pid, exts[i]);
+         ret = readlink(link_path, s, len - 1);
+
+         if (ret >= 0)
+         {
+            s[ret] = '\0';
+            return;
+         }
+      }
+   }
+#endif
+}
+
+void fill_pathname_application_dir(char *s, size_t len)
+{
+#ifdef __WINRT__
+   strlcpy(s, uwp_dir_install, len);
+#else
+   fill_pathname_application_path(s, len);
+   path_basedir_wrapper(s);
+#endif
+}
+
+void fill_pathname_home_dir(char *s, size_t len)
+{
+#ifdef __WINRT__
+   strlcpy(s, uwp_dir_data, len);
+#else
+   const char *home = getenv("HOME");
+   if (home)
+      strlcpy(s, home, len);
+   else
+      *s = 0;
+#endif
+}
+#endif
+
+bool is_path_accessible_using_standard_io(const char *path)
+{
+#ifdef __WINRT__
+   bool result;
+   size_t         path_sizeof = PATH_MAX_LENGTH * sizeof(char);
+   char *relative_path_abbrev = (char*)malloc(path_sizeof);
+   fill_pathname_abbreviate_special(relative_path_abbrev, path, path_sizeof);
+
+   result = strlen(relative_path_abbrev) >= 2 && (relative_path_abbrev[0] == ':' || relative_path_abbrev[0] == '~') && path_char_is_slash(relative_path_abbrev[1]);
+
+   free(relative_path_abbrev);
+   return result;
+#else
+   return true;
+#endif
 }

@@ -60,6 +60,8 @@ lutro_settings_t settings = {
    .fps = 0
 };
 
+struct retro_perf_callback perf_cb;
+
 #if 0
 static void dumpstack( lua_State* L )
 {

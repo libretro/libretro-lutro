@@ -190,6 +190,7 @@ else ifeq ($(platform), ctr)
 else ifeq ($(platform), libnx)
 	include $(DEVKITPRO)/libnx/switch_rules
 	TARGET := $(TARGET_NAME)_libretro_$(platform).a
+	fpic := -fPIC
 	DEFINES += -D__SWITCH__ -DHAVE_LIBNX -I$(LIBNX)/include/ -specs=$(LIBNX)/switch.specs
 	DEFINES += -march=armv8-a -mtune=cortex-a57 -mtp=soft -mcpu=cortex-a57+crc+fp+simd -ffast-math
 	LUA_MYCFLAGS := $(DEFINES) $(CFLAGS)

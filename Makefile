@@ -182,7 +182,7 @@ else ifeq ($(platform), ctr)
 	AR = $(DEVKITARM)/bin/arm-none-eabi-ar$(EXE_EXT)
 	DEFINES += -DARM11 -D_3DS -march=armv6k -mtune=mpcore -mfloat-abi=hard
 	LUA_MYCFLAGS := $(DEFINES) $(CFLAGS)
-	STATIC_LINKING = 1
+	STATIC_LINKING :=1
 	WANT_PHYSFS=0
 	MMD :=
 
@@ -325,7 +325,7 @@ else
 endif
 
 deps/lua/src/liblua.a:
-	$(MAKE) -C deps/lua/src CC="$(CC) $(LUADEFINES)" CXX="$(CXX)" MYCFLAGS="$(LUA_MYCFLAGS) -w -g $(fpic)" MYLDFLAGS="$(LDFLAGS) $(fpic)" SYSCFLAGS="$(LUA_SYSCFLAGS) $(fpic)" libretro
+	$(MAKE) -C deps/lua/src CC="$(CC) $(LUADEFINES)" CXX="$(CXX)" MYCFLAGS="$(LUA_MYCFLAGS) -w -g $(fpic)" MYLDFLAGS="$(LDFLAGS) $(fpic)" SYSCFLAGS="$(LUA_SYSCFLAGS) $(fpic)" liblua.a
 deps/luajit/src/libluajit.a:
 	$(MAKE) -C deps/luajit/src BUILDMODE=static CFLAGS="$(LUA_MYCFLAGS) $(fpic)" Q= LDFLAGS="$(fpic)"
 

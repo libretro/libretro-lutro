@@ -51,7 +51,6 @@ SOURCES_C += $(LUALIB_DIR)/lapi.c \
                  $(LUALIB_DIR)/ltable.c \
                  $(LUALIB_DIR)/ltablib.c \
                  $(LUALIB_DIR)/ltm.c \
-                 $(LUALIB_DIR)/lua.c \
                  $(LUALIB_DIR)/lvm.c \
                  $(LUALIB_DIR)/lzio.c \
                  $(LUALIB_DIR)/ldebug.c \

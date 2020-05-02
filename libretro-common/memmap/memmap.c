@@ -148,7 +148,7 @@ int memsync(void *start, void *end)
 #elif defined(HAVE_MMAN)
    return msync(start, len, MS_SYNC | MS_INVALIDATE
 #ifdef __QNX__
-         MS_CACHE_ONLY
+         | MS_CACHE_ONLY | MS_INVALIDATE_ICACHE
 #endif
          );
 #else

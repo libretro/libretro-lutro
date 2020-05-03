@@ -104,6 +104,12 @@ else ifeq ($(platform), qnx)
    fpic := -fPIC
    SHARED := -shared -Wl,--no-undefined
    MMD :=
+   CC = qcc -Vgcc_ntoarmv7le
+   CXX = QCC -Vgcc_ntoarmv7le
+   # Blackberry is fully capable to do thumb2 but gcc 4.6.3 crashes on
+   # physfs/7z compilation. Also cdrom part of physfs fails to compile
+   # but we don't need it anyway
+   CFLAGS += -marm -mthumb-interwork -DPHYSFS_NO_CDROM_SUPPORT=1
 else ifeq ($(platform), emscripten)
    TARGET := $(TARGET_NAME)_libretro_$(platform).bc
    STATIC_LINKING = 1

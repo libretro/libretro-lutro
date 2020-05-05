@@ -135,13 +135,14 @@ else ifeq ($(platform), psp1)
 # Vita
 else ifeq ($(platform), vita)
    TARGET := $(TARGET_NAME)_libretro_$(platform).a
-   fpic :=
+   fpic := -fno-PIC
 	CC = arm-vita-eabi-gcc$(EXE_EXT)
 	CXX = arm-vita-eabi-g++$(EXE_EXT)
 	AR = arm-vita-eabi-ar$(EXE_EXT)
-   DEFINES := -DVITA  -DLSB_FIRST -DHAVE_ASPRINTF
+   DEFINES := -DVITA  -DHAVE_ASPRINTF
    LUA_MYCFLAGS := $(DEFINES) $(CFLAGS)
    STATIC_LINKING = 1
+	WANT_PHYSFS=0
    MMD :=
 
 else ifeq ($(platform), ngc)

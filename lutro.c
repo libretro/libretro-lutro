@@ -271,6 +271,10 @@ void lutro_init()
    lutro_require(L, "lutro.live", 1);
 #endif
 
+   // Mirror the lutro namespace to "love".
+   luaL_dostring(L, "love = lutro");
+
+   // Initialize the filesystem.
    lutro_filesystem_init();
 
    lutro_checked_stack_assert(0);

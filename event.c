@@ -14,9 +14,7 @@ int lutro_event_preload(lua_State *L)
    };
 
    lutro_ensure_global_table(L, "lutro");
-
    luaL_newlib(L, event_funcs);
-
    lua_setfield(L, -2, "event");
 
    return 1;

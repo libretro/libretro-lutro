@@ -32,7 +32,7 @@ int lutro_math_preload(lua_State *L)
 /**
  * rand()/RAND_MAX can only return RAND_MAX possible values
  * inlcuding 0 and 1, seemingly skewing the odds in their favor
- * 
+ *
  * rand() % x usually slightly favors smaller numbers
  */
 int lutro_math_random(lua_State *L)

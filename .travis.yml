@@ -1,10 +1,58 @@
-sudo: required
-
-services:
-  - docker
-
-script:
-  - make docker
-
-notifications:
-  email: false
+branches:
+  only:
+  - master
+  - "/^v.*$/"
+language: cpp
+matrix:
+  include:
+  - name: Linux x86_64
+    dist: bionic
+    script:
+    - make -j 4
+    - zip lutro-Linux-x86_64.zip lutro_libretro.so
+  - name: Linux arm64
+    dist: bionic
+    arch: arm64
+    before_install:
+    - sudo apt-get install zip
+    script:
+    - make -j 4
+    - zip lutro-Linux-arm64.zip lutro_libretro.so
+  - name: Linux armv7 neon
+    dist: bionic
+    services:
+    - docker
+    before_install:
+    - sudo apt-get install zip
+    script:
+    - docker pull dockcross/linux-armv7
+    - docker run --rm -v "$PWD":/usr/src/myapp -w /usr/src/myapp dockcross/linux-armv7
+      make platform=unix-armv-neon-hardfloat -j 4
+    - zip lutro-Linux-arm.zip lutro_libretro.so
+  - name: OSX x86_64
+    os: osx
+    osx_image: xcode11.2
+    script:
+    - make -j 4
+    - zip lutro-OSX-x86_64.zip lutro_libretro.dylib
+  - name: Windows x86_64
+    os: windows
+    before_install:
+    - choco install make --ignore-checksums
+    script:
+    - make platform=win -j 4
+    - 7z a lutro-Windows-x86_64.zip lutro_libretro.dll
+deploy:
+  skip_cleanup: true
+  provider: releases
+  api_key:
+    secure: k7J+J7EUW+/e51Dna8YN5woxe1SXmN0VGXnhL7Lx7thvhHqtoHaWZxWZ4CUsLd1JuKbGiYCKQKQ8LUKi4qRDagSbPjiTJAjL3Jb9WbItQ7cwpn+f9zIMYGENbfXsuS2bwqntdIVZjUHkMTH3x6VGfoV6ADyOg/UN53LlI2409TlGIpFObtiLk5gEsYexvfTEFN8OEPypf1NZ3kOsVKIyvx3bZcyn/+n9kvkZz5GTstAMGj3a9UgrIrpx6b1K17QbqEcdAD9aU1qGMA5+ji0Q7La6KCZ0X2ZEFLl/6Mh56BLv9ROuLz5BXdlzpFuNlkAUBpLUqsGJTCCMoTEdSJSE8Xr8Fq/E4RxCc8rvtMlL9REoVyKR5nyH7M05a7yz2UtHmOJAn6W2yFBXu0s7xqtSxynVQzYaTRwLTxY+LfjdfRbpGHb/jnFPBJsNdx0WYAbo3tyDYsBkI+5lWj2Nc3PkoBTaFZAhIGHc6QpgTlJFHAagXOFFRVl3Tgf6QxBdTV/hnxtbXEtzvwJ2Umcu2ENUDLCm8Yw/1Lwu85Htj3tErLQgjz7CF5wvG/QNSnFOXT1ZmshJcTxZzYt3Yv7H3fQ95YFXmsoxRARHFgMWcQpOYKkQRrI6ffdUjmX8CBa0puuThG/46915qlGDy5HArwaRhpp6jzK33QXB3T7I6nJhQck=
+  file:
+  - lutro-Linux-x86_64.zip
+  - lutro-Linux-arm64.zip
+  - lutro-Linux-arm.zip
+  - lutro-OSX-x86_64.zip
+  - lutro-Windows-x86_64.zip
+  on:
+    repo: piepacker/lutro
+    tags: true

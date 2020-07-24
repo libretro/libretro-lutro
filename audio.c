@@ -31,7 +31,7 @@ void mixer_render(int16_t *buffer)
             sources[i]->sndta.fp);
 
       int16_t* rawsamples16 = (int16_t*)rawsamples8;
-      
+
       for (unsigned j = 0; j < AUDIO_FRAMES; j++)
       {
          int16_t left = 0;

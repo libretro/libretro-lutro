@@ -366,6 +366,6 @@ docker-kill:
 	@-docker rm -f retroarch
 
 test: all
-	retroarch -L lutro_libretro.so test
+	retroarch --verbose -L lutro_libretro.so test/main.lua
 
 .PHONY: clean

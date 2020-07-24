@@ -11,6 +11,12 @@ function UTF8Test()
 	unit.assertEquals(actual, 12)
 end
 
+function love.system.getProcessorCountTest()
+	local count = love.system.getProcessorCount()
+	unit.assertIsNumber(count)
+	unit.assertEquals(count, 1)
+end
+
 function lutro.filesystem.setRequirePathTest()
 	local paths = lutro.filesystem.getRequirePath()
 	paths = paths .. ';/lutro.filesystem.setRequirePathTest/?.lua'
@@ -196,6 +202,7 @@ function runTests()
 	lutro.system.getPowerInfoTest()
 	lutro.system.openURLTest()
 	lutro.system.getProcessorCountTest()
+	love.system.getProcessorCountTest()
 	lutro.system.getClipboardTextTest()
 	lutro.system.setClipboardTextTest()
 

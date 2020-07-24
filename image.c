@@ -27,9 +27,7 @@ int lutro_image_preload(lua_State *L)
    };
 
    lutro_ensure_global_table(L, "lutro");
-
    luaL_newlib(L, img_funcs);
-
    lua_setfield(L, -2, "image");
 
    return 1;

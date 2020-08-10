@@ -60,6 +60,8 @@ int fs_read(lua_State *L)
 {
    const char *path = luaL_checkstring(L, 1);
 
+   int n = lua_gettop(L);
+
    char fullpath[PATH_MAX_LENGTH];
    strlcpy(fullpath, settings.gamedir, sizeof(fullpath));
    strlcat(fullpath, path, sizeof(fullpath));
@@ -68,13 +70,22 @@ int fs_read(lua_State *L)
    if (!fp)
       return -1;
 
+   long fsize = 0;
+
+   if ( n > 1 )
+	fsize = luaL_checknumber(L, 2);
+
+   if (fsize < 1 ){
    fseek(fp, 0, SEEK_END);
-   long fsize = ftell(fp);
+   fsize = ftell(fp);
    fseek(fp, 0, SEEK_SET);
+   }
 
    char *string      = malloc(fsize + 1);
    size_t bytes_read = fread(string, 1, fsize, fp);
    fclose(fp);
+
+   //fprintf(stderr, "%lu\n", bytes_read);
 
    string[bytes_read] = 0;
 

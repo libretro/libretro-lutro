@@ -223,7 +223,6 @@ else ifneq (,$(findstring armv,$(platform)))
    SHARED := -shared -Wl,--no-undefined
    fpic := -fPIC
    CFLAGS += -D_GNU_SOURCE=1
-   CC = gcc
 ifneq (,$(findstring cortexa8,$(platform)))
    CFLAGS += -marm -mcpu=cortex-a8
    ASFLAGS += -mcpu=cortex-a8

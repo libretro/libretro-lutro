@@ -6,8 +6,6 @@
 include:
   - template: Jobs/Code-Quality.gitlab-ci.yml
   - project: 'libretro-infrastructure/ci-templates'
-    file: '/libnx-static.yml'
-  - project: 'libretro-infrastructure/ci-templates'
     file: '/vita-static.yml'
   - project: 'libretro-infrastructure/ci-templates'
     file: '/linux-x64.yml'
@@ -59,13 +57,6 @@ android-x86:
     - .libretro-android-jni-x86
 
 # Static
-libretro-build-libnx-aarch64:
-  extends:
-    - .core-defs
-    - .libretro-libnx-static-retroarch-master
-  variables:
-    MAKEFILE: Makefile
-
 libretro-build-vita:
   extends:
     - .core-defs

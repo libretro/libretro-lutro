@@ -25,6 +25,8 @@ void mixer_render(int16_t *buffer)
       uint8_t* rawsamples8 = calloc(
          AUDIO_FRAMES * sources[i]->bps, sizeof(uint8_t));
 
+      fseek(sources[i]->sndta.fp, WAV_HEADER_SIZE + sources[i]->pos, SEEK_SET);
+
       bool end = ! fread(rawsamples8,
             sizeof(uint8_t),
             AUDIO_FRAMES * sources[i]->bps,
@@ -42,6 +44,7 @@ void mixer_render(int16_t *buffer)
          if (sources[i]->sndta.head.NumChannels == 2 && sources[i]->sndta.head.BitsPerSample == 16) { left = rawsamples16[j*2+0]; right=rawsamples16[j*2+1]; }
          buffer[j*2+0] += left  * sources[i]->volume * volume;
          buffer[j*2+1] += right * sources[i]->volume * volume;
+         sources[i]->pos += sources[i]->bps;
       }
 
       if (end)
@@ -49,6 +52,7 @@ void mixer_render(int16_t *buffer)
          if (!sources[i]->loop)
             sources[i]->state = AUDIO_STOPPED;
          fseek(sources[i]->sndta.fp, WAV_HEADER_SIZE, SEEK_SET);
+         sources[i]->pos = 0;
       }
 
       free(rawsamples8);
@@ -123,6 +127,7 @@ int audio_newSource(lua_State *L)
    self->bps = self->sndta.head.NumChannels * self->sndta.head.BitsPerSample / 8;
    self->loop = false;
    self->volume = 1.0;
+   self->pos = 0;
    self->state = AUDIO_STOPPED;
    fseek(self->sndta.fp, 0, SEEK_END);
 
@@ -133,18 +138,20 @@ int audio_newSource(lua_State *L)
    if (luaL_newmetatable(L, "Source") != 0)
    {
       static luaL_Reg audio_funcs[] = {
-         { "play",       audio_play }, /* We can reuse audio_play and */
-         { "stop",       audio_stop }, /* audio_stop here. */
-         { "setLooping", source_setLooping },
-         { "isLooping",  source_isLooping },
-         { "isStopped",  source_isStopped },
-         { "isPaused",   source_isPaused },
-         { "isPlaying",  source_isPlaying },
-         { "setVolume",  source_setVolume },
-         { "getVolume",  source_getVolume },
-         { "setPitch",   source_setPitch },
-         { "getPitch",   source_getPitch },
-         { "__gc",       source_gc },
+         { "play",        audio_play }, /* We can reuse audio_play and */
+         { "stop",        audio_stop }, /* audio_stop here. */
+         { "setLooping",  source_setLooping },
+         { "isLooping",   source_isLooping },
+         { "isStopped",   source_isStopped },
+         { "isPaused",    source_isPaused },
+         { "isPlaying",   source_isPlaying },
+         { "setVolume",   source_setVolume },
+         { "getVolume",   source_getVolume },
+         { "setPosition", source_setPosition },
+         { "getPosition", source_getPosition },
+         { "setPitch",    source_setPitch },
+         { "getPitch",    source_getPitch },
+         { "__gc",        source_gc },
          {NULL, NULL}
       };
 
@@ -241,6 +248,26 @@ int source_getVolume(lua_State *L)
    audio_Source* self = (audio_Source*)luaL_checkudata(L, 1, "Source");
    lua_pushnumber(L, self->volume);
    return 1;
+}
+
+int source_getPosition(lua_State *L)
+{
+   audio_Source* self = (audio_Source*)luaL_checkudata(L, 1, "Source");
+   lua_pushnumber(L, self->pos);
+   return 1;
+}
+
+int source_setPosition(lua_State *L)
+{
+   int n = lua_gettop(L);
+
+   if (n != 2)
+      return luaL_error(L, "Source:setPosition requires 2 arguments, %d given.", n);
+
+   audio_Source* self = (audio_Source*)luaL_checkudata(L, 1, "Source");
+   self->pos = (unsigned)luaL_checknumber(L, 2);
+
+   return 0;
 }
 
 int source_setPitch(lua_State *L)

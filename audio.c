@@ -138,20 +138,20 @@ int audio_newSource(lua_State *L)
    if (luaL_newmetatable(L, "Source") != 0)
    {
       static luaL_Reg audio_funcs[] = {
-         { "play",        audio_play }, /* We can reuse audio_play and */
-         { "stop",        audio_stop }, /* audio_stop here. */
-         { "setLooping",  source_setLooping },
-         { "isLooping",   source_isLooping },
-         { "isStopped",   source_isStopped },
-         { "isPaused",    source_isPaused },
-         { "isPlaying",   source_isPlaying },
-         { "setVolume",   source_setVolume },
-         { "getVolume",   source_getVolume },
-         { "setPosition", source_setPosition },
-         { "getPosition", source_getPosition },
-         { "setPitch",    source_setPitch },
-         { "getPitch",    source_getPitch },
-         { "__gc",        source_gc },
+         { "play",       audio_play }, /* We can reuse audio_play and */
+         { "stop",       audio_stop }, /* audio_stop here. */
+         { "setLooping", source_setLooping },
+         { "isLooping",  source_isLooping },
+         { "isStopped",  source_isStopped },
+         { "isPaused",   source_isPaused },
+         { "isPlaying",  source_isPlaying },
+         { "setVolume",  source_setVolume },
+         { "getVolume",  source_getVolume },
+         { "seek",       source_seek },
+         { "tell",       source_tell },
+         { "setPitch",   source_setPitch },
+         { "getPitch",   source_getPitch },
+         { "__gc",       source_gc },
          {NULL, NULL}
       };
 
@@ -250,19 +250,19 @@ int source_getVolume(lua_State *L)
    return 1;
 }
 
-int source_getPosition(lua_State *L)
+int source_tell(lua_State *L)
 {
    audio_Source* self = (audio_Source*)luaL_checkudata(L, 1, "Source");
    lua_pushnumber(L, self->pos);
    return 1;
 }
 
-int source_setPosition(lua_State *L)
+int source_seek(lua_State *L)
 {
    int n = lua_gettop(L);
 
-   if (n != 2)
-      return luaL_error(L, "Source:setPosition requires 2 arguments, %d given.", n);
+   if (n != 3)
+      return luaL_error(L, "Source:seek requires 3 arguments, %d given.", n);
 
    audio_Source* self = (audio_Source*)luaL_checkudata(L, 1, "Source");
    self->pos = (unsigned)luaL_checknumber(L, 2);

@@ -46,8 +46,8 @@ int source_isPaused(lua_State *L);
 int source_isPlaying(lua_State *L);
 int source_getVolume(lua_State *L);
 int source_setVolume(lua_State *L);
-int source_getPosition(lua_State *L);
-int source_setPosition(lua_State *L);
+int source_tell(lua_State *L);
+int source_seek(lua_State *L);
 int source_getPitch(lua_State *L);
 int source_setPitch(lua_State *L);
 

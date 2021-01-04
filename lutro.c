@@ -622,3 +622,26 @@ void lutro_run(double delta)
 
    lua_gc(L, LUA_GCSTEP, 0);
 }
+
+void lutro_reset()
+{
+   lua_pushcfunction(L, db_errorfb);
+
+   lua_getglobal(L, "lutro");
+   lua_getfield(L, -1, "reset");
+
+   if (lua_isfunction(L, -1))
+   {
+      if(lua_pcall(L, 0, 0, 0))
+      {
+         fprintf(stderr, "%s\n", lua_tostring(L, -1));
+         lua_pop(L, 1);
+      }
+   } else {
+      lua_pop(L, 1);
+   }
+
+   lua_pop(L, 2);
+
+   lua_gc(L, LUA_GCSTEP, 0);
+}

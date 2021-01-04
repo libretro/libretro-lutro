@@ -632,6 +632,8 @@ void lutro_reset()
 
    if (lua_isfunction(L, -1))
    {
+      lutro_audio_deinit();
+      lutro_audio_init();
       if(lua_pcall(L, 0, 0, 0))
       {
          fprintf(stderr, "%s\n", lua_tostring(L, -1));

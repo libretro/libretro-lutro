@@ -163,8 +163,6 @@ void retro_set_video_refresh(retro_video_refresh_t cb)
 
 void retro_reset(void)
 {
-   lutro_audio_deinit();
-   lutro_audio_init();
    lutro_reset();
 }
 

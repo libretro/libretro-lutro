@@ -82,7 +82,7 @@ int lutro_audio_preload(lua_State *L)
 void lutro_audio_init()
 {
    num_sources = 0;
-   audio_Source** sources = NULL;
+   sources = NULL;
    volume = 1.0;
 }
 

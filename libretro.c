@@ -163,6 +163,7 @@ void retro_set_video_refresh(retro_video_refresh_t cb)
 
 void retro_reset(void)
 {
+   lutro_reset();
 }
 
 static void frame_time_cb(retro_usec_t usec)

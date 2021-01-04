@@ -643,7 +643,7 @@ void lutro_reset()
       lua_pop(L, 1);
    }
 
-   lua_pop(L, 2);
+   lua_pop(L, 3);
 
    lua_gc(L, LUA_GCSTEP, 0);
 }

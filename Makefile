@@ -61,7 +61,7 @@ ifeq ($(platform), unix)
    LDFLAGS += -Wl,-E
 
 ifeq ($(ARCH), $(filter $(ARCH), intel))
-	WANT_JIT = 0
+	WANT_JIT = 1
 endif
 else ifeq ($(platform), linux-portable)
    TARGET := $(TARGET_NAME)_libretro.so

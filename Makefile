@@ -29,6 +29,9 @@ ifeq ($(shell uname -a),)
 else ifneq ($(findstring Darwin,$(shell uname -a)),)
 	system_platform = osx
 	arch = intel
+ifeq ($(shell uname -p),arm)
+	arch = arm
+endif
 ifeq ($(shell uname -p),powerpc)
 	arch = ppc
 endif
@@ -44,13 +47,6 @@ endif
 LIBM := -lm
 STATIC_LINKING := 0
 
-ifeq ($(ARCHFLAGS),)
-ifeq ($(archs),ppc)
-   ARCHFLAGS = -arch ppc -arch ppc64
-else
-   ARCHFLAGS = -arch i386 -arch x86_64
-endif
-endif
 
 ifeq ($(platform), unix)
    TARGET := $(TARGET_NAME)_libretro.so
@@ -77,8 +73,33 @@ else ifeq ($(platform), osx)
    SHARED := -dynamiclib
    LUA_SYSCFLAGS := -DLUA_USE_MACOSX
    CFLAGS += -DHAVE_STRL
-WANT_PHYSFS=0
+   WANT_PHYSFS=0
    MMD :=
+
+ifeq ($(UNIVERSAL),1)
+ifeq ($(ARCHFLAGS),)
+   ARCHFLAGS = -arch i386 -arch x86_64
+endif
+ifeq ($(archs),arm)
+   ARCHFLAGS = -arch arm64
+endif
+ifeq ($(archs),ppc)
+   ARCHFLAGS = -arch ppc -arch ppc64
+endif
+endif
+
+   ifeq ($(CROSS_COMPILE),1)
+	TARGET_RULE   = -target $(LIBRETRO_APPLE_PLATFORM) -isysroot $(LIBRETRO_APPLE_ISYSROOT)
+	CFLAGS   += $(TARGET_RULE)
+	CPPFLAGS += $(TARGET_RULE)
+	CXXFLAGS += $(TARGET_RULE)
+	LDFLAGS  += $(TARGET_RULE)
+   endif
+
+	CFLAGS  += $(ARCHFLAGS)
+	CXXFLAGS  += $(ARCHFLAGS)
+	LDFLAGS += $(ARCHFLAGS)
+
 # iOS
 else ifneq (,$(findstring ios,$(platform)))
 
@@ -86,19 +107,27 @@ else ifneq (,$(findstring ios,$(platform)))
    fpic := -fPIC
    SHARED := -dynamiclib
    DEFINES := -DIOS
-   CC = cc -arch armv7 -isysroot $(IOSSDK)
    CFLAGS += -DHAVE_STRL
+ifeq ($(IOSSDK),)
+   IOSSDK := $(shell xcodebuild -version -sdk iphoneos Path)
+endif
+ifeq ($(platform),ios-arm64)
+  CC = cc -arch arm64 -isysroot $(IOSSDK)
+else
+  CC = cc -arch armv7 -isysroot $(IOSSDK)
+endif
 IPHONEMINVER :=
 ifeq ($(platform),ios9)
-	IPHONEMINVER = -miphoneos-version-min=8.0
+   IPHONEMINVER = -miphoneos-version-min=8.0
 else
-	IPHONEMINVER = -miphoneos-version-min=6.0
+   IPHONEMINVER = -miphoneos-version-min=6.0
 endif
    LDFLAGS += $(IPHONEMINVER)
    FLAGS += $(IPHONEMINVER)
-   CC += $(IPHONEMINVER)
-   CXX += $(IPHONEMINVER)
-	WANT_PHYSFS=0
+   CCFLAGS += $(IPHONEMINVER)
+   CXXFLAGS += $(IPHONEMINVER)
+   WANT_PHYSFS=0
+
 else ifeq ($(platform), qnx)
    TARGET := $(TARGET_NAME)_libretro_$(platform).so
    fpic := -fPIC

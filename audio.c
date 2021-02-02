@@ -2,8 +2,11 @@
 #include "lutro.h"
 #include "compat/strl.h"
 
+#include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
+#include <file/file_path.h>
+#include <audio/conversion/float_to_s16.h>
 
 /* TODO/FIXME - no sound on big-endian */
 
@@ -396,7 +399,6 @@ int audio_stop(lua_State *L)
    //OGG file
    else if (self->oggData)
    {
-      printf("audio_stop");
       success = decoder_seekStart(self->oggData);
       if (success)
          self->state = AUDIO_STOPPED;

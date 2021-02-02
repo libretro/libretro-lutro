@@ -4,19 +4,35 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 
 /* TODO/FIXME - no sound on big-endian */
 
 static unsigned num_sources = 0;
 static audio_Source** sources = NULL;
-static float volume = 0.5;
+static float volume = 1.0;
 
-int16_t clip(int16_t in) {
-   if (in > 32767)
-      in = 32767;
-   if (in < -32768)
-      in = -32768;
-   return in;
+// The following types are acceptable for pre-saturated mixing, as they meet the requirement for
+// having a larger range than the saturated mixer result type of int16_t. double precision should
+// be preferred on x86/amd64, and single precision on ARM. float16 could also work as an input
+// but care must be taken to saturate at INT16_MAX-1 and INT16_MIN+1 due to float16 not having a
+// 1:1 representation of whole numbers in the in16 range.
+//
+// TODO: set up appropriate compiler defs for mixer presaturate type.
+
+typedef float   mixer_presaturate_t;
+#define cvt_presaturate_to_int16(in)   (roundf(in))
+
+//typedef double  mixer_presaturate_t;
+//#define cvt_presaturate_to_int16(in)   (round(in))
+
+//typedef int32_t mixer_presaturate_t;
+//#define cvt_presaturate_to_int16(in)   ((int16_t)in)
+
+static int16_t saturate(mixer_presaturate_t in) {
+   if (in >=  INT16_MAX) { return INT16_MAX; }
+   if (in <=  INT16_MIN) { return INT16_MIN; }
+   return cvt_presaturate_to_int16(in);
 }
 
 void mixer_render(int16_t *buffer)
@@ -44,16 +60,14 @@ void mixer_render(int16_t *buffer)
 
       for (unsigned j = 0; j < AUDIO_FRAMES; j++)
       {
-         int16_t left = 0;
-         int16_t right = 0;
+         mixer_presaturate_t left = 0;
+         mixer_presaturate_t right = 0;
          if (sources[i]->sndta.head.NumChannels == 1 && sources[i]->sndta.head.BitsPerSample ==  8) { left = right = rawsamples8[j]*64; }
          if (sources[i]->sndta.head.NumChannels == 2 && sources[i]->sndta.head.BitsPerSample ==  8) { left = rawsamples8[j*2+0]*64; right=rawsamples8[j*2+1]*64; }
          if (sources[i]->sndta.head.NumChannels == 1 && sources[i]->sndta.head.BitsPerSample == 16) { left = right = rawsamples16[j]; }
          if (sources[i]->sndta.head.NumChannels == 2 && sources[i]->sndta.head.BitsPerSample == 16) { left = rawsamples16[j*2+0]; right=rawsamples16[j*2+1]; }
-         buffer[j*2+0] += left * sources[i]->volume * volume;
-         buffer[j*2+0] = clip(buffer[j*2+0]);
-         buffer[j*2+1] += right * sources[i]->volume * volume;
-         buffer[j*2+1] = clip(buffer[j*2+1]);
+         buffer[j*2+0] = saturate(buffer[j*2+0] + (left  * sources[i]->volume * volume));
+         buffer[j*2+1] = saturate(buffer[j*2+1] + (right * sources[i]->volume * volume));
          sources[i]->pos += sources[i]->bps;
       }
 
@@ -93,7 +107,7 @@ void lutro_audio_init()
 {
    num_sources = 0;
    sources = NULL;
-   volume = 0.5;
+   volume = 1.0;
 }
 
 void lutro_audio_deinit()

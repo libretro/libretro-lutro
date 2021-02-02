@@ -11,10 +11,17 @@ static unsigned num_sources = 0;
 static audio_Source** sources = NULL;
 static float volume = 1.0;
 
+#define CHANNELS 2
+float floatBuffer[AUDIO_FRAMES * CHANNELS];
+int16_t convBuffer[AUDIO_FRAMES * CHANNELS];
+
 void mixer_render(int16_t *buffer)
 {
-   // Clear buffer
-   memset(buffer, 0, AUDIO_FRAMES * 2 * sizeof(int16_t));
+   // Clear buffers
+   memset(buffer, 0, AUDIO_FRAMES * CHANNELS * sizeof(int16_t));
+   memset(floatBuffer, 0, AUDIO_FRAMES * CHANNELS * sizeof(float));
+
+   bool floatBufferUsed = false;
 
    // Loop over audio sources
    for (unsigned i = 0; i < num_sources; i++)
@@ -22,6 +29,16 @@ void mixer_render(int16_t *buffer)
       if (sources[i]->state == AUDIO_STOPPED)
          continue;
 
+      //currently Ogg Vorbis
+      if (sources[i]->oggData)
+      {
+         bool finished = decoder_decodeOgg(sources[i]->oggData, floatBuffer, sources[i]->volume, sources[i]->loop);
+         if (finished)
+            sources[i]->state = AUDIO_STOPPED;
+         floatBufferUsed = true;
+         continue;
+      }
+      
       uint8_t* rawsamples8 = calloc(
          AUDIO_FRAMES * sources[i]->bps, sizeof(uint8_t));
 
@@ -57,6 +74,14 @@ void mixer_render(int16_t *buffer)
 
       free(rawsamples8);
    }
+
+   //add in accumulated float buffer
+   if (floatBufferUsed)
+   {
+      convert_float_to_s16(convBuffer, floatBuffer, AUDIO_FRAMES * CHANNELS); //convert to int
+      for (unsigned j = 0; j < AUDIO_FRAMES * CHANNELS; j++)
+         buffer[j] += convBuffer[j] * volume;
+   }
 }
 
 int lutro_audio_preload(lua_State *L)
@@ -90,6 +115,15 @@ void lutro_audio_deinit()
 {
    if (sources)
    {
+      for (unsigned i = 0; i < num_sources; i++)
+      {
+         if (sources[i]->oggData)
+         {
+            ov_clear(&sources[i]->oggData->vf);
+            free(sources[i]->oggData);
+         }
+      }
+
       free(sources);
       sources = NULL;
       num_sources = 0;
@@ -104,6 +138,8 @@ int audio_newSource(lua_State *L)
       return luaL_error(L, "lutro.audio.newSource requires 1 or 2 arguments, %d given.", n);
 
    audio_Source* self = (audio_Source*)lua_newuserdata(L, sizeof(audio_Source));
+   self->oggData = NULL;
+   self->sndta.fp = NULL;        
 
    void *p = lua_touserdata(L, 1);
    if (p == NULL)
@@ -114,12 +150,28 @@ int audio_newSource(lua_State *L)
       strlcpy(fullpath, settings.gamedir, sizeof(fullpath));
       strlcat(fullpath, path, sizeof(fullpath));
 
-      FILE *fp = fopen(fullpath, "rb");
-      if (!fp)
-         return -1;
+      //get file extension
+      char ext[PATH_MAX_LENGTH];
+      strcpy(ext, path_get_extension(path));
+      for(int i = 0; ext[i]; i++)
+         ext[i] = tolower(ext[i]);
+      
+      //ogg
+      if (strstr(ext, "ogg"))
+      {
+         self->oggData = malloc(sizeof(OggData));
+         decoder_initOgg(self->oggData, fullpath);
+      }
+      //default: WAV file
+      else
+      {
+         FILE *fp = fopen(fullpath, "rb");
+         if (!fp)
+            return -1;
 
-      fread(&self->sndta.head, sizeof(uint8_t), WAV_HEADER_SIZE, fp);
-      self->sndta.fp = fp;
+         fread(&self->sndta.head, sizeof(uint8_t), WAV_HEADER_SIZE, fp);
+         self->sndta.fp = fp;
+      }
    }
    else
    {
@@ -127,13 +179,17 @@ int audio_newSource(lua_State *L)
       self->sndta = *sndta;
    }
 
-   self->bps = self->sndta.head.NumChannels * self->sndta.head.BitsPerSample / 8;
    self->loop = false;
    self->volume = 1.0;
    self->pos = 0;
    self->state = AUDIO_STOPPED;
-   fseek(self->sndta.fp, 0, SEEK_END);
 
+   //WAV file
+   if (self->sndta.fp)
+   {
+      self->bps = self->sndta.head.NumChannels * self->sndta.head.BitsPerSample / 8;
+      fseek(self->sndta.fp, 0, SEEK_END);
+   }
    num_sources++;
    sources = (audio_Source**)realloc(sources, num_sources * sizeof(audio_Source));
    sources[num_sources-1] = self;
@@ -303,9 +359,24 @@ int source_gc(lua_State *L)
 int audio_play(lua_State *L)
 {
    audio_Source* self = (audio_Source*)luaL_checkudata(L, 1, "Source");
-   bool success = fseek(self->sndta.fp, WAV_HEADER_SIZE, SEEK_SET) == 0;
-   if (success)
-      self->state = AUDIO_PLAYING;
+
+   bool success = false;
+
+   //WAV file
+   if (self->sndta.fp)
+   {
+      success = fseek(self->sndta.fp, WAV_HEADER_SIZE, SEEK_SET) == 0;
+      if (success)
+        self->state = AUDIO_PLAYING;
+   }
+   //OGG file
+   else if (self->oggData)
+   {
+      success = decoder_seekStart(self->oggData);
+      if (success)
+         self->state = AUDIO_PLAYING;
+   }
+   
    lua_pushboolean(L, success);
    return 1;
 }
@@ -313,9 +384,24 @@ int audio_play(lua_State *L)
 int audio_stop(lua_State *L)
 {
    audio_Source* self = (audio_Source*)luaL_checkudata(L, 1, "Source");
-   bool success = fseek(self->sndta.fp, WAV_HEADER_SIZE, SEEK_SET) == 0;
-   if (success)
-      self->state = AUDIO_STOPPED;
+   bool success = false;
+
+   //WAV file
+   if (self->sndta.fp)
+   {
+      success = fseek(self->sndta.fp, WAV_HEADER_SIZE, SEEK_SET) == 0;
+      if (success)
+        self->state = AUDIO_STOPPED;
+   }
+   //OGG file
+   else if (self->oggData)
+   {
+      printf("audio_stop");
+      success = decoder_seekStart(self->oggData);
+      if (success)
+         self->state = AUDIO_STOPPED;
+   }
+   
    lua_pushboolean(L, success);
    return 1;
 }

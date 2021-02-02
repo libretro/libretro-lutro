@@ -9,7 +9,15 @@
 
 static unsigned num_sources = 0;
 static audio_Source** sources = NULL;
-static float volume = 1.0;
+static float volume = 0.5;
+
+int16_t clip(int16_t in) {
+   if (in > 32767)
+      in = 32767;
+   if (in < -32768)
+      in = -32768;
+   return in;
+}
 
 void mixer_render(int16_t *buffer)
 {
@@ -42,8 +50,10 @@ void mixer_render(int16_t *buffer)
          if (sources[i]->sndta.head.NumChannels == 2 && sources[i]->sndta.head.BitsPerSample ==  8) { left = rawsamples8[j*2+0]*64; right=rawsamples8[j*2+1]*64; }
          if (sources[i]->sndta.head.NumChannels == 1 && sources[i]->sndta.head.BitsPerSample == 16) { left = right = rawsamples16[j]; }
          if (sources[i]->sndta.head.NumChannels == 2 && sources[i]->sndta.head.BitsPerSample == 16) { left = rawsamples16[j*2+0]; right=rawsamples16[j*2+1]; }
-         buffer[j*2+0] += left  * sources[i]->volume * volume;
+         buffer[j*2+0] += left * sources[i]->volume * volume;
+         buffer[j*2+0] = clip(buffer[j*2+0]);
          buffer[j*2+1] += right * sources[i]->volume * volume;
+         buffer[j*2+1] = clip(buffer[j*2+1]);
          sources[i]->pos += sources[i]->bps;
       }
 
@@ -83,7 +93,7 @@ void lutro_audio_init()
 {
    num_sources = 0;
    sources = NULL;
-   volume = 1.0;
+   volume = 0.5;
 }
 
 void lutro_audio_deinit()

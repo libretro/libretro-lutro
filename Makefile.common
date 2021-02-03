@@ -67,6 +67,7 @@ SOURCES_C += $(CORE_DIR)/libretro-common/formats/png/rpng_decode.c \
 ifneq ($(STATIC_LINKING), 1)
 SOURCES_C += \
 				 $(CORE_DIR)/libretro-common/file/file_path.c \
+				 $(CORE_DIR)/libretro-common/features/features_cpu.c \
 				 $(CORE_DIR)/libretro-common/audio/conversion/float_to_s16.c \
 				 $(CORE_DIR)/libretro-common/audio/conversion/s16_to_float.c \
 				 $(CORE_DIR)/libretro-common/audio/audio_mix.c \

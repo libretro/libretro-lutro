@@ -6,7 +6,7 @@ WANT_LUALIB := 1
 
 include $(CORE_DIR)/Makefile.common
 
-COREFLAGS := -ffast-math -funroll-loops -DINLINE=inline -D__LIBRETRO__ -DFRONTEND_SUPPORTS_RGB565 -DLUA_USE_POSIX $(INCFLAGS)
+COREFLAGS := -ffast-math -funroll-loops -DINLINE=inline -D__LIBRETRO__ -DFRONTEND_SUPPORTS_RGB565 -DLUA_USE_POSIX $(INCFLAGS) -DDONT_WANT_ARM_OPTIMIZATIONS
 
 GIT_VERSION := " $(shell git rev-parse --short HEAD || echo unknown)"
 ifneq ($(GIT_VERSION)," unknown")

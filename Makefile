@@ -75,6 +75,9 @@ else ifeq ($(platform), osx)
    CFLAGS += -DHAVE_STRL
    WANT_PHYSFS=0
    MMD :=
+ifeq ($(shell uname -p),arm)
+   CFLAGS += -DDONT_WANT_ARM_OPTIMIZATIONS
+endif
 
 ifeq ($(UNIVERSAL),1)
 ifeq ($(ARCHFLAGS),)
@@ -223,6 +226,7 @@ else ifeq ($(platform), ctr)
 	STATIC_LINKING :=1
 	WANT_PHYSFS=0
 	MMD :=
+	DEFINES += -DDONT_WANT_ARM_OPTIMIZATIONS
 
 # Nintendo Switch (libnx)
 else ifeq ($(platform), libnx)

@@ -1,0 +1,34 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  build_linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: make -j4
+
+  build_linux_armv7_neon:
+    runs-on: ubuntu-latest
+    container: dockcross/linux-armv7
+    steps:
+      - uses: actions/checkout@v2
+      - run: make platform=unix-armv7-neon-hardfloat -j4
+
+  build_osx:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: make platform=osx -j4
+
+  build_windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: CC=gcc make platform=win -j4
+

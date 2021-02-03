@@ -305,7 +305,7 @@ CORE_DIR := .
 
 include Makefile.common
 
-OBJS += $(SOURCES_C:.c=.o) $(SOURCES_CXX:.cpp=.o)
+OBJS += $(SOURCES_C:.c=.o) $(SOURCES_CXX:.cpp=.o) $(SOURCES_ASM:.S=.o)
 
 CFLAGS += -Wall -pedantic $(fpic) $(INCFLAGS)
 

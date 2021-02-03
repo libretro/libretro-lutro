@@ -3,6 +3,8 @@ LUALIB_DIR := $(CORE_DIR)/deps/lua/src
 INCFLAGS := -I$(CORE_DIR) \
 				-I$(CORE_DIR)/libretro-common/include \
 				-I$(CORE_DIR)/deps/zlib \
+				-I$(CORE_DIR)/deps/vorbis \
+				-I$(CORE_DIR)/deps/ogg \
 				-I$(CORE_DIR)/deps \
 				-I$(LUALIB_DIR)
 
@@ -14,6 +16,7 @@ SOURCES_C := $(CORE_DIR)/libretro.c \
                  $(CORE_DIR)/graphics.c \
                  $(CORE_DIR)/input.c \
                  $(CORE_DIR)/audio.c \
+                 $(CORE_DIR)/decoder.c \
                  $(CORE_DIR)/event.c \
                  $(CORE_DIR)/keyboard.c \
                  $(CORE_DIR)/sound.c \
@@ -64,6 +67,9 @@ SOURCES_C += $(CORE_DIR)/libretro-common/formats/png/rpng_decode.c \
 ifneq ($(STATIC_LINKING), 1)
 SOURCES_C += \
 				 $(CORE_DIR)/libretro-common/file/file_path.c \
+				 $(CORE_DIR)/libretro-common/audio/conversion/float_to_s16.c \
+				 $(CORE_DIR)/libretro-common/audio/conversion/s16_to_float.c \
+				 $(CORE_DIR)/libretro-common/audio/audio_mix.c \
 				 $(CORE_DIR)/libretro-common/compat/compat_posix_string.c \
 				 $(CORE_DIR)/libretro-common/memmap/memmap.c \
 				 $(CORE_DIR)/libretro-common/compat/compat_strcasestr.c \
@@ -72,6 +78,11 @@ SOURCES_C += \
 				 $(CORE_DIR)/libretro-common/streams/file_stream.c \
 				 $(CORE_DIR)/libretro-common/vfs/vfs_implementation.c \
 				 $(CORE_DIR)/libretro-common/compat/fopen_utf8.c
+ifeq ($(HAVE_NEON),1)
+   SOURCES_ASM += \
+            $(CORE_DIR)/libretro-common/audio/conversion/float_to_s16_neon.S \
+            $(CORE_DIR)/libretro-common/audio/conversion/s16_to_float_neon.S
+endif
 endif
 
 # Lua UTF-8
@@ -166,3 +177,31 @@ ifeq ($(WANT_PHYSFS), 1)
       DEFINES += -DPHYSFS_PLATFORM_LINUX
    endif
 endif
+
+# Ogg Vorbis
+SOURCES_C += \
+	$(CORE_DIR)/deps/ogg/bitwise.c \
+	$(CORE_DIR)/deps/ogg/framing.c \
+	$(CORE_DIR)/deps/vorbis/analysis.c \
+	$(CORE_DIR)/deps/vorbis/barkmel.c \
+	$(CORE_DIR)/deps/vorbis/bitrate.c \
+	$(CORE_DIR)/deps/vorbis/block.c \
+	$(CORE_DIR)/deps/vorbis/codebook.c \
+	$(CORE_DIR)/deps/vorbis/envelope.c \
+	$(CORE_DIR)/deps/vorbis/floor0.c \
+	$(CORE_DIR)/deps/vorbis/floor1.c \
+	$(CORE_DIR)/deps/vorbis/info.c \
+	$(CORE_DIR)/deps/vorbis/lookup.c \
+	$(CORE_DIR)/deps/vorbis/lpc.c \
+	$(CORE_DIR)/deps/vorbis/lsp.c \
+	$(CORE_DIR)/deps/vorbis/mapping0.c \
+	$(CORE_DIR)/deps/vorbis/mdct.c \
+	$(CORE_DIR)/deps/vorbis/psy.c \
+	$(CORE_DIR)/deps/vorbis/registry.c \
+	$(CORE_DIR)/deps/vorbis/res0.c \
+	$(CORE_DIR)/deps/vorbis/sharedbook.c \
+	$(CORE_DIR)/deps/vorbis/smallft.c \
+	$(CORE_DIR)/deps/vorbis/synthesis.c \
+	$(CORE_DIR)/deps/vorbis/vorbisenc.c \
+	$(CORE_DIR)/deps/vorbis/vorbisfile.c \
+	$(CORE_DIR)/deps/vorbis/window.c

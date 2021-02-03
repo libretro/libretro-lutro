@@ -7,6 +7,7 @@
 #include <stdbool.h>
 #include "runtime.h"
 #include "sound.h"
+#include "decoder.h"
 
 #define AUDIO_FRAMES (44100 / 60)
 
@@ -19,8 +20,13 @@ typedef enum
 
 typedef struct
 {
+   //currently for WAV
    snd_SoundData sndta;
    unsigned bps; // bytes per sample
+   
+   //currently for Ogg Vorbis
+   OggData *oggData;
+   
    bool loop;
    float volume;
    float pitch;

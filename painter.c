@@ -6,9 +6,12 @@
 #include <stdarg.h>
 #include <assert.h>
 #include <retro_miscellaneous.h>
+#include <file/nbio.h>
+#include <retro_timers.h>
+#include <formats/image.h>
+#include <formats/rpng.h>
 
 #include "painter.h"
-#include "formats/rpng.h"
 
 #define _USE_MATH_DEFINES
 #include <math.h>
@@ -502,6 +505,85 @@ void pntr_translate(painter_t *p, int x, int y)
 {
    p->trans->tx = x;
    p->trans->ty = y;
+}
+
+bool rpng_load_image_argb(const char *path,
+      uint32_t **data, unsigned *width, unsigned *height)
+{
+   int retval;
+   size_t file_len;
+   bool ret              = true;
+   rpng_t *rpng          = NULL;
+   void *ptr             = NULL;
+   struct nbio_t *handle = (struct nbio_t *)nbio_open(path, NBIO_READ);
+
+   if (!handle)
+      goto end;
+
+   nbio_begin_read(handle);
+
+   while (!nbio_iterate(handle))
+      retro_sleep(3);
+
+   ptr = nbio_get_ptr(handle, &file_len);
+
+   if (!ptr)
+   {
+      ret = false;
+      goto end;
+   }
+
+   rpng = rpng_alloc();
+
+   if (!rpng)
+   {
+      ret = false;
+      goto end;
+   }
+
+   if (!rpng_set_buf_ptr(rpng, (uint8_t *)ptr, file_len))
+   {
+      ret = false;
+      goto end;
+   }
+
+   if (!rpng_start(rpng))
+   {
+      ret = false;
+      goto end;
+   }
+
+   while (rpng_iterate_image(rpng))
+      retro_sleep(3);
+
+   if (!rpng_is_valid(rpng))
+   {
+      ret = false;
+      goto end;
+   }
+
+   do
+   {
+      retval = rpng_process_image(rpng, (void **)data, file_len, width, height);
+      retro_sleep(3);
+   } while (retval == IMAGE_PROCESS_NEXT);
+
+   if (retval == IMAGE_PROCESS_ERROR || retval == IMAGE_PROCESS_ERROR_END)
+      ret = false;
+
+end:
+   if (handle)
+      nbio_free(handle);
+
+   if (rpng)
+      rpng_free(rpng);
+
+   rpng = NULL;
+
+   if (!ret)
+      free(*data);
+
+   return ret;
 }
 
 font_t *font_load_filename(const char *filename, const char *characters, unsigned flags)

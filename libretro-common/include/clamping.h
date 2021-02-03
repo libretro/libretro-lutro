@@ -1,7 +1,7 @@
-/* Copyright  (C) 2010-2015 The RetroArch team
+/* Copyright  (C) 2010-2020 The RetroArch team
  *
  * ---------------------------------------------------------------------------------------
- * The following license statement only applies to this file (boolean.h).
+ * The following license statement only applies to this file (clamping.h).
  * ---------------------------------------------------------------------------------------
  *
  * Permission is hereby granted, free of charge,
@@ -24,6 +24,7 @@
 #define _LIBRETRO_SDK_CLAMPING_H
 
 #include <stdint.h>
+#include <retro_inline.h>
 
 /**
  * clamp_float:
@@ -35,7 +36,7 @@
  *
  * Returns: a clamped value of initial float value @val.
  */
-static inline float clamp_float(float val, float lower, float upper)
+static INLINE float clamp_float(float val, float lower, float upper)
 {
    if (val < lower)
       return lower;
@@ -52,7 +53,7 @@ static inline float clamp_float(float val, float lower, float upper)
  *
  * Returns: a clamped value of initial unsigned 8-bit value @val.
  */
-static inline uint8_t clamp_8bit(int val)
+static INLINE uint8_t clamp_8bit(int val)
 {
    if (val > 255)
       return 255;

@@ -1,4 +1,4 @@
-/* Copyright  (C) 2010-2017 The RetroArch team
+/* Copyright  (C) 2010-2020 The RetroArch team
  *
  * ---------------------------------------------------------------------------------------
  * The following license statement only applies to this file (retro_miscellaneous.h).
@@ -23,17 +23,24 @@
 #ifndef __RARCH_MISCELLANEOUS_H
 #define __RARCH_MISCELLANEOUS_H
 
+#define RARCH_MAX_SUBSYSTEMS 10
+#define RARCH_MAX_SUBSYSTEM_ROMS 10
+
 #include <stdint.h>
 #include <boolean.h>
 #include <retro_inline.h>
 
-#if defined(_WIN32) && !defined(_XBOX)
+#if defined(_WIN32)
+
+#if defined(_XBOX)
+#include <Xtl.h>
+#else
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
 #endif
 #include <windows.h>
-#elif defined(_WIN32) && defined(_XBOX)
-#include <Xtl.h>
+#endif
+
 #endif
 
 #include <limits.h>
@@ -41,6 +48,13 @@
 #ifdef _MSC_VER
 #include <compat/msvc.h>
 #endif
+
+static INLINE void bits_or_bits(uint32_t *a, uint32_t *b, uint32_t count)
+{
+   uint32_t i;
+   for (i = 0; i < count;i++)
+      a[i] |= b[i];
+}
 
 static INLINE void bits_clear_bits(uint32_t *a, uint32_t *b, uint32_t count)
 {
@@ -61,7 +75,7 @@ static INLINE bool bits_any_set(uint32_t* ptr, uint32_t count)
 }
 
 #ifndef PATH_MAX_LENGTH
-#if defined(_XBOX1) || defined(_3DS) || defined(PSP) || defined(GEKKO)|| defined(WIIU)
+#if defined(_XBOX1) || defined(_3DS) || defined(PSP) || defined(PS2) || defined(GEKKO)|| defined(WIIU) || defined(ORBIS) || defined(__PSL1GHT__) || defined(__PS3__)
 #define PATH_MAX_LENGTH 512
 #else
 #define PATH_MAX_LENGTH 4096
@@ -90,8 +104,8 @@ static INLINE bool bits_any_set(uint32_t* ptr, uint32_t count)
 #define BIT16_GET(a, bit)    (((a) >> ((bit) & 15)) & 1)
 #define BIT16_CLEAR_ALL(a)   ((a) = 0)
 
-#define BIT32_SET(a, bit)    ((a) |=  (1 << ((bit) & 31)))
-#define BIT32_CLEAR(a, bit)  ((a) &= ~(1 << ((bit) & 31)))
+#define BIT32_SET(a, bit)    ((a) |=  (UINT32_C(1) << ((bit) & 31)))
+#define BIT32_CLEAR(a, bit)  ((a) &= ~(UINT32_C(1) << ((bit) & 31)))
 #define BIT32_GET(a, bit)    (((a) >> ((bit) & 31)) & 1)
 #define BIT32_CLEAR_ALL(a)   ((a) = 0)
 
@@ -100,8 +114,8 @@ static INLINE bool bits_any_set(uint32_t* ptr, uint32_t count)
 #define BIT64_GET(a, bit)    (((a) >> ((bit) & 63)) & 1)
 #define BIT64_CLEAR_ALL(a)   ((a) = 0)
 
-#define BIT128_SET(a, bit)   ((a).data[(bit) >> 5] |=  (1 << ((bit) & 31)))
-#define BIT128_CLEAR(a, bit) ((a).data[(bit) >> 5] &= ~(1 << ((bit) & 31)))
+#define BIT128_SET(a, bit)   ((a).data[(bit) >> 5] |=  (UINT32_C(1) << ((bit) & 31)))
+#define BIT128_CLEAR(a, bit) ((a).data[(bit) >> 5] &= ~(UINT32_C(1) << ((bit) & 31)))
 #define BIT128_GET(a, bit)   (((a).data[(bit) >> 5] >> ((bit) & 31)) & 1)
 #define BIT128_CLEAR_ALL(a)  memset(&(a), 0, sizeof(a))
 
@@ -132,11 +146,42 @@ static INLINE bool bits_any_set(uint32_t* ptr, uint32_t count)
    BITS_GET_ELEM_PTR(a, 0) = (bits); \
 }
 
+#define BITS_COPY64_PTR(a,bits) \
+{ \
+   BIT128_CLEAR_ALL_PTR(a); \
+   BITS_GET_ELEM_PTR(a, 0) = (bits); \
+   BITS_GET_ELEM_PTR(a, 1) = (bits >> 32); \
+}
+
 /* Helper macros and struct to keep track of many booleans. */
 /* This struct has 256 bits. */
 typedef struct
 {
    uint32_t data[8];
 } retro_bits_t;
+
+#ifdef _WIN32
+#  ifdef _WIN64
+#    define PRI_SIZET PRIu64
+#  else
+#    if _MSC_VER == 1800
+#      define PRI_SIZET PRIu32
+#    else
+#      define PRI_SIZET "u"
+#    endif
+#  endif
+#elif defined(PS2)
+#  define PRI_SIZET "u"
+#else
+#  if (SIZE_MAX == 0xFFFF)
+#    define PRI_SIZET "hu"
+#  elif (SIZE_MAX == 0xFFFFFFFF)
+#    define PRI_SIZET "u"
+#  elif (SIZE_MAX == 0xFFFFFFFFFFFFFFFF)
+#    define PRI_SIZET "lu"
+#  else
+#    error PRI_SIZET: unknown SIZE_MAX
+#  endif
+#endif
 
 #endif

@@ -61,8 +61,16 @@ SOURCES_C += $(LUALIB_DIR)/lapi.c \
                  $(LUALIB_DIR)/ldump.c
 endif
 
-SOURCES_C += $(CORE_DIR)/libretro-common/formats/png/rpng_decode.c \
-				 $(CORE_DIR)/libretro-common/formats/png/rpng_fbio.c 
+SOURCES_C += \
+             $(CORE_DIR)/libretro-common/formats/png/rpng.c \
+             $(CORE_DIR)/libretro-common/file/nbio/nbio_intf.c \
+             $(CORE_DIR)/libretro-common/file/file_path_io.c \
+             $(CORE_DIR)/libretro-common/memmap/memalign.c \
+             $(CORE_DIR)/libretro-common/string/stdstring.c \
+             $(CORE_DIR)/libretro-common/file/nbio/nbio_stdio.c \
+             $(CORE_DIR)/libretro-common/time/rtime.c \
+             $(CORE_DIR)/libretro-common/streams/trans_stream.c \
+             $(CORE_DIR)/libretro-common/streams/trans_stream_pipe.c
 
 ifneq ($(STATIC_LINKING), 1)
 SOURCES_C += \

@@ -70,6 +70,9 @@ void *image_data_create(lua_State *L, bitmap_t* self)
    return self;
 }
 
+extern bool rpng_load_image_argb(const char *path,
+      uint32_t **data, unsigned *width, unsigned *height);
+
 void *image_data_create_from_path(lua_State *L, const char *path)
 {
    char fullpath[PATH_MAX_LENGTH];

@@ -75,9 +75,6 @@ else ifeq ($(platform), osx)
    CFLAGS += -DHAVE_STRL
    WANT_PHYSFS=0
    MMD :=
-ifeq ($(shell uname -p),arm)
-   CFLAGS += -DDONT_WANT_ARM_OPTIMIZATIONS
-endif
 
 ifeq ($(UNIVERSAL),1)
 ifeq ($(ARCHFLAGS),)
@@ -99,6 +96,11 @@ endif
 	CXXFLAGS += $(TARGET_RULE)
 	LDFLAGS  += $(TARGET_RULE)
 	LUA_SYSCFLAGS += $(TARGET_RULE)
+	CFLAGS += -DDONT_WANT_ARM_OPTIMIZATIONS
+   else
+ifeq ($(shell uname -p),arm)
+   CFLAGS += -DDONT_WANT_ARM_OPTIMIZATIONS
+endif
    endif
 
 	CFLAGS  += $(ARCHFLAGS)

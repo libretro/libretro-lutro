@@ -48,9 +48,22 @@ bool decoder_initOgg(OggData *data, char *filename)
 }
 
 //
-bool decoder_seekStart(OggData *data)
+bool decoder_seek(OggData *data, uint32_t pos)
 {
-	return ov_time_seek(&data->vf, 0.0) == 0;
+	return ov_pcm_seek(&data->vf, pos) == 0;
+}
+
+//
+bool decoder_sampleTell(OggData *data, uint32_t *pos)
+{
+	ogg_int64_t ret = ov_pcm_tell(&data->vf);
+	if (ret >= 0)
+	{
+		*pos = ret;
+		return true;
+	}
+	
+	return false;
 }
 
 //

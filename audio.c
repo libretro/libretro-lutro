@@ -16,25 +16,6 @@ static audio_Source** sources = NULL;
 static float volume = 1.0;
 
 #define CHANNELS 2
-float floatBuffer[AUDIO_FRAMES * CHANNELS];
-int16_t convBuffer[AUDIO_FRAMES * CHANNELS];
-
-// The following types are acceptable for pre-saturated mixing, as they meet the requirement for
-// having a larger range than the saturated mixer result type of int16_t. double precision should
-// be preferred on x86/amd64, and single precision on ARM. float16 could also work as an input
-// but care must be taken to saturate at INT16_MAX-1 and INT16_MIN+1 due to float16 not having a
-// 1:1 representation of whole numbers in the in16 range.
-//
-// TODO: set up appropriate compiler defs for mixer presaturate type.
-
-typedef float   mixer_presaturate_t;
-#define cvt_presaturate_to_int16(in)   (roundf(in))
-
-//typedef double  mixer_presaturate_t;
-//#define cvt_presaturate_to_int16(in)   (round(in))
-
-//typedef int32_t mixer_presaturate_t;
-//#define cvt_presaturate_to_int16(in)   ((int16_t)in)
 
 static int16_t saturate(mixer_presaturate_t in) {
    if (in >=  INT16_MAX) { return INT16_MAX; }
@@ -44,54 +25,82 @@ static int16_t saturate(mixer_presaturate_t in) {
 
 void mixer_render(int16_t *buffer)
 {
-   // Clear buffers
-   memset(buffer, 0, AUDIO_FRAMES * CHANNELS * sizeof(int16_t));
-   memset(floatBuffer, 0, AUDIO_FRAMES * CHANNELS * sizeof(float));
+   static mixer_presaturate_t presaturateBuffer[AUDIO_FRAMES * CHANNELS];
 
-   bool floatBufferUsed = false;
+   memset(presaturateBuffer, 0, AUDIO_FRAMES * CHANNELS * sizeof(mixer_presaturate_t));
 
    // Loop over audio sources
-   for (unsigned i = 0; i < num_sources; i++)
+   for (int i = 0; i < num_sources; i++)
    {
       if (sources[i]->state == AUDIO_STOPPED)
          continue;
 
-      //currently Ogg Vorbis
+      // options here are to premultiply source volumes with master volume, or apply master volume at the end of mixing
+      // during the saturation step. Each approach has its strengths and weaknesses and overall neither differs much when
+      // using float or double for presaturation buffer (see final saturation step below)
+      float srcvol = sources[i]->volume;
+
       if (sources[i]->oggData)
       {
-         bool finished = decoder_decodeOgg(sources[i]->oggData, floatBuffer, sources[i]->volume, sources[i]->loop);
+         bool finished = decoder_decodeOgg(sources[i]->oggData, presaturateBuffer, srcvol, sources[i]->loop);
          if (finished)
          {
             decoder_seek(sources[i]->oggData, 0);
             sources[i]->state = AUDIO_STOPPED;
          }
-         floatBufferUsed = true;
          continue;
       }
       
-      uint8_t* rawsamples8 = calloc(
+      void* rawsamples_alloc = calloc(
          AUDIO_FRAMES * sources[i]->bps, sizeof(uint8_t));
 
       fseek(sources[i]->sndta.fp, WAV_HEADER_SIZE + sources[i]->pos, SEEK_SET);
 
-      bool end = ! fread(rawsamples8,
+      bool end = ! fread(rawsamples_alloc,
             sizeof(uint8_t),
             AUDIO_FRAMES * sources[i]->bps,
             sources[i]->sndta.fp);
 
-      int16_t* rawsamples16 = (int16_t*)rawsamples8;
+      // ogg outputs float values range 1.0 to -1.0
+      // 16-bit wav outputs values range 32767 to -32768
+      // 8-bit wav is scaled up to 16 bit and then normalized using 16-bit divisor.
+      float srcvol_and_scale_to_one = srcvol / 32767;
 
-      for (unsigned j = 0; j < AUDIO_FRAMES; j++)
+      if (sources[i]->sndta.head.BitsPerSample ==  8)
       {
-         mixer_presaturate_t left = 0;
-         mixer_presaturate_t right = 0;
-         if (sources[i]->sndta.head.NumChannels == 1 && sources[i]->sndta.head.BitsPerSample ==  8) { left = right = rawsamples8[j]*64; }
-         if (sources[i]->sndta.head.NumChannels == 2 && sources[i]->sndta.head.BitsPerSample ==  8) { left = rawsamples8[j*2+0]*64; right=rawsamples8[j*2+1]*64; }
-         if (sources[i]->sndta.head.NumChannels == 1 && sources[i]->sndta.head.BitsPerSample == 16) { left = right = rawsamples16[j]; }
-         if (sources[i]->sndta.head.NumChannels == 2 && sources[i]->sndta.head.BitsPerSample == 16) { left = rawsamples16[j*2+0]; right=rawsamples16[j*2+1]; }
-         buffer[j*2+0] = saturate(buffer[j*2+0] + (left  * sources[i]->volume * volume));
-         buffer[j*2+1] = saturate(buffer[j*2+1] + (right * sources[i]->volume * volume));
-         sources[i]->pos += sources[i]->bps;
+         const int8_t* rawsamples8 = (int8_t*)rawsamples_alloc;
+         for (int j = 0; j < AUDIO_FRAMES; j++)
+         {
+            // note this is currently *64 because the mixer is mixing 8-bit smaples as 0->255 instead of normalizing to -128 to 127.
+            // This would have caused the more appropriate *128 multiplier to cause saturation along the top of the waveform.
+            // We should be able to change this to *128 now, but it will affect volume behavior of any games that use 8 bit samples and
+            // were authored with the current *64 behavior. So need to verify how we want to go about handling this --jstine
+
+            mixer_presaturate_t left  = (sources[i]->sndta.head.NumChannels == 2) ? rawsamples8[j*2+0] : rawsamples8[j] * 64;
+            mixer_presaturate_t right = (sources[i]->sndta.head.NumChannels == 2) ? rawsamples8[j*2+1] : rawsamples8[j] * 64;
+
+            if (sources[i]->sndta.head.NumChannels == 2) { right = rawsamples8[j*2+1]*64; }
+
+            presaturateBuffer[j*2+0] += (left  * srcvol_and_scale_to_one);
+            presaturateBuffer[j*2+1] += (right * srcvol_and_scale_to_one);
+            sources[i]->pos += sources[i]->bps;
+         }
+      }
+
+      if (sources[i]->sndta.head.BitsPerSample ==  16)
+      {
+         const int16_t* rawsamples16 = (int16_t*)rawsamples_alloc;
+         for (int j = 0; j < AUDIO_FRAMES; j++)
+         {
+            mixer_presaturate_t left  = (sources[i]->sndta.head.NumChannels == 2) ? rawsamples16[j*2+0] : rawsamples16[j];
+            mixer_presaturate_t right = (sources[i]->sndta.head.NumChannels == 2) ? rawsamples16[j*2+1] : rawsamples16[j];
+
+            if (sources[i]->sndta.head.NumChannels == 2) { right = rawsamples16[j*2+1]; }
+
+            presaturateBuffer[j*2+0] += (left  * srcvol_and_scale_to_one);
+            presaturateBuffer[j*2+1] += (right * srcvol_and_scale_to_one);
+            sources[i]->pos += sources[i]->bps;
+         }
       }
 
       if (end)
@@ -101,15 +110,14 @@ void mixer_render(int16_t *buffer)
          sources[i]->pos = 0;
       }
 
-      free(rawsamples8);
+      free(rawsamples_alloc);
    }
 
-   //add in accumulated float buffer
-   if (floatBufferUsed)
+   // final saturation step - downsample.
+   float mastervol_and_scale_to_int16 = volume * 32767;
+   for (int j = 0; j < AUDIO_FRAMES * CHANNELS; j++)
    {
-      convert_float_to_s16(convBuffer, floatBuffer, AUDIO_FRAMES * CHANNELS); //convert to int
-      for (unsigned j = 0; j < AUDIO_FRAMES * CHANNELS; j++)
-         buffer[j] += convBuffer[j] * volume;
+      buffer[j] = saturate(presaturateBuffer[j] * mastervol_and_scale_to_int16);
    }
 }
 

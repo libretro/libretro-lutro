@@ -17,7 +17,7 @@ jobs:
         with:
           submodules: true
 
-      - run: make -j4
+      - run: make HAVE_COMPOSITION=1 -j4
 
       - name: ZIP Release
         uses: papeloto/action-zip@v1
@@ -50,7 +50,7 @@ jobs:
         with:
           submodules: true
 
-      - run: make platform=unix-armv7-neon-hardfloat -j4
+      - run: make platform=unix-armv7-neon-hardfloat HAVE_COMPOSITION=1 -j4
 
       - name: ZIP Release
         uses: papeloto/action-zip@v1
@@ -82,7 +82,7 @@ jobs:
         with:
           submodules: true
 
-      - run: make platform=osx -j4
+      - run: make platform=osx HAVE_COMPOSITION=1 -j4
 
       - name: ZIP Release
         uses: papeloto/action-zip@v1
@@ -114,7 +114,7 @@ jobs:
         with:
           submodules: true
 
-      - run: CC=gcc make platform=win -j4
+      - run: CC=gcc make platform=win HAVE_COMPOSITION=1 -j4
 
       - name: ZIP Release
         uses: papeloto/action-zip@v1

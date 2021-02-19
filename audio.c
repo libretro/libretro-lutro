@@ -61,7 +61,10 @@ void mixer_render(int16_t *buffer)
       {
          bool finished = decoder_decodeOgg(sources[i]->oggData, floatBuffer, sources[i]->volume, sources[i]->loop);
          if (finished)
+         {
+            decoder_seek(sources[i]->oggData, 0);
             sources[i]->state = AUDIO_STOPPED;
+         }
          floatBufferUsed = true;
          continue;
       }
@@ -95,7 +98,6 @@ void mixer_render(int16_t *buffer)
       {
          if (!sources[i]->loop)
             sources[i]->state = AUDIO_STOPPED;
-         fseek(sources[i]->sndta.fp, WAV_HEADER_SIZE, SEEK_SET);
          sources[i]->pos = 0;
       }
 
@@ -339,7 +341,23 @@ int source_getVolume(lua_State *L)
 int source_tell(lua_State *L)
 {
    audio_Source* self = (audio_Source*)luaL_checkudata(L, 1, "Source");
-   lua_pushnumber(L, self->pos);
+
+   //currently assuming samples vs seconds
+   //TODO: check if 2nd param is "seconds" or "samples"
+
+   //WAV file
+   if (self->sndta.fp)
+   {
+      lua_pushnumber(L, self->pos / self->bps);
+   }
+   //OGG file
+   else if (self->oggData)
+   {
+      uint32_t pos = 0;
+      decoder_sampleTell(self->oggData, &pos);
+      lua_pushnumber(L, pos);
+   }
+
    return 1;
 }
 
@@ -351,7 +369,20 @@ int source_seek(lua_State *L)
       return luaL_error(L, "Source:seek requires 3 arguments, %d given.", n);
 
    audio_Source* self = (audio_Source*)luaL_checkudata(L, 1, "Source");
-   self->pos = (unsigned)luaL_checknumber(L, 2);
+ 
+   //currently assuming samples vs seconds
+   //TODO: check if 3rd param is "seconds" or "samples"
+ 
+   //WAV file
+   if (self->sndta.fp)
+   {
+      self->pos = self->bps * (unsigned)luaL_checknumber(L, 2);
+   }
+   //OGG file
+   else if (self->oggData)
+   {
+      decoder_seek(self->oggData, (unsigned)luaL_checknumber(L, 2));
+   }
 
    return 0;
 }
@@ -387,24 +418,11 @@ int audio_play(lua_State *L)
 {
    audio_Source* self = (audio_Source*)luaL_checkudata(L, 1, "Source");
 
-   bool success = false;
-
-   //WAV file
-   if (self->sndta.fp)
-   {
-      success = fseek(self->sndta.fp, WAV_HEADER_SIZE, SEEK_SET) == 0;
-      if (success)
-        self->state = AUDIO_PLAYING;
-   }
-   //OGG file
-   else if (self->oggData)
-   {
-      success = decoder_seekStart(self->oggData);
-      if (success)
-         self->state = AUDIO_PLAYING;
-   }
+   //play pos should not reset if play called again before finished
+   //as in Love2D, game code should explicitly call stop or seek(0, nil) before play to reset pos if already playing
+   self->state = AUDIO_PLAYING;
    
-   lua_pushboolean(L, success);
+   lua_pushboolean(L, true);
    return 1;
 }
 
@@ -413,19 +431,19 @@ int audio_stop(lua_State *L)
    audio_Source* self = (audio_Source*)luaL_checkudata(L, 1, "Source");
    bool success = false;
 
+   //play pos is reset on stop
+
    //WAV file
    if (self->sndta.fp)
    {
-      success = fseek(self->sndta.fp, WAV_HEADER_SIZE, SEEK_SET) == 0;
-      if (success)
-        self->state = AUDIO_STOPPED;
+      self->pos = 0;
+      self->state = AUDIO_STOPPED;
    }
    //OGG file
    else if (self->oggData)
    {
-      success = decoder_seekStart(self->oggData);
-      if (success)
-         self->state = AUDIO_STOPPED;
+      success = decoder_seek(self->oggData, 0);
+      self->state = AUDIO_STOPPED;
    }
    
    lua_pushboolean(L, success);

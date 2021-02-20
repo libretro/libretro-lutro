@@ -43,7 +43,7 @@ jobs:
       - uses: actions/checkout@v2
       - run: make platform=osx -j4
 
-  build_osx:
+  build_osx_jit:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v2

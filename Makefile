@@ -316,7 +316,9 @@ LUALIB := $(LUADIR)/liblua.a
 ifeq ($(WANT_JIT),1)
    LUADIR := deps/luajit/src
    LUALIB := $(LUADIR)/libluajit.a
-   #LIBS += -ldl
+   ifeq ($(platform), unix)
+      LIBS += -ldl
+   endif
    CFLAGS += -DHAVE_JIT
 endif
 

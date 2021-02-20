@@ -55,10 +55,6 @@ ifeq ($(platform), unix)
    LUA_SYSCFLAGS := -DLUA_USE_POSIX
    HAVE_INOTIFY=1
    LDFLAGS += -Wl,-E
-
-ifeq ($(ARCH), $(filter $(ARCH), intel))
-	WANT_JIT = 1
-endif
 else ifeq ($(platform), linux-portable)
    TARGET := $(TARGET_NAME)_libretro.so
    fpic := -fPIC -nostdlib
@@ -88,7 +84,7 @@ ifeq ($(archs),ppc)
 endif
 endif
 
-   ifeq ($(CROSS_COMPILE),1)
+ifeq ($(CROSS_COMPILE),1)
 	TARGET_RULE   = -target $(LIBRETRO_APPLE_PLATFORM) -isysroot $(LIBRETRO_APPLE_ISYSROOT)
 	CC       += $(TARGET_RULE)
 	CFLAGS   += $(TARGET_RULE)
@@ -97,11 +93,11 @@ endif
 	LDFLAGS  += $(TARGET_RULE)
 	LUA_SYSCFLAGS += $(TARGET_RULE)
 	CFLAGS += -DDONT_WANT_ARM_OPTIMIZATIONS
-   else
+else
 ifeq ($(shell uname -p),arm)
    CFLAGS += -DDONT_WANT_ARM_OPTIMIZATIONS
 endif
-   endif
+endif
 
 	CFLAGS  += $(ARCHFLAGS)
 	CXXFLAGS  += $(ARCHFLAGS)
@@ -368,7 +364,7 @@ else
 endif
 
 deps/lua/src/liblua.a:
-	$(MAKE) -C deps/lua/src CC="$(CC) $(LUADEFINES)" CXX="$(CXX)" MYCFLAGS="$(LUA_MYCFLAGS) -w -g $(fpic)" MYLDFLAGS="$(LDFLAGS) $(fpic)" SYSCFLAGS="$(LUA_SYSCFLAGS) $(fpic)" liblua.a
+	$(MAKE) -C deps/lua/src CC="$(CC) $(LUADEFINES)" CXX="$(CXX)" MYCFLAGS="$(LUA_MYCFLAGS) -w $(fpic)" MYLDFLAGS="$(LDFLAGS) $(fpic)" SYSCFLAGS="$(LUA_SYSCFLAGS) $(fpic)" liblua.a
 deps/luajit/src/libluajit.a:
 	$(MAKE) -C deps/luajit/src BUILDMODE=static CFLAGS="$(LUA_MYCFLAGS) $(fpic)" Q= LDFLAGS="$(fpic)"
 
@@ -380,26 +376,6 @@ clean:
 	-make -C $(LUADIR) clean
 	-rm -f $(OBJS) $(TARGET)
 	-rm -rf obj
-
-docker-build:
-	@docker build -t libretro-lutro .
-
-docker: docker-build
-	@docker run -it \
-		-v $(CURDIR):/app \
-		libretro-lutro \
-			make
-
-docker-test: docker
-	@docker run -it \
-		-v $(CURDIR):/app \
-		--name retroarch \
-		libretro-lutro \
-			retroarch -L lutro_libretro.so test/unit
-
-docker-kill:
-	@-docker kill retroarch
-	@-docker rm -f retroarch
 
 test: all
 	retroarch --verbose -L lutro_libretro.so test/main.lua

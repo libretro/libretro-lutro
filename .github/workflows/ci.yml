@@ -47,7 +47,7 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v2
-      - run: make WANT_JIT=1 platform=osx -j4
+      - run: make WANT_JIT=1 MACOSX_DEPLOYMENT_TARGET=10.14 platform=osx -j4
 
   build_windows:
     runs-on: windows-latest

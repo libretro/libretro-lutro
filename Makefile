@@ -368,7 +368,7 @@ endif
 deps/lua/src/liblua.a:
 	$(MAKE) -C deps/lua/src CC="$(CC) $(LUADEFINES)" CXX="$(CXX)" MYCFLAGS="$(LUA_MYCFLAGS) -w $(fpic)" MYLDFLAGS="$(LDFLAGS) $(fpic)" SYSCFLAGS="$(LUA_SYSCFLAGS) $(fpic)" liblua.a
 deps/luajit/src/libluajit.a:
-	$(MAKE) -C deps/luajit/src CC="$(CC)" CXX="$(CXX)" BUILDMODE=static CFLAGS="$(LUA_MYCFLAGS) $(fpic)" Q= LDFLAGS="$(fpic)" libluajit.a
+	$(MAKE) -C deps/luajit/src CC="$(CC)" CXX="$(CXX)" BUILDMODE=static CFLAGS="$(LUA_MYCFLAGS) -w $(fpic)" Q= LDFLAGS="$(LDFLAGS) $(fpic)" libluajit.a
 
 obj/%.o: %.c
 	@mkdir -p $(dir $@)

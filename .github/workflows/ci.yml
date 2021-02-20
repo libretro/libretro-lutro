@@ -35,7 +35,7 @@ jobs:
     container: dockcross/linux-armv7
     steps:
       - uses: actions/checkout@v2
-      - run: make WANT_JIT=1 platform=unix-armv7-neon-hardfloat HOST_CC="$HOST_CC" PTR_SIZE="-m32" CROSS="armv7-unknown-linux-gnueabi" -j4
+      - run: make WANT_JIT=1 platform=unix-armv7-neon-hardfloat -j4
 
   build_osx:
     runs-on: macos-latest

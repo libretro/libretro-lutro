@@ -30,7 +30,7 @@ jobs:
       - uses: actions/checkout@v2
       - run: make platform=unix-armv7-neon-hardfloat -j4
 
-  build_linux_armv7_neon:
+  build_linux_armv7_neon_jit:
     runs-on: ubuntu-latest
     container: dockcross/linux-armv7
     steps:

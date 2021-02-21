@@ -1,7 +1,7 @@
-/* Copyright  (C) 2010-2015 The RetroArch team
+/* Copyright  (C) 2010-2020 The RetroArch team
  *
  * ---------------------------------------------------------------------------------------
- * The following license statement only applies to this file (rpng.c).
+ * The following license statement only applies to this file (memalign.h).
  * ---------------------------------------------------------------------------------------
  *
  * Permission is hereby granted, free of charge,
@@ -20,25 +20,21 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef _RPNG_DECODE_H
-#define _RPNG_DECODE_H
+#ifndef _LIBRETRO_MEMALIGN_H
+#define _LIBRETRO_MEMALIGN_H
 
-enum png_process_code
-{
-   PNG_PROCESS_ERROR     = -2,
-   PNG_PROCESS_ERROR_END = -1,
-   PNG_PROCESS_NEXT      =  0,
-   PNG_PROCESS_END       =  1,
-};
+#include <stddef.h>
 
-enum png_chunk_type png_chunk_type(const struct png_chunk *chunk);
+#include <retro_common_api.h>
 
-bool png_process_ihdr(struct png_ihdr *ihdr);
+RETRO_BEGIN_DECLS
 
-int png_reverse_filter_iterate(struct rpng_t *rpng,
-      uint32_t **data);
+void *memalign_alloc(size_t boundary, size_t size);
 
-bool rpng_load_image_argb_process_init(struct rpng_t *rpng,
-      uint32_t **data, unsigned *width, unsigned *height);
+void *memalign_alloc_aligned(size_t size);
+
+void memalign_free(void *ptr);
+
+RETRO_END_DECLS
 
 #endif

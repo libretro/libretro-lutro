@@ -1,4 +1,4 @@
-/* Copyright  (C) 2010-2015 The RetroArch team
+/* Copyright  (C) 2010-2020 The RetroArch team
  *
  * ---------------------------------------------------------------------------------------
  * The following license statement only applies to this file (rpng.h).
@@ -26,108 +26,39 @@
 #include <stdint.h>
 #include <stddef.h>
 
+#include <retro_common_api.h>
+
 #include <boolean.h>
-#include <zlib.h>
 
-#ifdef HAVE_CONFIG_H
-#include "../../config.h"
-#endif
+RETRO_BEGIN_DECLS
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+typedef struct rpng rpng_t;
 
-struct idat_buffer
-{
-   uint8_t *data;
-   size_t size;
-};
+rpng_t *rpng_init(const char *path);
 
-struct png_chunk
-{
-   uint32_t size;
-   char type[4];
-   uint8_t *data;
-};
+bool rpng_is_valid(rpng_t *rpng);
 
-struct png_ihdr
-{
-   uint32_t width;
-   uint32_t height;
-   uint8_t depth;
-   uint8_t color_type;
-   uint8_t compression;
-   uint8_t filter;
-   uint8_t interlace;
-};
+bool rpng_set_buf_ptr(rpng_t *rpng, void *data, size_t len);
 
-struct rpng_process_t
-{
-   bool initialized;
-   bool adam7_pass_initialized;
-   bool pass_initialized;
-   uint32_t *data;
-   uint32_t *palette;
-   struct png_ihdr ihdr;
-   uint8_t *prev_scanline;
-   uint8_t *decoded_scanline;
-   uint8_t *inflate_buf;
-   size_t restore_buf_size;
-   size_t adam7_restore_buf_size;
-   size_t data_restore_buf_size;
-   size_t inflate_buf_size;
-   unsigned bpp;
-   unsigned pitch;
-   unsigned h;
-   struct
-   {
-      unsigned width;
-      unsigned height;
-      size_t   size;
-      unsigned pos;
-   } pass;
-   z_stream stream;
-};
+rpng_t *rpng_alloc(void);
 
-struct rpng_t
-{
-   struct rpng_process_t process;
-   bool has_ihdr;
-   bool has_idat;
-   bool has_iend;
-   bool has_plte;
-   struct idat_buffer idat_buf;
-   struct png_ihdr ihdr;
-   uint8_t *buff_data;
-   uint32_t palette[256];
-   struct png_chunk chunk;
-};
+void rpng_free(rpng_t *rpng);
 
-bool rpng_load_image_argb(const char *path, uint32_t **data,
-      unsigned *width, unsigned *height);
+bool rpng_iterate_image(rpng_t *rpng);
 
-struct rpng_t *rpng_nbio_load_image_argb_init(const char *path);
+int rpng_process_image(rpng_t *rpng,
+      void **data, size_t size, unsigned *width, unsigned *height);
 
-void rpng_nbio_load_image_free(struct rpng_t *rpng);
+bool rpng_start(rpng_t *rpng);
 
-bool rpng_nbio_load_image_argb_iterate(uint8_t *buf,
-      struct rpng_t *rpng);
-
-int rpng_nbio_load_image_argb_process(struct rpng_t *rpng,
-      uint32_t **data, unsigned *width, unsigned *height);
-
-bool rpng_nbio_load_image_argb_start(struct rpng_t *rpng);
-
-#ifdef HAVE_ZLIB_DEFLATE
 bool rpng_save_image_argb(const char *path, const uint32_t *data,
       unsigned width, unsigned height, unsigned pitch);
 bool rpng_save_image_bgr24(const char *path, const uint8_t *data,
       unsigned width, unsigned height, unsigned pitch);
-#endif
 
-#ifdef __cplusplus
-}
-#endif
+uint8_t* rpng_save_image_bgr24_string(const uint8_t *data,
+      unsigned width, unsigned height, signed pitch, uint64_t *bytes);
+
+RETRO_END_DECLS
 
 #endif
-

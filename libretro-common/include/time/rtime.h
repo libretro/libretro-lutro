@@ -1,7 +1,7 @@
 /* Copyright  (C) 2010-2020 The RetroArch team
  *
  * ---------------------------------------------------------------------------------------
- * The following license statement only applies to this file (float_to_s16_neon.S).
+ * The following license statement only applies to this file (rtime.h).
  * ---------------------------------------------------------------------------------------
  *
  * Permission is hereby granted, free of charge,
@@ -19,46 +19,30 @@
  * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-#if defined(__ARM_NEON__) && !defined(DONT_WANT_ARM_OPTIMIZATIONS)
 
-#if defined(__thumb__)
-#define DECL_ARMMODE(x) "  .align 2\n" "  .global " x "\n" "  .thumb\n" "  .thumb_func\n" "  .type " x ", %function\n" x ":\n"
-#else
-#define DECL_ARMMODE(x) "  .align 4\n" "  .global " x "\n" "  .arm\n" x ":\n"
-#endif
+#ifndef __LIBRETRO_SDK_RTIME_H__
+#define __LIBRETRO_SDK_RTIME_H__
 
-asm(
-    DECL_ARMMODE("convert_float_s16_asm")
-    DECL_ARMMODE("_convert_float_s16_asm")
-    "# convert_float_s16_asm(int16_t *out, const float *in, size_t samples)\n"
-    "   # Hacky way to get a constant of 2^15.\n"
-    "   # ((2^4)^2)^2 * 0.5 = 2^15\n"
-    "   vmov.f32 q8, #16.0\n"
-    "   vmov.f32 q9, #0.5\n"
-    "   vmul.f32 q8, q8, q8\n"
-    "   vmul.f32 q8, q8, q8\n"
-    "   vmul.f32 q8, q8, q9\n"
-    "\n"
-    "1:\n"
-    "   # Preload here?\n"
-    "   vld1.f32 {q0-q1}, [r1]!\n"
-    "\n"
-    "   vmul.f32 q0, q0, q8\n"
-    "   vmul.f32 q1, q1, q8\n"
-    "\n"
-    "   vcvt.s32.f32 q0, q0\n"
-    "   vcvt.s32.f32 q1, q1\n"
-    "\n"
-    "   vqmovn.s32 d4, q0\n"
-    "   vqmovn.s32 d5, q1\n"
-    "\n"
-    "   vst1.f32 {d4-d5}, [r0]!\n"
-    "\n"
-    "   # Guaranteed to get samples in multiples of 8.\n"
-    "   subs r2, r2, #8\n"
-    "   bne 1b\n"
-    "\n"
-    "   bx lr\n"
-    "\n"
-    );
+#include <retro_common_api.h>
+
+#include <stdint.h>
+#include <stddef.h>
+#include <time.h>
+
+RETRO_BEGIN_DECLS
+
+/* TODO/FIXME: Move all generic time handling functions
+ * to this file */
+
+/* Must be called before using rtime_localtime() */
+void rtime_init(void);
+
+/* Must be called upon program termination */
+void rtime_deinit(void);
+
+/* Thread-safe wrapper for localtime() */
+struct tm *rtime_localtime(const time_t *timep, struct tm *result);
+
+RETRO_END_DECLS
+
 #endif

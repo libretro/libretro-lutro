@@ -1,7 +1,7 @@
 /* Copyright  (C) 2010-2020 The RetroArch team
  *
  * ---------------------------------------------------------------------------------------
- * The following license statement only applies to this file (float_to_s16_neon.S).
+ * The following license statement only applies to this file (retro_math.h).
  * ---------------------------------------------------------------------------------------
  *
  * Permission is hereby granted, free of charge,
@@ -19,46 +19,76 @@
  * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-#if defined(__ARM_NEON__) && !defined(DONT_WANT_ARM_OPTIMIZATIONS)
 
-#if defined(__thumb__)
-#define DECL_ARMMODE(x) "  .align 2\n" "  .global " x "\n" "  .thumb\n" "  .thumb_func\n" "  .type " x ", %function\n" x ":\n"
-#else
-#define DECL_ARMMODE(x) "  .align 4\n" "  .global " x "\n" "  .arm\n" x ":\n"
+#ifndef _LIBRETRO_COMMON_MATH_H
+#define _LIBRETRO_COMMON_MATH_H
+
+#include <stdint.h>
+
+#if defined(_WIN32) && !defined(_XBOX)
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#elif defined(_WIN32) && defined(_XBOX)
+#include <Xtl.h>
 #endif
 
-asm(
-    DECL_ARMMODE("convert_float_s16_asm")
-    DECL_ARMMODE("_convert_float_s16_asm")
-    "# convert_float_s16_asm(int16_t *out, const float *in, size_t samples)\n"
-    "   # Hacky way to get a constant of 2^15.\n"
-    "   # ((2^4)^2)^2 * 0.5 = 2^15\n"
-    "   vmov.f32 q8, #16.0\n"
-    "   vmov.f32 q9, #0.5\n"
-    "   vmul.f32 q8, q8, q8\n"
-    "   vmul.f32 q8, q8, q8\n"
-    "   vmul.f32 q8, q8, q9\n"
-    "\n"
-    "1:\n"
-    "   # Preload here?\n"
-    "   vld1.f32 {q0-q1}, [r1]!\n"
-    "\n"
-    "   vmul.f32 q0, q0, q8\n"
-    "   vmul.f32 q1, q1, q8\n"
-    "\n"
-    "   vcvt.s32.f32 q0, q0\n"
-    "   vcvt.s32.f32 q1, q1\n"
-    "\n"
-    "   vqmovn.s32 d4, q0\n"
-    "   vqmovn.s32 d5, q1\n"
-    "\n"
-    "   vst1.f32 {d4-d5}, [r0]!\n"
-    "\n"
-    "   # Guaranteed to get samples in multiples of 8.\n"
-    "   subs r2, r2, #8\n"
-    "   bne 1b\n"
-    "\n"
-    "   bx lr\n"
-    "\n"
-    );
+#include <limits.h>
+
+#ifdef _MSC_VER
+#include <compat/msvc.h>
+#endif
+#include <retro_inline.h>
+
+#ifndef M_PI
+#if !defined(USE_MATH_DEFINES)
+#define M_PI 3.14159265358979323846264338327
+#endif
+#endif
+
+#ifndef MAX
+#define MAX(a, b) ((a) > (b) ? (a) : (b))
+#endif
+
+#ifndef MIN
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
+#endif
+
+/**
+ * next_pow2:
+ * @v         : initial value
+ *
+ * Get next power of 2 value based on  initial value.
+ *
+ * Returns: next power of 2 value (derived from @v).
+ **/
+static INLINE uint32_t next_pow2(uint32_t v)
+{
+   v--;
+   v |= v >> 1;
+   v |= v >> 2;
+   v |= v >> 4;
+   v |= v >> 8;
+   v |= v >> 16;
+   v++;
+   return v;
+}
+
+/**
+ * prev_pow2:
+ * @v         : initial value
+ *
+ * Get previous power of 2 value based on initial value.
+ *
+ * Returns: previous power of 2 value (derived from @v).
+ **/
+static INLINE uint32_t prev_pow2(uint32_t v)
+{
+   v |= v >> 1;
+   v |= v >> 2;
+   v |= v >> 4;
+   v |= v >> 8;
+   v |= v >> 16;
+   return v - (v >> 1);
+}
+
 #endif

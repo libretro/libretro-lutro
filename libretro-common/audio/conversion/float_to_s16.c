@@ -1,4 +1,4 @@
-/* Copyright  (C) 2010-2017 The RetroArch team
+/* Copyright  (C) 2010-2020 The RetroArch team
  *
  * ---------------------------------------------------------------------------------------
  * The following license statement only applies to this file (float_to_s16.c).
@@ -28,10 +28,16 @@
 #include <altivec.h>
 #endif
 
+#if (defined(__ARM_NEON__) && !defined(DONT_WANT_ARM_OPTIMIZATIONS)) || defined(HAVE_NEON)
+#ifndef HAVE_ARM_NEON_OPTIMIZATIONS
+#define HAVE_ARM_NEON_OPTIMIZATIONS
+#endif
+#endif
+
 #include <features/features_cpu.h>
 #include <audio/conversion/float_to_s16.h>
 
-#if defined(__ARM_NEON__) && !defined(DONT_WANT_ARM_OPTIMIZATIONS)
+#if defined(HAVE_ARM_NEON_OPTIMIZATIONS)
 static bool float_to_s16_neon_enabled = false;
 void convert_float_s16_asm(int16_t *out, const float *in, size_t samples);
 #endif
@@ -42,7 +48,7 @@ void convert_float_s16_asm(int16_t *out, const float *in, size_t samples);
  * @in                : input buffer
  * @samples           : size of samples to be converted
  *
- * Converts floating point 
+ * Converts floating point
  * to signed integer 16-bit.
  *
  * C implementation callback function.
@@ -72,7 +78,7 @@ void convert_float_to_s16(int16_t *out,
 #elif defined(__ALTIVEC__)
    int samples_in = samples;
 
-   /* Unaligned loads/store is a bit expensive, 
+   /* Unaligned loads/store is a bit expensive,
     * so we optimize for the good path (very likely). */
    if (((uintptr_t)out & 15) + ((uintptr_t)in & 15) == 0)
    {
@@ -91,7 +97,7 @@ void convert_float_to_s16(int16_t *out,
 
    samples = samples_in;
    i       = 0;
-#elif defined(__ARM_NEON__) && !defined(DONT_WANT_ARM_OPTIMIZATIONS)
+#elif defined(HAVE_ARM_NEON_OPTIMIZATIONS)
    if (float_to_s16_neon_enabled)
    {
       size_t aligned_samples = samples & ~7;
@@ -106,7 +112,7 @@ void convert_float_to_s16(int16_t *out,
 #elif defined(_MIPS_ARCH_ALLEGREX)
 
 #ifdef DEBUG
-   /* Make sure the buffers are 16 byte aligned, this should be 
+   /* Make sure the buffers are 16 byte aligned, this should be
     * the default behaviour of malloc in the PSPSDK.
     * Assume alignment. */
    retro_assert(((uintptr_t)in  & 0xf) == 0);
@@ -151,7 +157,7 @@ void convert_float_to_s16(int16_t *out,
  **/
 void convert_float_to_s16_init_simd(void)
 {
-#if defined(__ARM_NEON__) && !defined(DONT_WANT_ARM_OPTIMIZATIONS)
+#if defined(HAVE_ARM_NEON_OPTIMIZATIONS)
    unsigned cpu = cpu_features_get();
 
    if (cpu & RETRO_SIMD_NEON)

@@ -298,7 +298,7 @@ void retro_cheat_set(unsigned index, bool enabled, const char *code)
    (void)code;
 }
 
-#ifdef __QNX__
+#if defined(__QNX__) || defined(_MSC_VER)
 /* QNX doesn't have this */
 int vasprintf(char **strp, const char *fmt, va_list ap)
 {

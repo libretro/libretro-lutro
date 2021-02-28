@@ -305,7 +305,7 @@ CORE_DIR := .
 
 include Makefile.common
 
-OBJS += $(SOURCES_C:.c=.o) $(SOURCES_CXX:.cpp=.o) $(SOURCES_ASM:.S=.o)
+OBJS += $(SOURCES_C:.c=.o) $(VORBIS_SOURCES_C:.cpp=.o) $(SOURCES_CXX:.cpp=.o) $(SOURCES_ASM:.S=.o)
 
 CFLAGS += -Wall -pedantic $(fpic) $(INCFLAGS)
 
@@ -348,6 +348,42 @@ ifeq ($(platform),ios-arm64)
 endif
 
 OBJS := $(addprefix obj/,$(OBJS))
+
+# TARGET: vcxproj
+#
+# This target bypasses most config options and generates an msbuild property sheet which is included into
+# one or more vcxproj targets. Most build options are still configured via the vcxproj itself (via Visual
+# Studio target selector, and other VS IDE things). This just provides a nice way of generating sources and
+# include dirs from one authorative list: Makefile.common
+#
+# Limitations:
+#  - msbuild cannot handle easily options per-sourcefile. Such functionality will require multiple msbuild files,
+#    or authoring a standalone tool that can can inject the massive amount of red-tape xml boilerplate needed to
+#    specify build settings per sourcefile. (the latter is not recommended)
+#
+#  - if any of the SOURCES_C items are populated using wildcards then this will fail. In that case, there needs
+#    to be dependency checks on the contents of each dir (gnu make supports this, just specify dirs as dependencies
+#    and any files added/removed/renamed within them will trigger a rule rebuild).
+#
+vcxproj: msbuild/lutro_sources.props
+
+msbuild/lutro_sources.props: Makefile Makefile.common
+	@>  msbuild/lutro_sources.props echo   '<?xml version="1.0" encoding="utf-8"?>'
+	@>> msbuild/lutro_sources.props echo   '<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">'
+	@>> msbuild/lutro_sources.props echo   '  <ItemGroup>'
+	@>> msbuild/lutro_sources.props printf "    <ClCompile Include=\"../%s\" />\n" $(SOURCES_C)
+	@>> msbuild/lutro_sources.props echo   '  </ItemGroup>'
+	@[[ -z "$(SOURCES_H)" ]] || \
+	 >> msbuild/lutro_sources.props echo   '  <ItemGroup>' \
+     >> msbuild/lutro_sources.props printf "    <ClInclude Include=\"../%s\" />\n" $(SOURCES_H) \
+	 >> msbuild/lutro_sources.props echo   '  </ItemGroup>'
+	@>> msbuild/lutro_sources.props echo   '  <ItemDefinitionGroup>'
+	@>> msbuild/lutro_sources.props echo   '    <ClCompile>'
+	@>> msbuild/lutro_sources.props printf "      <AdditionalIncludeDirectories>%%(AdditionalIncludeDirectories);../%s</AdditionalIncludeDirectories>\n" $(subst -I,,$(filter -I%,$(CFLAGS)))
+	@>> msbuild/lutro_sources.props echo   '    </ClCompile>'
+	@>> msbuild/lutro_sources.props echo   '  </ItemDefinitionGroup>'
+	@>> msbuild/lutro_sources.props echo   '</Project>'
+	@touch msbuild/lutro.vcxproj
 
 all: $(TARGET)
 

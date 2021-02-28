@@ -38,10 +38,13 @@
 #include <string.h>
 
 #include <assert.h>
+
+#if !defined(_MSC_VER)
 #ifndef __CELLOS_LV2__
 #include <libgen.h>
 #endif
 #include <unistd.h>
+#endif
 
 static lua_State *L;
 static int16_t input_cache[16];

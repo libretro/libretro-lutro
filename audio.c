@@ -8,6 +8,7 @@
 #include <file/file_path.h>
 #include <audio/conversion/float_to_s16.h>
 #include <math.h>
+#include <assert.h>
 
 /* TODO/FIXME - no sound on big-endian */
 
@@ -23,6 +24,28 @@ static int16_t saturate(mixer_presaturate_t in) {
    return cvt_presaturate_to_int16(in);
 }
 
+int audio_sources_nullify_refs(const snd_SoundData* sndta)
+{
+   int counted = 0;
+   if (!sndta->fp) return 0;
+
+   // rather than crash, let's nullify any known references here,
+   // even if they're currently playing (they'll be cut to silence)
+
+   for(int i=0; i<num_sources; ++i)
+   {
+      if (sources[i] && sources[i]->sndta.fp == sndta->fp)
+      {
+         if (sources[i]->state != AUDIO_STOPPED)
+            ++counted;
+   
+         sources[i] = NULL;
+      }
+   }
+
+   return counted;
+}
+
 void mixer_render(int16_t *buffer)
 {
    static mixer_presaturate_t presaturateBuffer[AUDIO_FRAMES * CHANNELS];
@@ -32,6 +55,9 @@ void mixer_render(int16_t *buffer)
    // Loop over audio sources
    for (int i = 0; i < num_sources; i++)
    {
+      if (!sources[i])
+         continue;
+
       if (sources[i]->state == AUDIO_STOPPED)
          continue;
 
@@ -154,7 +180,7 @@ void lutro_audio_deinit()
    {
       for (unsigned i = 0; i < num_sources; i++)
       {
-         if (sources[i]->oggData)
+         if (sources[i] && sources[i]->oggData)
          {
             ov_clear(&sources[i]->oggData->vf);
             free(sources[i]->oggData);
@@ -167,6 +193,19 @@ void lutro_audio_deinit()
    }
 }
 
+static int assign_to_existing_source_slot(audio_Source* self)
+{
+   for(int i=0; i<num_sources; ++i)
+   {
+      if (!sources[i])
+      {
+         sources[i] = self;
+         return 1;
+      }
+   }
+   return 0;
+}
+
 int audio_newSource(lua_State *L)
 {
    int n = lua_gettop(L);
@@ -177,6 +216,11 @@ int audio_newSource(lua_State *L)
    audio_Source* self = (audio_Source*)lua_newuserdata(L, sizeof(audio_Source));
    self->oggData = NULL;
    self->sndta.fp = NULL;        
+
+   //if (lua_isstring(L,1)) // (lua_type(L, 1) == LUA_TSTRING)
+   //{
+   //   
+   //}
 
    void *p = lua_touserdata(L, 1);
    if (p == NULL)
@@ -227,9 +271,13 @@ int audio_newSource(lua_State *L)
       self->bps = self->sndta.head.NumChannels * self->sndta.head.BitsPerSample / 8;
       fseek(self->sndta.fp, 0, SEEK_END);
    }
-   num_sources++;
-   sources = (audio_Source**)realloc(sources, num_sources * sizeof(audio_Source));
-   sources[num_sources-1] = self;
+
+   if (!assign_to_existing_source_slot(self))
+   {
+      num_sources++;
+      sources = (audio_Source**)realloc(sources, num_sources * sizeof(audio_Source));
+      sources[num_sources-1] = self;
+   }
 
    if (luaL_newmetatable(L, "Source") != 0)
    {
@@ -418,6 +466,18 @@ int source_getPitch(lua_State *L)
 int source_gc(lua_State *L)
 {
    audio_Source* self = (audio_Source*)luaL_checkudata(L, 1, "Source");
+
+   // todo - add some info to help identify the offending leaker.
+   // (don't get carried away tho - this message is only really useful to lutro core devs since
+   //  it indiciates a failure of our internal Lua/C glue)
+
+   int leaks = audio_sources_nullify_refs(self);
+   if (leaks)
+   {
+      fprintf(stderr, "source_gc: playing audio references were nullified.\n");
+      //assert(false);
+   }
+
    (void)self;
    return 0;
 }

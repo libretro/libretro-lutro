@@ -4,6 +4,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 
 int lutro_sound_preload(lua_State *L)
 {
@@ -23,6 +24,11 @@ int lutro_sound_preload(lua_State *L)
 
 void lutro_sound_init()
 {
+}
+
+void newSoundData_internal(lua_State *L, const char* path)
+{
+   snd_SoundData* self = (snd_SoundData*)lua_newuserdata(L, sizeof(snd_SoundData));
 }
 
 int snd_newSoundData(lua_State *L)
@@ -72,7 +78,7 @@ int snd_newSoundData(lua_State *L)
 
 int sndta_type(lua_State *L)
 {
-   wavhead_t* self = (wavhead_t*)luaL_checkudata(L, 1, "SoundData");
+   snd_SoundData* self = (snd_SoundData*)luaL_checkudata(L, 1, "SoundData");
    (void) self;
    lua_pushstring(L, "SoundData");
    return 1;
@@ -80,7 +86,20 @@ int sndta_type(lua_State *L)
 
 int sndta_gc(lua_State *L)
 {
-   wavhead_t* self = (wavhead_t*)luaL_checkudata(L, 1, "SoundData");
+   snd_SoundData* self = (snd_SoundData*)luaL_checkudata(L, 1, "SoundData");
+   if (!self) return 0;
+
+   // todo - add some info to help identify the offending leaker.
+   // (don't get carried away tho - this message is only really useful to lutro core devs since
+   //  it indiciates a failure of our internal Lua/C glue)
+
+   int leaks = audio_sources_nullify_refs(self);
+   if (leaks)
+   {
+      fprintf(stderr, "sndta_gc: playing audio references were nullified.\n");
+      //assert(false);
+   }
+
    (void)self;
    return 0;
 }

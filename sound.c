@@ -1,5 +1,6 @@
 #include "sound.h"
 #include "lutro.h"
+#include "audio.h"
 #include "compat/strl.h"
 
 #include <stdlib.h>

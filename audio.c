@@ -39,6 +39,7 @@ int audio_sources_nullify_refs(const snd_SoundData* sndta)
          if (sources[i]->state != AUDIO_STOPPED)
             ++counted;
    
+         // do not free - the pointers in sources are lua user data
          sources[i] = NULL;
       }
    }

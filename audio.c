@@ -183,7 +183,7 @@ int audio_newSource(lua_State *L)
       char ext[PATH_MAX_LENGTH];
       strcpy(ext, path_get_extension(path));
       for(int i = 0; ext[i]; i++)
-         ext[i] = tolower(ext[i]);
+         ext[i] = tolower((uint8_t)ext[i]);
       
       //ogg
       if (strstr(ext, "ogg"))

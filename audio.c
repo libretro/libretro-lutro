@@ -24,17 +24,17 @@ static int16_t saturate(mixer_presaturate_t in) {
    return cvt_presaturate_to_int16(in);
 }
 
-int audio_sources_nullify_refs(const snd_SoundData* sndta)
+int audio_sources_nullify_refs(const audio_Source* source)
 {
    int counted = 0;
-   if (!sndta->fp) return 0;
+   if (!source) return 0;
 
    // rather than crash, let's nullify any known references here,
    // even if they're currently playing (they'll be cut to silence)
 
    for(int i=0; i<num_sources; ++i)
    {
-      if (sources[i] && sources[i]->sndta.fp == sndta->fp)
+      if (sources[i] == source)
       {
          if (sources[i]->state != AUDIO_STOPPED)
             ++counted;

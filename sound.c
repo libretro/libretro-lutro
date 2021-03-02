@@ -88,18 +88,8 @@ int sndta_type(lua_State *L)
 int sndta_gc(lua_State *L)
 {
    snd_SoundData* self = (snd_SoundData*)luaL_checkudata(L, 1, "SoundData");
-   if (!self) return 0;
 
-   // todo - add some info to help identify the offending leaker.
-   // (don't get carried away tho - this message is only really useful to lutro core devs since
-   //  it indiciates a failure of our internal Lua/C glue)
-
-   int leaks = audio_sources_nullify_refs(self);
-   if (leaks)
-   {
-      fprintf(stderr, "sndta_gc: playing audio references were nullified.\n");
-      //assert(false);
-   }
+   //audio makes deep copies of this object when it preps it as a mixer source, so no cleanup needed here.
 
    (void)self;
    return 0;

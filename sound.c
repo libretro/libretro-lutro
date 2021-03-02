@@ -1,9 +1,11 @@
 #include "sound.h"
 #include "lutro.h"
+#include "audio.h"
 #include "compat/strl.h"
 
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 
 int lutro_sound_preload(lua_State *L)
 {
@@ -23,6 +25,11 @@ int lutro_sound_preload(lua_State *L)
 
 void lutro_sound_init()
 {
+}
+
+void newSoundData_internal(lua_State *L, const char* path)
+{
+   snd_SoundData* self = (snd_SoundData*)lua_newuserdata(L, sizeof(snd_SoundData));
 }
 
 int snd_newSoundData(lua_State *L)
@@ -72,7 +79,7 @@ int snd_newSoundData(lua_State *L)
 
 int sndta_type(lua_State *L)
 {
-   wavhead_t* self = (wavhead_t*)luaL_checkudata(L, 1, "SoundData");
+   snd_SoundData* self = (snd_SoundData*)luaL_checkudata(L, 1, "SoundData");
    (void) self;
    lua_pushstring(L, "SoundData");
    return 1;
@@ -80,7 +87,10 @@ int sndta_type(lua_State *L)
 
 int sndta_gc(lua_State *L)
 {
-   wavhead_t* self = (wavhead_t*)luaL_checkudata(L, 1, "SoundData");
+   snd_SoundData* self = (snd_SoundData*)luaL_checkudata(L, 1, "SoundData");
+
+   //audio makes deep copies of this object when it preps it as a mixer source, so no cleanup needed here.
+
    (void)self;
    return 0;
 }

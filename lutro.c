@@ -20,6 +20,7 @@
 
 #include <file/file_path.h>
 #include <compat/strl.h>
+#include <ctype.h>
 
 #ifdef HAVE_JIT
 #include "luajit.h"
@@ -287,10 +288,13 @@ void lutro_deinit()
       lutro_live_deinit();
 #endif
 
+   lutro_audio_stop_all();
+   lua_gc(L, LUA_GCSTEP, 0);
+   lua_close(L);
+
    lutro_audio_deinit();
    lutro_filesystem_deinit();
 
-   lua_close(L);
 }
 
 int lutro_set_package_path(lua_State* L, const char* path)
@@ -504,7 +508,7 @@ int lutro_load(const char *path)
    lua_pop(L, 1); // either lutro.settings or lutro.conf
 
    lutro_graphics_init(L);
-   lutro_audio_init();
+   lutro_audio_init(L);
    lutro_event_init();
    lutro_math_init();
    lutro_joystick_init();
@@ -620,6 +624,7 @@ void lutro_run(double delta)
 
    lua_pop(L, 2);
 
+   mixer_unref_stopped_sounds(L);
    lua_gc(L, LUA_GCSTEP, 0);
 }
 
@@ -632,8 +637,7 @@ void lutro_reset()
 
    if (lua_isfunction(L, -1))
    {
-      lutro_audio_deinit();
-      lutro_audio_init();
+      lutro_audio_stop_all();
       if(lua_pcall(L, 0, 0, 0))
       {
          fprintf(stderr, "%s\n", lua_tostring(L, -1));
@@ -735,4 +739,17 @@ bool lutro_unserialize(const void *data_, size_t size)
    lua_gc(L, LUA_GCSTEP, 0);
 
    return true;
+}
+
+void lutro_assetPath_init(AssetPathInfo* dest, const char* path)
+{
+   assert (dest);
+
+   strlcpy(dest->fullpath, settings.gamedir, sizeof(dest->fullpath));
+   strlcat(dest->fullpath, path, sizeof(dest->fullpath));
+
+   //get file extension
+   strcpy(dest->ext, path_get_extension(path));
+   for(int i = 0; dest->ext[i]; i++)
+      dest->ext[i] = tolower((uint8_t)dest->ext[i]);
 }

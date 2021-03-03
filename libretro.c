@@ -232,9 +232,9 @@ bool retro_load_game(const struct retro_game_info *info)
 
 void retro_unload_game(void)
 {
-	// Workaround a crash on Windows & Android because the callbacks are invoked after the DLL/SO was unloaded 
-	struct retro_audio_callback no_audio_callback_definition = { NULL, NULL }; 
-	environ_cb(RETRO_ENVIRONMENT_SET_AUDIO_CALLBACK, &no_audio_callback_definition); 
+   // Workaround a crash on Windows & Android because the callbacks are invoked after the DLL/SO was unloaded 
+   struct retro_audio_callback no_audio_callback_definition = { NULL, NULL }; 
+   environ_cb(RETRO_ENVIRONMENT_SET_AUDIO_CALLBACK, &no_audio_callback_definition); 
 }
 
 void lutro_shutdown_game(void)

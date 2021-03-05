@@ -643,7 +643,39 @@ void lutro_reset()
       lua_pop(L, 1);
    }
 
-   lua_pop(L, 3);
+   lua_gc(L, LUA_GCSTEP, 0);
+}
+
+size_t lutro_serialize_size()
+{
+   size_t size = 0;
+
+   lua_pushcfunction(L, db_errorfb);
+
+   lua_getglobal(L, "lutro");
+   lua_getfield(L, -1, "serializeSize");
+
+   if (lua_isfunction(L, -1))
+   {
+      if (lua_pcall(L, 0, 1, 0))
+      {
+         fprintf(stderr, "%s\n", lua_tostring(L, -1));
+         lua_pop(L, 1);
+      }
+
+      if (!lua_isnumber(L, -1))
+      {
+         fprintf(stderr, "%s\n", lua_tostring(L, -1));
+         lua_pop(L, 1);
+      }
+
+      size = lua_tonumber(L, -1);
+      lua_pop(L, 1);
+   } else {
+      lua_pop(L, 1);
+   }
 
    lua_gc(L, LUA_GCSTEP, 0);
+
+   return size;
 }

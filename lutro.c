@@ -709,3 +709,29 @@ bool lutro_serialize(void *data_, size_t size)
 
    return true;
 }
+
+bool lutro_unserialize(const void *data_, size_t size)
+{
+   lua_pushcfunction(L, db_errorfb);
+
+   lua_getglobal(L, "lutro");
+   lua_getfield(L, -1, "unserialize");
+
+   if (lua_isfunction(L, -1))
+   {
+      lua_pushstring(L, data_);
+      lua_pushnumber(L, size);
+      if (lua_pcall(L, 2, 0, 0))
+      {
+         fprintf(stderr, "%s\n", lua_tostring(L, -1));
+         lua_pop(L, 1);
+         return false;
+      }
+   } else {
+      lua_pop(L, 1);
+   }
+
+   lua_gc(L, LUA_GCSTEP, 0);
+
+   return true;
+}

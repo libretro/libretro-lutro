@@ -45,6 +45,7 @@ void lutro_reset();
 
 size_t lutro_serialize_size();
 bool lutro_serialize(void *data_, size_t size);
+bool lutro_unserialize(const void *data_, size_t size);
 
 void lutro_shutdown_game(void);
 

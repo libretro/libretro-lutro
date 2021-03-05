@@ -679,3 +679,33 @@ size_t lutro_serialize_size()
 
    return size;
 }
+
+bool lutro_serialize(void *data_, size_t size)
+{
+   lua_pushcfunction(L, db_errorfb);
+
+   lua_getglobal(L, "lutro");
+   lua_getfield(L, -1, "serialize");
+
+   if (lua_isfunction(L, -1))
+   {
+      lua_pushnumber(L, size);
+      if (lua_pcall(L, 1, 1, 0))
+      {
+         fprintf(stderr, "%s\n", lua_tostring(L, -1));
+         lua_pop(L, 1);
+         return false;
+      }
+
+      const char* data = lua_tostring(L, -1);
+      lua_pop(L, 1);
+
+      memcpy(data_, data, size);
+   } else {
+      lua_pop(L, 1);
+   }
+
+   lua_gc(L, LUA_GCSTEP, 0);
+
+   return true;
+}

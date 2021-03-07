@@ -127,6 +127,7 @@ void retro_set_environment(retro_environment_t cb)
 {
    struct retro_vfs_interface_info vfs_iface_info = { 1, NULL };
    environ_cb = cb;
+   settings.environ_cb = &environ_cb;
 
    bool no_rom = false;
    cb(RETRO_ENVIRONMENT_SET_SUPPORT_NO_GAME, &no_rom);

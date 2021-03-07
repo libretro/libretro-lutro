@@ -23,5 +23,6 @@ int win_getPosition(lua_State *L);
 int win_requestAttention(lua_State *L);
 int win_getDisplayName(lua_State *L);
 int win_setDisplaySleepEnabled(lua_State *L);
+int win_showMessageBox(lua_State *L);
 
 #endif // WINDOW_H

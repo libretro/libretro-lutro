@@ -29,6 +29,7 @@ typedef struct lutro_settings_t {
    double deltaCounter;
    int frameCounter;
    int fps;
+   retro_environment_t* environ_cb;
 } lutro_settings_t;
 
 extern lutro_settings_t settings;

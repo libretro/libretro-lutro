@@ -700,7 +700,8 @@ bool lutro_serialize(void *data_, size_t size)
       const char* data = lua_tostring(L, -1);
       lua_pop(L, 1);
 
-      memcpy(data_, data, size);
+      memset(data_, 0, size);
+      memcpy(data_, data, strlen(data));
    } else {
       lua_pop(L, 1);
    }

@@ -24,13 +24,13 @@
 // of as a streaming Source API.
 
 //
-void decoder_destroyOgg(dec_OggData *data)
+void decOgg_destroy(dec_OggData *data)
 {
    ov_clear(&data->vf);
 }
 
 //
-bool decoder_initOgg(dec_OggData *data, const char *filename)
+bool decOgg_init(dec_OggData *data, const char *filename)
 {
    data->info = NULL;
    if (ov_fopen(filename, &data->vf) < 0)
@@ -69,28 +69,28 @@ bool decoder_initOgg(dec_OggData *data, const char *filename)
 }
 
 //
-bool decoder_seek(dec_OggData *data, intmax_t pos)
+bool decOgg_seek(dec_OggData *data, intmax_t pos)
 {
    return ov_pcm_seek(&data->vf, pos) == 0;
 }
 
 //
-intmax_t decoder_sampleTell(dec_OggData *data)
+intmax_t decOgg_sampleTell(dec_OggData *data)
 {
    return ov_pcm_tell(&data->vf);
 }
 
 //
-intmax_t decoder_sampleLength(dec_OggData *data)
+intmax_t decOgg_sampleLength(dec_OggData *data)
 {
    return ov_pcm_total(&data->vf, -1);
 }
 
 // decoded data is mixed (added) into the presaturated mixer buffer.
 // the buffer must be manually cleared to zero for non-mixing (raw) use cases.
-bool decoder_decodeOgg(dec_OggData *data, presaturate_buffer_desc *buffer, float volume, bool loop)
+bool decOgg_decode(dec_OggData *data, presaturate_buffer_desc *buffer, float volume, bool loop)
 {
-   //printf("decoder_decodeOgg\n");
+   //printf("decOgg_decode\n");
 
    bool finished = false;
 
@@ -175,6 +175,8 @@ bool decoder_decodeOgg(dec_OggData *data, presaturate_buffer_desc *buffer, float
    
    return finished;
 }
+
+// ===================================== WAVFILE =====================================
 
 void decWav_destroy(dec_WavData *data)
 {

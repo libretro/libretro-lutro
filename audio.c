@@ -117,14 +117,14 @@ void mixer_render(int16_t *buffer)
 
       if (source->oggData)
       {
-         bool finished = decoder_decodeOgg(source->oggData, &bufdesc, srcvol, source->loop);
+         bool finished = decOgg_decode(source->oggData, &bufdesc, srcvol, source->loop);
          if (finished)
          {
-            decoder_seek(source->oggData, 0);
+            decOgg_seek(source->oggData, 0);
             source->state  = AUDIO_STOPPED;
             source->sndpos = 0;
          }
-         source->sndpos = decoder_sampleTell(source->oggData);
+         source->sndpos = decOgg_sampleTell(source->oggData);
          continue;
       }
 
@@ -294,7 +294,7 @@ int audio_newSource(lua_State *L)
       if (strstr(asset.ext, "ogg"))
       {
          self->oggData = malloc(sizeof(dec_OggData));
-         decoder_initOgg(self->oggData, asset.fullpath);
+         decOgg_init(self->oggData, asset.fullpath);
       }
 
       if (strstr(asset.ext, "wav"))
@@ -464,7 +464,7 @@ int source_seek(lua_State *L)
       decWav_seek(self->wavData, self->sndpos);
    
    if (self->oggData)
-      decoder_seek(self->oggData, self->sndpos);
+      decOgg_seek(self->oggData, self->sndpos);
 
    return 0;
 }

@@ -42,11 +42,11 @@ bool decWav_seek(dec_WavData *data, intmax_t pos);
 intmax_t decWav_sampleTell(dec_WavData *data);
 bool decWav_decode(dec_WavData *data, presaturate_buffer_desc *buffer, float volume, bool loop);
 
-bool decoder_initOgg(dec_OggData *data, const char *filename);
-void decoder_destroyOgg(dec_OggData *data);
-bool decoder_seek(dec_OggData *data, intmax_t pos);
-intmax_t decoder_sampleTell(dec_OggData *data);
-intmax_t decoder_sampleLength(dec_OggData *data);
-bool decoder_decodeOgg(dec_OggData *data, presaturate_buffer_desc *buffer, float volume, bool loop);
+bool decOgg_init(dec_OggData *data, const char *filename);
+void decOgg_destroy(dec_OggData *data);
+bool decOgg_seek(dec_OggData *data, intmax_t pos);
+intmax_t decOgg_sampleTell(dec_OggData *data);
+intmax_t decOgg_sampleLength(dec_OggData *data);
+bool decOgg_decode(dec_OggData *data, presaturate_buffer_desc *buffer, float volume, bool loop);
 
 #endif // DECODER_H

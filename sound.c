@@ -46,8 +46,8 @@ int snd_newSoundData(lua_State *L)
    if (strstr(asset.ext, "ogg"))
    {
       dec_OggData oggData;
-      decoder_initOgg(&oggData, asset.fullpath);
-      self->numSamples  = decoder_sampleLength(&oggData);
+      decOgg_init(&oggData, asset.fullpath);
+      self->numSamples  = decOgg_sampleLength(&oggData);
       self->numChannels = oggData.info->channels;
       self->data = calloc(1, sizeof(mixer_presaturate_t) * self->numSamples * self->numChannels);
 
@@ -55,8 +55,8 @@ int snd_newSoundData(lua_State *L)
       bufdesc.channels  = self->numChannels;
       bufdesc.samplelen = self->numSamples;
 
-      decoder_decodeOgg(&oggData, &bufdesc, 1.0f, false);
-      decoder_destroyOgg(&oggData);
+      decOgg_decode(&oggData, &bufdesc, 1.0f, false);
+      decOgg_destroy(&oggData);
    }
 
    if (strstr(asset.ext, "wav"))

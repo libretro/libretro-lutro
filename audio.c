@@ -115,12 +115,17 @@ void mixer_render(int16_t *buffer)
       // using float or double for presaturation buffer (see final saturation step below)
       float srcvol = source->volume;
 
+      // Decoder Seek Position Note:
+      //   It's unclear if a decoder can be shared by multiple sources, so always seek the decoder for each chunk.
+      //   Our decoder APIs internally optimize away redundant seeks.
+
       if (source->oggData)
       {
+         decOgg_seek(source->oggData, source->sndpos);
          bool finished = decOgg_decode(source->oggData, &bufdesc, srcvol, source->loop);
          if (finished)
          {
-            decOgg_seek(source->oggData, 0);
+            decOgg_seek(source->oggData, 0);    // see notes above
             source->state  = AUDIO_STOPPED;
             source->sndpos = 0;
          }
@@ -130,6 +135,7 @@ void mixer_render(int16_t *buffer)
 
       if (source->wavData)
       {
+         decWav_seek(source->wavData, source->sndpos);    // see notes above
          bool finished = decWav_decode(source->wavData, &bufdesc, srcvol, source->loop);
          if (finished)
          {
@@ -247,7 +253,7 @@ void lutro_audio_deinit()
    {
       fprintf(stderr, "Found %d leaked audio source references. Was lua_close() called first?\n", counted);
       fflush(stderr);
-      assert(false);
+      //assert(false);
       return;
    }
 

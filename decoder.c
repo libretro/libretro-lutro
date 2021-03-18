@@ -3,6 +3,7 @@
 #include <audio/conversion/float_to_s16.h>
 #include <errno.h>
 #include <string.h>
+#include <assert.h>
 
 #include "decoder.h"
 #include "audio.h"
@@ -71,7 +72,12 @@ bool decOgg_init(dec_OggData *data, const char *filename)
 //
 bool decOgg_seek(dec_OggData *data, intmax_t pos)
 {
-   return ov_pcm_seek(&data->vf, pos) == 0;
+   // ogg doesn't do a cheap tell-check before invoking a very expensive seek operation internally,
+   // so let's help it out here...
+   if (ov_pcm_tell(&data->vf) != pos) {
+      return ov_pcm_seek(&data->vf, pos) == 0;
+   }
+   return true;
 }
 
 //
@@ -245,7 +251,7 @@ intmax_t decWav_sampleTell(dec_WavData *data)
       {
          // print size, it helps identify the offender.
          fprintf(stderr, "Unaligned read position in wav decoder stream. size=%d bps=%d channels=%d pos=%jd\n",
-            data->head.ChunkSize,
+            data->head.Subchunk2Size,
             data->head.BitsPerSample,
             data->head.NumChannels,
             ret
@@ -275,23 +281,28 @@ static __always_inline bool _inl_decode_wav(dec_WavData *data, intmax_t bufsz, m
    // 8-bit wav is scaled up to 16 bit and then normalized using 16-bit divisor.
    float mul_volume_and_normalize = volume / 32767;
 
-   for (int j = 0; j < bufsz; j++)
+   int numSamples = data->head.Subchunk2Size;
+
+   for (int j = 0; j < bufsz; j++, data->pos += (bytesPerSample * chan_src))
    {  
       uint8_t sample_raw[8];
+      int readResult = 0;
+      if (data->pos < numSamples)
+         readResult = fread(sample_raw, bytesPerSample * chan_src, 1, data->fp);
 
-      if (fread(sample_raw, (intmax_t)bytesPerSample * chan_src, 1, data->fp) == 0)
+      if (!readResult)
       {
-         data->pos = 0;
+         assert(data->pos == ftell(data->fp) - WAV_HEADER_SIZE);
  
          if (!loop)
          {
             // love2D does not specify if seek/tell position should reset to zero or
             // point to the position past the last sample when a sample reaches its end.
             // Assuming ftell (position past end of stream) for now ...
-            data->pos = ftell(data->fp) - WAV_HEADER_SIZE;
             return 1;
          }
 
+         data->pos = 0;
          fseek(data->fp, WAV_HEADER_SIZE + data->pos, SEEK_SET);
          --j; continue;    // attempt to re-read sample.
       }
@@ -326,8 +337,7 @@ static __always_inline bool _inl_decode_wav(dec_WavData *data, intmax_t bufsz, m
       }
    }
 
-   data->pos = ftell(data->fp) - WAV_HEADER_SIZE;
-
+   assert(data->pos == ftell(data->fp) - WAV_HEADER_SIZE);
    return 0;
 }
 
@@ -335,8 +345,6 @@ static __always_inline bool _inl_decode_wav(dec_WavData *data, intmax_t bufsz, m
 // the buffer must be manually cleared to zero for non-mixing (raw) use cases.
 bool decWav_decode(dec_WavData *data, presaturate_buffer_desc *buffer, float volume, bool loop)
 {
-   fseek(data->fp, WAV_HEADER_SIZE + data->pos, SEEK_SET);
-
    intmax_t bufsz = buffer->samplelen;
    mixer_presaturate_t* dst = buffer->data;
 

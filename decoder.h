@@ -26,13 +26,13 @@ typedef struct
 typedef struct
 {
    OggVorbis_File vf;
-   vorbis_info *info;
+   vorbis_info*   info;
 } dec_OggData;
 
 typedef struct
 {
-   void* fp;
-   int   pos;
+   void*      fp;
+   intmax_t   pos;
    wavhead_t head;
 } dec_WavData;
 

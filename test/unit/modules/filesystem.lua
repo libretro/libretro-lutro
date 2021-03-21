@@ -35,9 +35,21 @@ function lutro.filesystem.getDirectoryItemsTest()
     unit.assertTrue(foundMainLua)
 end
 
+function lutro.filesystem.isFileTest()
+    unit.assertEquals(lutro.filesystem.isFile("main.lua"), true)
+    unit.assertEquals(lutro.filesystem.isFile("missingFile.txt"), false)
+end
+
+function lutro.filesystem.isDirectoryTest()
+    unit.assertEquals(lutro.filesystem.isDirectory("."), true)
+    unit.assertEquals(lutro.filesystem.isDirectory("NotADirectory"), false)
+end
+
 return {
     lutro.filesystem.setRequirePathTest,
     lutro.filesystem.getRequirePathTest,
     lutro.filesystem.getUserDirectoryTest,
-    lutro.filesystem.getDirectoryItemsTest
+    lutro.filesystem.getDirectoryItemsTest,
+    lutro.filesystem.isFileTest,
+    lutro.filesystem.isDirectoryTest
 }

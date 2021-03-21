@@ -23,6 +23,7 @@ int lutro_window_preload(lua_State *L)
       { "requestAttention", win_requestAttention },
       { "getDisplayName", win_getDisplayName },
       { "setDisplaySleepEnabled", win_setDisplaySleepEnabled },
+      { "isDisplaySleepEnabled", win_isDisplaySleepEnabled },
       {NULL, NULL}
    };
 
@@ -245,4 +246,21 @@ int win_setDisplaySleepEnabled(lua_State *L)
 
    // Ignore setting the display sleep.
    return 0;
+}
+
+/**
+ * lutro.window.isDisplaySleepEnabled
+ *
+ * https://love2d.org/wiki/love.window.isDisplaySleepEnabled
+ */
+int win_isDisplaySleepEnabled(lua_State *L)
+{
+   int n = lua_gettop(L);
+   if (n != 0)
+      return luaL_error(L, "lutro.window.isDisplaySleepEnabled expects 1 arguments, %d given.", n);
+
+   // Lutro does not support sleeping displays.
+   lua_pushboolean(L, 0);
+
+   return 1;
 }

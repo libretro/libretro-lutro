@@ -305,7 +305,7 @@ CORE_DIR := .
 
 include Makefile.common
 
-OBJS += $(SOURCES_C:.c=.o) $(VORBIS_SOURCES_C:.cpp=.o) $(SOURCES_CXX:.cpp=.o) $(SOURCES_ASM:.S=.o)
+OBJS += $(SOURCES_C:.c=.o) $(VORBIS_SOURCES_C:.c=.o) $(SOURCES_CXX:.cpp=.o) $(SOURCES_ASM:.S=.o)
 
 CFLAGS += -Wall -pedantic $(fpic) $(INCFLAGS)
 
@@ -349,6 +349,8 @@ endif
 
 OBJS := $(addprefix obj/,$(OBJS))
 
+all: $(TARGET)
+
 # TARGET: vcxproj
 #
 # This target bypasses most config options and generates an msbuild property sheet which is included into
@@ -384,8 +386,6 @@ msbuild/lutro_sources.props: Makefile Makefile.common
 	@>> msbuild/lutro_sources.props echo   '  </ItemDefinitionGroup>'
 	@>> msbuild/lutro_sources.props echo   '</Project>'
 	@touch msbuild/lutro.vcxproj
-
-all: $(TARGET)
 
 ifneq ($(MMD),)
 -include $(OBJS:.o=.d)

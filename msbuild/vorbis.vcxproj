@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="../deps/ogg/bitwise.c" />
+    <ClCompile Include="../deps/ogg/framing.c" />
+    <ClCompile Include="../deps/vorbis/analysis.c" />
+    <ClCompile Include="../deps/vorbis/barkmel.c" />
+    <ClCompile Include="../deps/vorbis/bitrate.c" />
+    <ClCompile Include="../deps/vorbis/block.c" />
+    <ClCompile Include="../deps/vorbis/codebook.c" />
+    <ClCompile Include="../deps/vorbis/envelope.c" />
+    <ClCompile Include="../deps/vorbis/floor0.c" />
+    <ClCompile Include="../deps/vorbis/floor1.c" />
+    <ClCompile Include="../deps/vorbis/info.c" />
+    <ClCompile Include="../deps/vorbis/lookup.c" />
+    <ClCompile Include="../deps/vorbis/lpc.c" />
+    <ClCompile Include="../deps/vorbis/lsp.c" />
+    <ClCompile Include="../deps/vorbis/mapping0.c" />
+    <ClCompile Include="../deps/vorbis/mdct.c" />
+    <ClCompile Include="../deps/vorbis/psy.c" />
+    <ClCompile Include="../deps/vorbis/registry.c" />
+    <ClCompile Include="../deps/vorbis/res0.c" />
+    <ClCompile Include="../deps/vorbis/sharedbook.c" />
+    <ClCompile Include="../deps/vorbis/smallft.c" />
+    <ClCompile Include="../deps/vorbis/synthesis.c" />
+    <ClCompile Include="../deps/vorbis/vorbisenc.c" />
+    <ClCompile Include="../deps/vorbis/vorbisfile.c" />
+    <ClCompile Include="../deps/vorbis/window.c" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>16.0</VCProjectVersion>
+    <Keyword>Win32Proj</Keyword>
+    <ProjectGuid>{B4A07901-6615-4460-B907-5F0A2838AC34}</ProjectGuid>
+    <RootNamespace>vorbis</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <CharacterSet>Multibyte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Multibyte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <OutDir>$(SolutionDir)/msbuild/lib/$(Platform)_$(Configuration)/</OutDir>
+    <IntDir>$(SolutionDir)/msbuild/obj/$(Platform)_$(Configuration)/$(ProjectName)/</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);../deps</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <Import Project="lutro_build.props" />
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

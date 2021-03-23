@@ -23,6 +23,7 @@ int lutro_window_preload(lua_State *L)
       { "requestAttention", win_requestAttention },
       { "getDisplayName", win_getDisplayName },
       { "setDisplaySleepEnabled", win_setDisplaySleepEnabled },
+      { "isDisplaySleepEnabled", win_isDisplaySleepEnabled },
       { "showMessageBox", win_showMessageBox },
       {NULL, NULL}
    };
@@ -249,6 +250,23 @@ int win_setDisplaySleepEnabled(lua_State *L)
 }
 
 /**
+ * lutro.window.isDisplaySleepEnabled
+ *
+ * https://love2d.org/wiki/love.window.isDisplaySleepEnabled
+ */
+int win_isDisplaySleepEnabled(lua_State *L)
+{
+   int n = lua_gettop(L);
+   if (n != 0)
+      return luaL_error(L, "lutro.window.isDisplaySleepEnabled expects 1 arguments, %d given.", n);
+
+   // Lutro does not support sleeping displays.
+   lua_pushboolean(L, 0);
+
+   return 1;
+}
+
+/**
  * lutro.window.showMessageBox
  *
  * https://love2d.org/wiki/love.window.showMessageBox
@@ -268,5 +286,6 @@ int win_showMessageBox(lua_State *L)
    (*settings.environ_cb)(RETRO_ENVIRONMENT_SET_MESSAGE, &msg);
 
    lua_pushboolean(L, 1); // success
+
    return 1;
 }

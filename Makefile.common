@@ -5,9 +5,7 @@ INCFLAGS := -I$(CORE_DIR) \
 				-I$(CORE_DIR)/deps/zlib \
 				-I$(CORE_DIR)/deps/vorbis \
 				-I$(CORE_DIR)/deps/ogg \
-				-I$(CORE_DIR)/deps \
-				-I$(LUALIB_DIR)
-
+				-I$(CORE_DIR)/deps
 
 SOURCES_C := $(CORE_DIR)/libretro.c \
                  $(CORE_DIR)/lutro.c \
@@ -30,6 +28,7 @@ SOURCES_C := $(CORE_DIR)/libretro.c \
                  $(CORE_DIR)/painter.c
 
 ifeq ($(WANT_LUALIB),1)
+INCFLAGS += -I$(LUALIB_DIR)
 SOURCES_C += $(LUALIB_DIR)/lapi.c \
                  $(LUALIB_DIR)/lauxlib.c \
                  $(LUALIB_DIR)/lbaselib.c \
@@ -180,7 +179,11 @@ ifeq ($(WANT_PHYSFS), 1)
 endif
 
 # Ogg Vorbis
-SOURCES_C += \
+# These sources are added to their own list so that they can be handled differently when generating
+# windows msbuild scripts. Notably, msbuild doesn't like window.c because it conflicts with window.c
+# in lutro -- such things can only be resolved in msbuld by using project encapsulation.
+
+VORBIS_SOURCES_C += \
 	$(CORE_DIR)/deps/ogg/bitwise.c \
 	$(CORE_DIR)/deps/ogg/framing.c \
 	$(CORE_DIR)/deps/vorbis/analysis.c \

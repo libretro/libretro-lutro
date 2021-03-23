@@ -8,26 +8,7 @@
 #include "runtime.h"
 #include "sound.h"
 #include "decoder.h"
-
-#define AUDIO_FRAMES (44100 / 60)
-
-// The following types are acceptable for pre-saturated mixing, as they meet the requirement for
-// having a larger range than the saturated mixer result type of int16_t. double precision should
-// be preferred on x86/amd64, and single precision on ARM. float16 could also work as an input
-// but care must be taken to saturate at INT16_MAX-1 and INT16_MIN+1 due to float16 not having a
-// 1:1 representation of whole numbers in the in16 range.
-//
-// TODO: set up appropriate compiler defs for mixer presaturate type.
-
-typedef float   mixer_presaturate_t;
-#define cvt_presaturate_to_int16(in)   ((int16_t)roundf(in))
-
-//typedef double  mixer_presaturate_t;
-//#define cvt_presaturate_to_int16(in)   (round(in))
-
-//typedef int32_t mixer_presaturate_t;
-//#define cvt_presaturate_to_int16(in)   ((int16_t)in)
-
+#include "audio_mixer.h"
 
 typedef enum
 {
@@ -38,24 +19,29 @@ typedef enum
 
 typedef struct
 {
-   //currently for WAV
-   snd_SoundData sndta;
-   unsigned bps; // bytes per sample
-   
-   //currently for Ogg Vorbis
-   OggData *oggData;
-   
+   // only one of these should be non-null for a given source.
+
+   dec_WavData*   wavData;       // streaming from wav
+   dec_OggData*   oggData;       // streaming from ogg
+
+   snd_SoundData* sndta;         // pre-decoded sound
+   int lua_ref_sndta;            // (REGISTRY) ref to sndta is held as long as this object isn't disposed/__gc'd
+
+   intmax_t sndpos;              // readpos in samples for pre-decoded sound only
+
    bool loop;
    float volume;
    float pitch;
-   unsigned pos;
    audio_source_state state;
 } audio_Source;
 
-void lutro_audio_init();
+void lutro_audio_init(lua_State* L);
 void lutro_audio_deinit();
+void lutro_audio_stop_all();
+
 int lutro_audio_preload(lua_State *L);
 void mixer_render(int16_t *buffer);
+void mixer_unref_stopped_sounds(lua_State* L);
 
 int audio_newSource(lua_State *L);
 int audio_setVolume(lua_State *L);

@@ -1,28 +1,55 @@
 function lutro.filesystem.setRequirePathTest()
-	local paths = lutro.filesystem.getRequirePath()
-	paths = paths .. ';/lutro.filesystem.setRequirePathTest/?.lua'
-	lutro.filesystem.setRequirePath(paths)
+    local paths = lutro.filesystem.getRequirePath()
+    paths = paths .. ';/lutro.filesystem.setRequirePathTest/?.lua'
+    lutro.filesystem.setRequirePath(paths)
 
-	local paths = lutro.filesystem.getRequirePath()
-	local index = string.find(paths, 'setRequirePathTest')
-	unit.assertTrue(index > 1)
+    local paths = lutro.filesystem.getRequirePath()
+    local index = string.find(paths, 'setRequirePathTest')
+    unit.assertTrue(index > 1)
 end
 
 function lutro.filesystem.getRequirePathTest()
-	local paths = lutro.filesystem.getRequirePath()
-	unit.assertIsString(paths)
-	unit.assertEquals(paths, package.path)
+    local paths = lutro.filesystem.getRequirePath()
+    unit.assertIsString(paths)
+    unit.assertEquals(paths, package.path)
 end
 
 function lutro.filesystem.getUserDirectoryTest()
-	local homeDir = lutro.filesystem.getUserDirectory()
-	-- @todo Find out how to make os.getenv('HOME') work on Windows?
-	local luaHomeDir = os.getenv("HOME")
-	unit.assertEquals(homeDir, luaHomeDir)
+    local homeDir = lutro.filesystem.getUserDirectory()
+    -- @todo Find out how to make os.getenv('HOME') work on Windows?
+    local luaHomeDir = os.getenv("HOME")
+    unit.assertEquals(homeDir, luaHomeDir)
+end
+
+function lutro.filesystem.getDirectoryItemsTest()
+    -- Get the list of all current directory files.
+    local files = lutro.filesystem.getDirectoryItems(".")
+
+    -- Expect to find a main.lua file.
+    local foundMainLua = false
+    for k, file in ipairs(files) do
+        if file == "main.lua" then
+            foundMainLua = true
+        end
+    end
+    unit.assertTrue(foundMainLua)
+end
+
+function lutro.filesystem.isFileTest()
+    unit.assertEquals(lutro.filesystem.isFile("main.lua"), true)
+    unit.assertEquals(lutro.filesystem.isFile("missingFile.txt"), false)
+end
+
+function lutro.filesystem.isDirectoryTest()
+    unit.assertEquals(lutro.filesystem.isDirectory("."), true)
+    unit.assertEquals(lutro.filesystem.isDirectory("NotADirectory"), false)
 end
 
 return {
     lutro.filesystem.setRequirePathTest,
     lutro.filesystem.getRequirePathTest,
-    lutro.filesystem.getUserDirectoryTest
+    lutro.filesystem.getUserDirectoryTest,
+    lutro.filesystem.getDirectoryItemsTest,
+    lutro.filesystem.isFileTest,
+    lutro.filesystem.isDirectoryTest
 }

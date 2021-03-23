@@ -28,6 +28,11 @@ Alternatively, you can load a compressed `.lutro` file:
 Compile Lutro by [installing the RetroArch dependencies](https://github.com/libretro/retroarch#dependencies-pc), and running:
 
     make
+    
+There are a few optional defines you can use to change how Lutro behaves.
+
+- `make HAVE_COMPOSITION=1` Enables alpha-blending.
+
 
 ## Test
 

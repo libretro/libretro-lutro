@@ -1,3 +1,8 @@
+# Editor workspaces
+.vs/
+.vscode/
+*.user
+
 # Object files
 *.o
 *.ko
@@ -5,9 +10,10 @@
 *.elf
 /obj
 
-# Precompiled Headers
+# Precompiled Headers vand other Build Artifacts
 *.gch
 *.pch
+*.ilk
 
 # Libraries
 *.lib
@@ -23,6 +29,7 @@
 
 # Executables
 *.exe
+*.pdb
 *.out
 *.app
 *.i*86

@@ -3,6 +3,8 @@
 #include <compat/strl.h>
 #include <file/file_path.h>
 #include <streams/file_stream.h>
+#include <vfs/vfs_implementation.h>
+#include <string/stdstring.h>
 
 #if WANT_PHYSFS
 #include "physfs.h"
@@ -25,6 +27,7 @@ int lutro_filesystem_preload(lua_State *L)
       { "isDirectory", fs_isDirectory },
       { "isFile",      fs_isFile },
       { "createDirectory", fs_createDirectory },
+      { "getDirectoryItems", fs_getDirectoryItems },
       {NULL, NULL}
    };
 
@@ -268,5 +271,57 @@ int fs_createDirectory(lua_State *L)
    res = path_mkdir(fullpath);
 
    lua_pushboolean(L, res);
+   return 1;
+}
+
+int fs_getDirectoryItems(lua_State *L)
+{
+   // Validate number of arguments.
+   int n = lua_gettop(L);
+   if (n != 1) {
+      return luaL_error(L, "lutro.filesystem.getDirectoryItems requires 1 argument, %d given.", n);
+   }
+
+   // Get the full resolved path to the desired directory.
+   const char *path = luaL_checkstring(L, 1);
+   char fullpath[PATH_MAX_LENGTH];
+   strlcpy(fullpath, settings.gamedir, sizeof(fullpath));
+   strlcat(fullpath, path, sizeof(fullpath));
+
+   // Make sure it's a directory.
+   if (!path_is_directory(fullpath)) {
+      return luaL_error(L, "The given directory of '%s' is not a directory.", path);
+   }
+
+   // Open up the directory.
+   libretro_vfs_implementation_dir* dir = retro_vfs_opendir_impl(fullpath, true);
+   if (!dir) {
+      retro_vfs_closedir_impl(dir);
+      return luaL_error(L, "Failed to open the '%s' directory.", path);
+   }
+
+   // Prepare the output table.
+   lua_newtable(L);
+   int index = 0;
+
+   // Iterate through each directory entry, ignoring the current and previous directories.
+   while (retro_vfs_readdir_impl(dir)) {
+      const char * currentDir = retro_vfs_dirent_get_name_impl(dir);
+      if (currentDir == NULL) {
+         break;
+      }
+      if (string_is_equal(currentDir, ".") || string_is_equal(currentDir, "..")) {
+         continue;
+      }
+
+      // Add the entry to the table.
+      lua_pushnumber(L, index++);
+      lua_pushstring(L, currentDir);
+      lua_settable(L, -3);
+   }
+
+   // Finally, close the opened directory, and return the table.
+   retro_vfs_closedir_impl(dir);
+
    return 1;
 }

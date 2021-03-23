@@ -24,7 +24,7 @@ SOURCES_C := $(CORE_DIR)/libretro.c \
                  $(CORE_DIR)/lutro_math.c \
                  $(CORE_DIR)/joystick.c \
                  $(CORE_DIR)/mouse.c \
-                 $(CORE_DIR)/window.c \
+                 $(CORE_DIR)/lutro_window.c \
                  $(CORE_DIR)/painter.c
 
 ifeq ($(WANT_LUALIB),1)
@@ -183,7 +183,7 @@ endif
 # windows msbuild scripts. Notably, msbuild doesn't like window.c because it conflicts with window.c
 # in lutro -- such things can only be resolved in msbuld by using project encapsulation.
 
-VORBIS_SOURCES_C += \
+VORBIS_SOURCES_C := \
 	$(CORE_DIR)/deps/ogg/bitwise.c \
 	$(CORE_DIR)/deps/ogg/framing.c \
 	$(CORE_DIR)/deps/vorbis/analysis.c \

@@ -7,34 +7,21 @@
 #include <stdbool.h>
 #include "runtime.h"
 
-#define WAV_HEADER_SIZE 44
+#include "audio_mixer.h"
 
+// pre-decoded soundData.
+//
+// it is always matching our internal mixer_presaturate_t type, so there's no
+// need to track bytes per sample.
 typedef struct
 {
-   char ChunkID[4];
-   uint32_t ChunkSize;
-   char Format[4];
-   char Subchunk1ID[4];
-   uint32_t Subchunk1Size;
-   uint16_t AudioFormat;
-   uint16_t NumChannels;
-   uint32_t SampleRate;
-   uint32_t ByteRate;
-   uint16_t BlockAlign;
-   uint16_t BitsPerSample;
-   char Subchunk2ID[4];
-   uint32_t Subchunk2Size;
-} wavhead_t;
-
-typedef struct
-{
-   void* fp;
-   wavhead_t head;
+   int numChannels;
+   intmax_t numSamples;
+   mixer_presaturate_t* data;
 } snd_SoundData;
 
 void lutro_sound_init();
 int lutro_sound_preload(lua_State *L);
-void mixer_render(int16_t *buffer);
 
 int snd_newSoundData(lua_State *L);
 

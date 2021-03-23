@@ -67,7 +67,7 @@ else ifeq ($(platform), osx)
 	fpic := -fPIC
 	SHARED := -dynamiclib
 	LUA_SYSCFLAGS := -DLUA_USE_MACOSX
-	CFLAGS += -DHAVE_STRL
+	CFLAGS += -DHAVE_STRL -DDONT_WANT_ARM_OPTIMIZATIONS
 	WANT_PHYSFS=0
 	MMD :=
 	ifeq ($(UNIVERSAL),1)
@@ -107,26 +107,47 @@ else ifneq (,$(findstring ios,$(platform)))
 	fpic := -fPIC
 	SHARED := -dynamiclib
 	DEFINES := -DIOS
-	CFLAGS += -DHAVE_STRL
+	CFLAGS += -DHAVE_STRL -DDONT_WANT_ARM_OPTIMIZATIONS
+	MINVERSION   :=
 	ifeq ($(IOSSDK),)
 		IOSSDK := $(shell xcodebuild -version -sdk iphoneos Path)
 	endif
-	ifeq ($(platform),ios-arm64)
+ifeq ($(platform),$(filter $(platform),ios9 ios-arm64))
 	CC = cc -arch arm64 -isysroot $(IOSSDK)
-	else
+else
 	CC = cc -arch armv7 -isysroot $(IOSSDK)
-	endif
-	IPHONEMINVER :=
+endif
 	ifeq ($(platform),ios9)
-		IPHONEMINVER = -miphoneos-version-min=8.0
+		MINVERSION  = -miphoneos-version-min=8.0
 	else
-		IPHONEMINVER = -miphoneos-version-min=6.0
+		MINVERSION = -miphoneos-version-min=6.0
 	endif
-	LDFLAGS += $(IPHONEMINVER)
-	FLAGS += $(IPHONEMINVER)
-	CCFLAGS += $(IPHONEMINVER)
-	CXXFLAGS += $(IPHONEMINVER)
+	LDFLAGS      += $(MINVERSION)
+	FLAGS        += $(MINVERSION)
+	CFLAGS       += $(MINVERSION)
+	CXXFLAGS     += $(MINVERSION)
+	LUA_MYCFLAGS := $(MINVERSION)
 	WANT_PHYSFS=0
+	LUADEFINES = -DIOS
+
+else ifeq ($(platform), tvos-arm64)
+	TARGET := $(TARGET_NAME)_libretro_tvos.dylib
+	fpic := -fPIC
+	SHARED := -dynamiclib
+	DEFINES := -DIOS
+	CFLAGS += -DHAVE_STRL -DDONT_WANT_ARM_OPTIMIZATIONS
+	MINVERSION   :=
+	ifeq ($(IOSSDK),)
+		IOSSDK := $(shell xcodebuild -version -sdk appletvos Path)
+	endif
+	CC = cc -arch arm64 -isysroot $(IOSSDK)
+	LDFLAGS      += $(MINVERSION)
+	FLAGS        += $(MINVERSION)
+	CFLAGS       += $(MINVERSION)
+	CXXFLAGS     += $(MINVERSION)
+	LUA_MYCFLAGS := $(MINVERSION)
+	WANT_PHYSFS=0
+	LUADEFINES = -DIOS
 
 else ifeq ($(platform), qnx)
 	TARGET := $(TARGET_NAME)_libretro_$(platform).so
@@ -341,10 +362,6 @@ ifeq ($(platform), osx)
 		CFLAGS += $(ARCHFLAGS)
 		LFLAGS += $(ARCHFLAGS)
 	endif
-endif
-
-ifeq ($(platform),ios-arm64)
-	LUADEFINES = -DIOS
 endif
 
 OBJS := $(addprefix obj/,$(OBJS))

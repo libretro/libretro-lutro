@@ -1,4 +1,4 @@
-function lutro.keyboard.setBackgroundColorTest()
+function lutro.graphics.setBackgroundColorTest()
     red = 115
     green = 27
     blue = 135
@@ -8,7 +8,7 @@ function lutro.keyboard.setBackgroundColorTest()
     lutro.graphics.setBackgroundColor(red, green, blue, alpha)
 end
 
-function lutro.keyboard.getBackgroundColorTest()
+function lutro.graphics.getBackgroundColorTest()
 	r, g, b, a = lutro.graphics.getBackgroundColor()
 	unit.assertEquals(r, 115)
 	unit.assertEquals(g, 27)
@@ -17,6 +17,6 @@ function lutro.keyboard.getBackgroundColorTest()
 end
 
 return {
-    lutro.keyboard.setBackgroundColorTest,
-    lutro.keyboard.getBackgroundColorTest
+    lutro.graphics.setBackgroundColorTest,
+    lutro.graphics.getBackgroundColorTest
 }

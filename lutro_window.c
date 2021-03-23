@@ -3,7 +3,7 @@
 
 #include <libretro.h>
 
-#include "window.h"
+#include "lutro_window.h"
 #include "lutro.h"
 #include "graphics.h"
 

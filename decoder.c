@@ -4,6 +4,7 @@
 #include <errno.h>
 #include <string.h>
 #include <assert.h>
+#include <errno.h>
 
 #include "decoder.h"
 #include "audio.h"
@@ -210,12 +211,14 @@ bool decWav_init(dec_WavData *data, const char *filename)
          return 0;
 
       fprintf(stderr, "Failed to open wavfile '%s': %s\n", filename, strerror(err));
+      fflush(stderr);
       return 0;
    }
 
    if (fread(&data->head, WAV_HEADER_SIZE, 1, fp) == 0)
    {
       fprintf(stderr, "%s is not a valid wav file or is truncated.\n", filename);
+      fflush(stderr);
       fclose(fp);
       return 0;
    }
@@ -228,14 +231,31 @@ bool decWav_init(dec_WavData *data, const char *filename)
 bool decWav_seek(dec_WavData *data, intmax_t samplepos)
 {
    int bps = ((data->head.BitsPerSample + 7) / 8) * data->head.NumChannels;
-   intmax_t bytepos = samplepos * bps;
+   int numSamples = data->head.Subchunk2Size;
 
-   if (!fseek(data->fp, WAV_HEADER_SIZE + bytepos, SEEK_SET))
+   // fseek will let us seek past the end of file without returning an error.
+   // So it is best to verify positions against the know sample size.
+   // TODO: Verify Love2D Behavior? Love2D doesn't specify behavior in this case.
+   //       Options are set the seekpos to 0, or set the seekpos to numSamples.
+
+   if (samplepos > numSamples)
+   {
+      // set to numSamples
+      //  * if the sample is set to loop it will restart immediately from loop pos
+      //  * If not set to loop, it will stop immediately.
+      samplepos = numSamples;
+   }
+
+   intmax_t bytepos = samplepos * bps;
+   if (fseek(data->fp, WAV_HEADER_SIZE + bytepos, SEEK_SET))
    {
       // logging here could be unnecessarily spammy. If we add a log it should be gated by
       // some audio diagnostic output switch/mode.
+      //fprintf(stderr, "WAV decoder seek failed: %s\n", strerror(errno));
+      //fflush(stdout);
       return 0;
    }
+   data->pos = samplepos * bps;
    return 1;
 }
 
@@ -256,6 +276,7 @@ intmax_t decWav_sampleTell(dec_WavData *data)
             data->head.NumChannels,
             ret
          );
+         fflush(stderr);
       }
    }
    return ret / bps;

@@ -9,6 +9,7 @@
 #include <audio/conversion/float_to_s16.h>
 #include <math.h>
 #include <assert.h>
+#include <errno.h>
 
 /* TODO/FIXME - no sound on big-endian */
 
@@ -285,6 +286,8 @@ int audio_newSource(lua_State *L)
    audio_Source* self = (audio_Source*)lua_newuserdata(L, sizeof(audio_Source));
    self->oggData = NULL;
    self->wavData = NULL;
+   self->sndta   = NULL;
+   self->lua_ref_sndta = LUA_REFNIL;
 
    void *p = lua_touserdata(L, 1);
    if (p == NULL)
@@ -460,18 +463,64 @@ int source_seek(lua_State *L)
       return luaL_error(L, "Source:seek requires 3 arguments, %d given.", n);
 
    audio_Source* self = (audio_Source*)luaL_checkudata(L, 1, "Source");
- 
-   //currently assuming samples vs seconds
-   //TODO: check if 3rd param is "seconds" or "samples"
- 
-   self->sndpos = luaL_checkinteger(L, 2);
+
+   const char* type = lua_tostring(L, 3);
+
+   intmax_t npSamples = 0;
+
+   if (type)
+   {
+      if (strcmp(type, "seconds") == 0)
+      {
+         double npSeconds = luaL_checknumber(L, 2);
+         npSamples = npSeconds * 44100.0;
+      }
+      else if(strcmp(type, "samples") == 0)
+      {
+         npSamples = luaL_checkinteger(L, 2);
+      }
+      else
+      {
+         return luaL_error(L, "Source:seek third argument is invalid, '%s' given. Expected either 'seconds' or 'samples'.\n", type);      
+      }
+   }
+   else 
+   {
+      // assume samples if third paramter is unspecified
+      npSamples = luaL_checkinteger(L, 2);
+   }
 
    if (self->wavData)
-      decWav_seek(self->wavData, self->sndpos);
+   {
+      if (!decWav_seek(self->wavData, npSamples))
+      {
+         // TODO: it'd be nice to log with the full lua FILE(LINE): context that's normally prefixed by lua_error,
+         // in a manner that allows us to log it without stopping the system. --jstine
+         fprintf(stderr, "WAV decoder seek failed: %s\n", strerror(errno));
+         fflush(stdout);
+      }
+      self->sndpos = decWav_sampleTell(self->wavData);
+   }
    
    if (self->oggData)
-      decOgg_seek(self->oggData, self->sndpos);
+   {
+      decOgg_seek(self->oggData, npSamples); 
+      self->sndpos = decWav_sampleTell(self->wavData);
+   }
 
+   if (self->sndta)
+   {
+      self->sndpos = npSamples;
+      if (self->sndpos > self->sndta->numSamples)
+         self->sndpos = self->sndta->numSamples;
+   }
+
+   if (npSamples != self->sndpos)
+   {
+      // the underlying media source will fixup the seek position...
+      fprintf(stderr, "warning: seek asked for sample pos %jd, got pos %jd\n", npSamples, self->sndpos);
+      fflush(stderr);
+   }
    return 0;
 }
 

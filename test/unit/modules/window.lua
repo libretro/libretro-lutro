@@ -55,6 +55,11 @@ function lutro.window.isDisplaySleepEnabledTest()
     unit.assertIsBoolean(sleep)
 end
 
+function lutro.window.showMessageBoxTest()
+	success = lutro.window.showMessageBox("Title", "lutro.window.showMessageBoxTest() has been run.", "info", true)
+	unit.assertEquals(success, true)
+end
+
 return {
     lutro.window.minimizeTest,
     lutro.window.maximizeTest,
@@ -65,5 +70,6 @@ return {
     lutro.window.requestAttentionTest,
     lutro.window.getDisplayNameTest,
     lutro.window.setDisplaySleepEnabledTest,
-    lutro.window.isDisplaySleepEnabledTest
+    lutro.window.isDisplaySleepEnabledTest,
+    lutro.window.showMessageBoxTest
 }

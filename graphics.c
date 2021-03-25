@@ -967,7 +967,6 @@ static int gfx_print(lua_State *L)
    if (canvas->font == NULL)
       return luaL_error(L, "lutro.graphics.print requires a font to be set.");
 
-
    const char* message = luaL_checkstring(L, 1);
    int dest_x = luaL_checknumber(L, 2);
    int dest_y = luaL_checknumber(L, 3);

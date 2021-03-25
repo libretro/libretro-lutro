@@ -8,6 +8,7 @@ unit = require 'luaunit'
 function runTests()
 	local moduleTests = {
 		require 'modules/filesystem',
+		require 'modules/graphics',
 		require 'modules/keyboard',
 		require 'modules/math',
 		require 'modules/system',

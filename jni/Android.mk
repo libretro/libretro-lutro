@@ -15,7 +15,7 @@ endif
 
 include $(CLEAR_VARS)
 LOCAL_MODULE    := retro
-LOCAL_SRC_FILES := $(SOURCES_C)
+LOCAL_SRC_FILES := $(SOURCES_C) $(VORBIS_SOURCES_C)
 LOCAL_CFLAGS    := $(COREFLAGS) -std=gnu99
 LOCAL_CXXFLAGS  := $(COREFLAGS)
 LOCAL_LDFLAGS   := -Wl,-version-script=$(CORE_DIR)/link.T

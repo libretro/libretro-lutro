@@ -13,7 +13,7 @@
 #include "system.h"
 #include "timer.h"
 #include "lutro_math.h"
-#include "window.h"
+#include "lutro_window.h"
 #include "live.h"
 #include "mouse.h"
 #include "joystick.h"

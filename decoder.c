@@ -4,7 +4,6 @@
 #include <errno.h>
 #include <string.h>
 #include <assert.h>
-#include <errno.h>
 
 #include "decoder.h"
 #include "audio.h"
@@ -37,7 +36,7 @@ bool decOgg_init(dec_OggData *data, const char *filename)
    data->info = NULL;
    if (ov_fopen(filename, &data->vf) < 0)
    {
-      printf("Failed to open vorbis file: %s", filename);
+      fprintf(stderr, "Failed to open vorbis file: %s\n", filename);
       return false;
    }
 
@@ -47,7 +46,7 @@ bool decOgg_init(dec_OggData *data, const char *filename)
    data->info = (vorbis_info*)ov_info(&data->vf, 0);
    if (!data->info)
    {
-      printf("couldn't get info for file");
+      fprintf(stderr, "couldn't get info for file\n");
       return false;
    }
 
@@ -56,13 +55,13 @@ bool decOgg_init(dec_OggData *data, const char *filename)
 
    if (data->info->channels != 1 && data->info->channels != 2)
    {
-      printf("unsupported number of channels\n");
+      fprintf(stderr, "unsupported number of channels\n");
       return false;
    }
    
    if (data->info->rate != 44100)
    {
-      printf("unsupported sample rate\n");
+      fprintf(stderr, "unsupported sample rate\n");
       return false;
    }
 
@@ -114,7 +113,7 @@ bool decOgg_decode(dec_OggData *data, presaturate_buffer_desc *buffer, float vol
 
       if (ret < 0)
       {
-         printf("Vorbis decoding failed with: %jd\n", ret);
+         fprintf(stderr, "Vorbis decoding failed with: %jd\n", ret);
          return true;
       }
 
@@ -211,14 +210,12 @@ bool decWav_init(dec_WavData *data, const char *filename)
          return 0;
 
       fprintf(stderr, "Failed to open wavfile '%s': %s\n", filename, strerror(err));
-      fflush(stderr);
       return 0;
    }
 
    if (fread(&data->head, WAV_HEADER_SIZE, 1, fp) == 0)
    {
       fprintf(stderr, "%s is not a valid wav file or is truncated.\n", filename);
-      fflush(stderr);
       fclose(fp);
       return 0;
    }
@@ -252,7 +249,6 @@ bool decWav_seek(dec_WavData *data, intmax_t samplepos)
       // logging here could be unnecessarily spammy. If we add a log it should be gated by
       // some audio diagnostic output switch/mode.
       //fprintf(stderr, "WAV decoder seek failed: %s\n", strerror(errno));
-      //fflush(stdout);
       return 0;
    }
    data->pos = samplepos * bps;
@@ -276,7 +272,6 @@ intmax_t decWav_sampleTell(dec_WavData *data)
             data->head.NumChannels,
             ret
          );
-         fflush(stderr);
       }
    }
    return ret / bps;

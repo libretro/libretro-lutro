@@ -9,8 +9,6 @@
 #define STBI_NO_HDR
 #include "stb/stb_image.h"
 
-#include <stdio.h>
-
 /**
  * Load the given image into the data buffer.
  *
@@ -20,6 +18,7 @@ int lutro_stb_image_load(const char* filename, uint32_t** data, unsigned int* wi
    void* buf;
    ssize_t len;
    int x, y, channels_in_file;
+   int channels = 4;
 
    // Load the file data.
    if (filestream_read_file(filename, &buf, &len) <= 0) {
@@ -27,7 +26,7 @@ int lutro_stb_image_load(const char* filename, uint32_t** data, unsigned int* wi
    }
 
    // Load the data as an image.
-   stbi_uc* output = stbi_load_from_memory((stbi_uc const*)buf, (int)len, &x, &y, &channels_in_file, 4);
+   stbi_uc* output = stbi_load_from_memory((stbi_uc const*)buf, (int)len, &x, &y, &channels_in_file, channels);
    *width = x;
    *height = y;
    free(buf);
@@ -37,7 +36,22 @@ int lutro_stb_image_load(const char* filename, uint32_t** data, unsigned int* wi
       return 0;
    }
 
-   // TODO: Convert from STB_Image output to the expected Lutro image format.
+   // Flip the bits to have them in the format Lutro uses.
+   {
+      int rValue = 0;
+      int bValue = 2;
+      for (int xIndex = 0; xIndex < x; xIndex++) {
+         for (int yIndex = 0; yIndex < y; yIndex++) {
+            int index = xIndex + x * yIndex;
+            stbi_uc tmp;
+            tmp = output[index * channels + rValue];
+            output[index * channels + rValue] = output[index * channels + bValue];
+            output[index * channels + bValue] = tmp;
+         }
+      }
+   }
+
+   // Return the output as a success.
    *data = (uint32_t*)output;
 
    return 1;

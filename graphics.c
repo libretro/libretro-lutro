@@ -915,8 +915,9 @@ static int gfx_draw(lua_State *L)
    float sy = OPTNUMBER(L, start + 5, sx);
    int ox = OPTNUMBER(L, start + 6, 0);
    int oy = OPTNUMBER(L, start + 7, 0);
-   int kx = OPTNUMBER(L, start + 8, 0);
-   int ky = OPTNUMBER(L, start + 9, 0);
+   // TODO: Make use of the kx ky shearing numbers in lutro.graphics.draw()
+   // int kx = OPTNUMBER(L, start + 8, 0);
+   // int ky = OPTNUMBER(L, start + 9, 0);
 
    rect_t drect = {
       x + ox,

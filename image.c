@@ -46,12 +46,13 @@ void *image_data_create(lua_State *L, bitmap_t* self)
    if (luaL_newmetatable(L, "ImageData") != 0)
    {
       static luaL_Reg imgdata_funcs[] = {
-         { "getWidth",   l_getWidth },
-         { "getHeight",  l_getHeight },
-         { "getPixel",   l_getPixel },
-         { "setPixel",   l_setPixel },
-         { "type",       l_type },
-         { "__gc",       l_gc },
+         { "getWidth",      l_getWidth },
+         { "getHeight",     l_getHeight },
+         { "getPixel",      l_getPixel },
+         { "setPixel",      l_setPixel },
+         { "getDimensions", l_getDimensions },
+         { "type",          l_type },
+         { "__gc",          l_gc },
          {NULL, NULL}
       };
 

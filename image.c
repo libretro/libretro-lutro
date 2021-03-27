@@ -3,6 +3,7 @@
 #include "lutro.h"
 #include "painter.h"
 #include "compat/strl.h"
+#include "lutro_stb_image.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -78,7 +79,7 @@ void *image_data_create_from_path(lua_State *L, const char *path)
 
    bitmap_t* self = (bitmap_t*)lua_newuserdata(L, sizeof(bitmap_t));
 
-   rpng_load_image_argb(fullpath, &self->data, &self->width, &self->height);
+   lutro_stb_image_load(fullpath, &self->data, &self->width, &self->height);
 
    self->pitch = self->width << 2;
 

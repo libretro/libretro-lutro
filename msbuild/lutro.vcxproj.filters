@@ -37,48 +37,118 @@
     <ClCompile Include=".././libretro-common/compat/fopen_utf8.c" />
     <ClCompile Include=".././deps/luautf8/lutf8lib.c" />
     <ClCompile Include=".././deps/zlib/ioapi.c" />
-    <ClCompile Include=".././deps/zlib/unzip.c" />
-    <ClCompile Include=".././deps/zlib/adler32.c" />
     <ClCompile Include=".././deps/zlib/compress.c" />
-    <ClCompile Include=".././deps/zlib/crc32.c" />
     <ClCompile Include=".././deps/zlib/deflate.c" />
-    <ClCompile Include=".././deps/zlib/gzclose.c" />
-    <ClCompile Include=".././deps/zlib/gzlib.c" />
-    <ClCompile Include=".././deps/zlib/gzread.c" />
-    <ClCompile Include=".././deps/zlib/gzwrite.c" />
-    <ClCompile Include=".././deps/zlib/inffast.c" />
-    <ClCompile Include=".././deps/zlib/inflate.c" />
-    <ClCompile Include=".././deps/zlib/inftrees.c" />
-    <ClCompile Include=".././deps/zlib/trees.c" />
-    <ClCompile Include=".././deps/zlib/uncompr.c" />
-    <ClCompile Include=".././deps/zlib/zutil.c" />
     <ClCompile Include=".././deps/physfs/physfs.c" />
-    <ClCompile Include=".././deps/physfs/physfs_byteorder.c" />
-    <ClCompile Include=".././deps/physfs/physfs_unicode.c" />
-    <ClCompile Include=".././deps/physfs/physfs_archiver_7z.c" />
-    <ClCompile Include=".././deps/physfs/physfs_archiver_dir.c" />
-    <ClCompile Include=".././deps/physfs/physfs_archiver_grp.c" />
-    <ClCompile Include=".././deps/physfs/physfs_archiver_hog.c" />
-    <ClCompile Include=".././deps/physfs/physfs_archiver_iso9660.c" />
-    <ClCompile Include=".././deps/physfs/physfs_archiver_mvl.c" />
-    <ClCompile Include=".././deps/physfs/physfs_archiver_qpak.c" />
-    <ClCompile Include=".././deps/physfs/physfs_archiver_slb.c" />
-    <ClCompile Include=".././deps/physfs/physfs_archiver_unpacked.c" />
-    <ClCompile Include=".././deps/physfs/physfs_archiver_vdf.c" />
-    <ClCompile Include=".././deps/physfs/physfs_archiver_wad.c" />
-    <ClCompile Include=".././deps/physfs/physfs_archiver_zip.c" />
-    <ClCompile Include=".././deps/physfs/physfs_platform_os2.c" />
-    <ClCompile Include=".././deps/physfs/physfs_platform_posix.c" />
-    <ClCompile Include=".././deps/physfs/physfs_platform_qnx.c" />
-    <ClCompile Include=".././deps/physfs/physfs_platform_unix.c" />
-    <ClCompile Include=".././deps/physfs/physfs_platform_windows.c" />
     <ClCompile Include="msw-printf-stdout.cpp">
       <Filter>msw_fixups</Filter>
+    </ClCompile>
+    <ClCompile Include=".././deps/zlib/adler32.c">
+      <Filter>zip</Filter>
+    </ClCompile>
+    <ClCompile Include=".././deps/zlib/crc32.c">
+      <Filter>zip</Filter>
+    </ClCompile>
+    <ClCompile Include=".././deps/physfs/physfs_archiver_7z.c">
+      <Filter>physfs</Filter>
+    </ClCompile>
+    <ClCompile Include=".././deps/physfs/physfs_archiver_dir.c">
+      <Filter>physfs</Filter>
+    </ClCompile>
+    <ClCompile Include=".././deps/physfs/physfs_archiver_grp.c">
+      <Filter>physfs</Filter>
+    </ClCompile>
+    <ClCompile Include=".././deps/physfs/physfs_archiver_hog.c">
+      <Filter>physfs</Filter>
+    </ClCompile>
+    <ClCompile Include=".././deps/physfs/physfs_archiver_iso9660.c">
+      <Filter>physfs</Filter>
+    </ClCompile>
+    <ClCompile Include=".././deps/physfs/physfs_archiver_mvl.c">
+      <Filter>physfs</Filter>
+    </ClCompile>
+    <ClCompile Include=".././deps/physfs/physfs_archiver_qpak.c">
+      <Filter>physfs</Filter>
+    </ClCompile>
+    <ClCompile Include=".././deps/physfs/physfs_archiver_slb.c">
+      <Filter>physfs</Filter>
+    </ClCompile>
+    <ClCompile Include=".././deps/physfs/physfs_archiver_unpacked.c">
+      <Filter>physfs</Filter>
+    </ClCompile>
+    <ClCompile Include=".././deps/physfs/physfs_archiver_vdf.c">
+      <Filter>physfs</Filter>
+    </ClCompile>
+    <ClCompile Include=".././deps/physfs/physfs_archiver_wad.c">
+      <Filter>physfs</Filter>
+    </ClCompile>
+    <ClCompile Include=".././deps/physfs/physfs_archiver_zip.c">
+      <Filter>physfs</Filter>
+    </ClCompile>
+    <ClCompile Include=".././deps/physfs/physfs_byteorder.c">
+      <Filter>physfs</Filter>
+    </ClCompile>
+    <ClCompile Include=".././deps/physfs/physfs_platform_os2.c">
+      <Filter>physfs</Filter>
+    </ClCompile>
+    <ClCompile Include=".././deps/physfs/physfs_platform_posix.c">
+      <Filter>physfs</Filter>
+    </ClCompile>
+    <ClCompile Include=".././deps/physfs/physfs_platform_qnx.c">
+      <Filter>physfs</Filter>
+    </ClCompile>
+    <ClCompile Include=".././deps/physfs/physfs_platform_unix.c">
+      <Filter>physfs</Filter>
+    </ClCompile>
+    <ClCompile Include=".././deps/physfs/physfs_platform_windows.c">
+      <Filter>physfs</Filter>
+    </ClCompile>
+    <ClCompile Include=".././deps/physfs/physfs_unicode.c">
+      <Filter>physfs</Filter>
+    </ClCompile>
+    <ClCompile Include=".././deps/zlib/gzclose.c">
+      <Filter>zip</Filter>
+    </ClCompile>
+    <ClCompile Include=".././deps/zlib/gzlib.c">
+      <Filter>zip</Filter>
+    </ClCompile>
+    <ClCompile Include=".././deps/zlib/gzread.c">
+      <Filter>zip</Filter>
+    </ClCompile>
+    <ClCompile Include=".././deps/zlib/gzwrite.c">
+      <Filter>zip</Filter>
+    </ClCompile>
+    <ClCompile Include=".././deps/zlib/inffast.c">
+      <Filter>zip</Filter>
+    </ClCompile>
+    <ClCompile Include=".././deps/zlib/inflate.c">
+      <Filter>zip</Filter>
+    </ClCompile>
+    <ClCompile Include=".././deps/zlib/inftrees.c">
+      <Filter>zip</Filter>
+    </ClCompile>
+    <ClCompile Include=".././deps/zlib/trees.c">
+      <Filter>zip</Filter>
+    </ClCompile>
+    <ClCompile Include=".././deps/zlib/uncompr.c">
+      <Filter>zip</Filter>
+    </ClCompile>
+    <ClCompile Include=".././deps/zlib/unzip.c">
+      <Filter>zip</Filter>
+    </ClCompile>
+    <ClCompile Include=".././deps/zlib/zutil.c">
+      <Filter>zip</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="msw_fixups">
       <UniqueIdentifier>{319cb567-2e5b-45dc-8f6c-8dc0d58def3c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="zip">
+      <UniqueIdentifier>{51c9e21e-88aa-4263-9e34-5690f8d63a2e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="physfs">
+      <UniqueIdentifier>{f4123f3d-989b-4f9b-9a6d-fee64abd84b1}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

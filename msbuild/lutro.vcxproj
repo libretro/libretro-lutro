@@ -19,11 +19,6 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="fi-msw-buildconf.h" />
-    <ClInclude Include="fi-verify-printf-msvc.h" />
-    <ClInclude Include="fi-printf-redirect.h" />
-  </ItemGroup>
-  <ItemGroup>
     <ClCompile Include="msw-printf-stdout.cpp" />
   </ItemGroup>
   <!-- TODO : we could add a target that performs error checking and print a friendly message to the user -->

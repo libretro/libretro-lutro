@@ -387,14 +387,15 @@ all: $(TARGET)
 vcxproj: msbuild/lutro_sources.props
 
 msbuild/lutro_sources.props: Makefile Makefile.common
+	@printf "msbuild/lutro_sources.props: Generating with %d sources, %d includes\n" $(words $(SOURCES_C)) $(words $(MSVC_SOURCES_H))
 	@>  msbuild/lutro_sources.props echo   '<?xml version="1.0" encoding="utf-8"?>'
 	@>> msbuild/lutro_sources.props echo   '<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">'
 	@>> msbuild/lutro_sources.props echo   '  <ItemGroup>'
 	@>> msbuild/lutro_sources.props printf "    <ClCompile Include=\"../%s\" />\n" $(SOURCES_C)
 	@>> msbuild/lutro_sources.props echo   '  </ItemGroup>'
-	@[[ -z "$(SOURCES_H)" ]] || \
-	 >> msbuild/lutro_sources.props echo   '  <ItemGroup>' \
-     >> msbuild/lutro_sources.props printf "    <ClInclude Include=\"../%s\" />\n" $(SOURCES_H) \
+	@[[ -z "$(MSVC_SOURCES_H)" ]] || \
+	 >> msbuild/lutro_sources.props echo   '  <ItemGroup>' && \
+     >> msbuild/lutro_sources.props printf "    <ClInclude Include=\"../%s\" />\n" $(MSVC_SOURCES_H) && \
 	 >> msbuild/lutro_sources.props echo   '  </ItemGroup>'
 	@>> msbuild/lutro_sources.props echo   '  <ItemDefinitionGroup>'
 	@>> msbuild/lutro_sources.props echo   '    <ClCompile>'

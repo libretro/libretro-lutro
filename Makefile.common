@@ -24,6 +24,7 @@ SOURCES_C := $(CORE_DIR)/libretro.c \
                  $(CORE_DIR)/lutro_math.c \
                  $(CORE_DIR)/joystick.c \
                  $(CORE_DIR)/mouse.c \
+                 $(CORE_DIR)/lutro_stb_image.c \
                  $(CORE_DIR)/lutro_window.c \
                  $(CORE_DIR)/painter.c
 
@@ -59,9 +60,6 @@ SOURCES_C += $(LUALIB_DIR)/lapi.c \
                  $(LUALIB_DIR)/lundump.c \
                  $(LUALIB_DIR)/ldump.c
 endif
-
-SOURCES_C += $(CORE_DIR)/libretro-common/formats/png/rpng_decode.c \
-				 $(CORE_DIR)/libretro-common/formats/png/rpng_fbio.c 
 
 ifneq ($(STATIC_LINKING), 1)
 SOURCES_C += \

@@ -8,7 +8,7 @@
 #include <retro_miscellaneous.h>
 
 #include "painter.h"
-#include "formats/rpng.h"
+#include "lutro_stb_image.h"
 
 #define _USE_MATH_DEFINES
 #include <math.h>
@@ -518,7 +518,7 @@ font_t *font_load_filename(const char *filename, const char *characters, unsigne
 
    bitmap_t *atlas = &font->atlas;
 
-   rpng_load_image_argb(filename, &atlas->data, &atlas->width, &atlas->height);
+   lutro_stb_image_load(filename, &atlas->data, &atlas->width, &atlas->height);
    atlas->pitch = atlas->width << 2;
 
    uint32_t separator = atlas->data[0];

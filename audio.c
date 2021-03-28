@@ -253,7 +253,6 @@ void lutro_audio_deinit()
    if (counted)
    {
       fprintf(stderr, "Found %d leaked audio source references. Was lua_close() called first?\n", counted);
-      fflush(stderr);
       //assert(false);
       return;
    }
@@ -497,7 +496,6 @@ int source_seek(lua_State *L)
          // TODO: it'd be nice to log with the full lua FILE(LINE): context that's normally prefixed by lua_error,
          // in a manner that allows us to log it without stopping the system. --jstine
          fprintf(stderr, "WAV decoder seek failed: %s\n", strerror(errno));
-         fflush(stdout);
       }
       self->sndpos = decWav_sampleTell(self->wavData);
    }
@@ -519,7 +517,6 @@ int source_seek(lua_State *L)
    {
       // the underlying media source will fixup the seek position...
       fprintf(stderr, "warning: seek asked for sample pos %jd, got pos %jd\n", npSamples, self->sndpos);
-      fflush(stderr);
    }
    return 0;
 }
@@ -556,7 +553,6 @@ int source_gc(lua_State *L)
    if (leaks)
    {
       fprintf(stderr, "source_gc: playing audio references were nullified.\n");
-      fflush(stderr);
       //assert(false);
    }
    

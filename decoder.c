@@ -3,8 +3,8 @@
 #include <audio/conversion/float_to_s16.h>
 #include <errno.h>
 #include <string.h>
-#include <assert.h>
 
+#include "lutro_assert.h"
 #include "decoder.h"
 #include "audio.h"
 
@@ -249,7 +249,7 @@ bool decWav_seek(dec_WavData *data, intmax_t samplepos)
    // seek pos matches
    if (data->pos == bytepos)
    {
-      assert(ftell(data->fp) == WAV_HEADER_SIZE + bytepos);
+      tool_assert(ftell(data->fp) == WAV_HEADER_SIZE + bytepos);
       return 1;
    }
 
@@ -317,7 +317,9 @@ static __always_inline bool _inl_decode_wav(dec_WavData *data, intmax_t bufsz, m
 
       if (!readResult)
       {
-         assert(data->pos == ftell(data->fp) - WAV_HEADER_SIZE);
+         dbg_assertf(data->pos == ftell(data->fp) - WAV_HEADER_SIZE, "numSamples=%jd dataPos=%jd and ftell=%jd",
+            numSamples, (intmax_t)data->pos, ftell(data->fp)
+         );
  
          if (!loop)
          {
@@ -362,7 +364,9 @@ static __always_inline bool _inl_decode_wav(dec_WavData *data, intmax_t bufsz, m
       }
    }
 
-   assert(data->pos == ftell(data->fp) - WAV_HEADER_SIZE);
+   dbg_assertf(data->pos == ftell(data->fp) - WAV_HEADER_SIZE, "numSamples=%jd dataPos=%jd and ftell=%jd",
+      numSamples, (intmax_t)data->pos, ftell(data->fp)
+   );
    return 0;
 }
 

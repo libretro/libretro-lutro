@@ -209,3 +209,10 @@ VORBIS_SOURCES_C := \
 	$(CORE_DIR)/deps/vorbis/vorbisenc.c \
 	$(CORE_DIR)/deps/vorbis/vorbisfile.c \
 	$(CORE_DIR)/deps/vorbis/window.c
+
+
+# special item for Visual Studio vcxproj generation, to allow MSVC to search contents of headers from IDE.
+# (it's ok to be inclusive here, the headers in this list do not need to accurately reflect those actually
+#  used by each project)
+
+MSVC_SOURCES_H = $(shell find -iname "*.h")

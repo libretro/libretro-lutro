@@ -18,6 +18,14 @@
       <Project>{b4a07901-6615-4460-b907-5f0a2838ac34}</Project>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="fi-msw-buildconf.h" />
+    <ClInclude Include="fi-verify-printf-msvc.h" />
+    <ClInclude Include="fi-printf-redirect.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="msw-printf-stdout.cpp" />
+  </ItemGroup>
   <!-- TODO : we could add a target that performs error checking and print a friendly message to the user -->
   <Import Project="lutro_sources.props" />
   <PropertyGroup Label="Globals">
@@ -64,6 +72,10 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
   </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+    </ClCompile>
+  </ItemDefinitionGroup>
   <Import Project="lutro_build.props" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

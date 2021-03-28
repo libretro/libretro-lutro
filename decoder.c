@@ -247,6 +247,15 @@ bool decWav_seek(dec_WavData *data, intmax_t samplepos)
    }
 
    intmax_t bytepos = samplepos * bps;
+
+   // spurious calls to fseek have overhead, so early out if the internal managed
+   // seek pos matches
+   if (data->pos == bytepos)
+   {
+      assert(ftell(data->fp) == WAV_HEADER_SIZE + bytepos);
+      return 1;
+   }
+
    if (fseek(data->fp, WAV_HEADER_SIZE + bytepos, SEEK_SET))
    {
       // logging here could be unnecessarily spammy. If we add a log it should be gated by
@@ -255,7 +264,7 @@ bool decWav_seek(dec_WavData *data, intmax_t samplepos)
       //fflush(stdout);
       return 0;
    }
-   data->pos = samplepos * bps;
+   data->pos = bytepos;
    return 1;
 }
 

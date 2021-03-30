@@ -1,4 +1,3 @@
-
 #include "lutro.h"
 #include "lutro_math.h"
 

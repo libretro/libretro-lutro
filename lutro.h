@@ -29,6 +29,7 @@ typedef struct lutro_settings_t {
    double deltaCounter;
    int frameCounter;
    int fps;
+   retro_environment_t* environ_cb;
 } lutro_settings_t;
 
 extern lutro_settings_t settings;
@@ -38,11 +39,20 @@ void lutro_init();
 void lutro_deinit();
 
 int lutro_load(const char *path);
-
 void lutro_run(double delta);
-
 void lutro_reset();
+size_t lutro_serialize_size();
+bool lutro_serialize(void *data_, size_t size);
+bool lutro_unserialize(const void *data_, size_t size);
 
 void lutro_shutdown_game(void);
+
+typedef struct _AssetPathInfo
+{
+   char fullpath[4096];
+   char ext[16];     // ext is only for matching ones we know so its OK to truncate long ones.
+} AssetPathInfo;
+
+void lutro_assetPath_init(AssetPathInfo* dest, const char* path);
 
 #endif // LUTRO_H

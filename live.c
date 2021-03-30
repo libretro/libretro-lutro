@@ -1,6 +1,7 @@
 #include "live.h"
 #include "lutro.h"
 
+#ifdef HAVE_INOTIFY
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
@@ -318,3 +319,4 @@ void lutro_live_draw()
 {
 
 }
+#endif

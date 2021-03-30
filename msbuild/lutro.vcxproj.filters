@@ -1,0 +1,165 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include=".././libretro.c" />
+    <ClCompile Include=".././lutro.c" />
+    <ClCompile Include=".././runtime.c" />
+    <ClCompile Include=".././image.c" />
+    <ClCompile Include=".././graphics.c" />
+    <ClCompile Include=".././input.c" />
+    <ClCompile Include=".././audio.c" />
+    <ClCompile Include=".././decoder.c" />
+    <ClCompile Include=".././event.c" />
+    <ClCompile Include=".././keyboard.c" />
+    <ClCompile Include=".././sound.c" />
+    <ClCompile Include=".././filesystem.c" />
+    <ClCompile Include=".././system.c" />
+    <ClCompile Include=".././timer.c" />
+    <ClCompile Include=".././lutro_math.c" />
+    <ClCompile Include=".././joystick.c" />
+    <ClCompile Include=".././mouse.c" />
+    <ClCompile Include=".././lutro_window.c" />
+    <ClCompile Include=".././painter.c" />
+    <ClCompile Include=".././libretro-common/formats/png/rpng_decode.c" />
+    <ClCompile Include=".././libretro-common/formats/png/rpng_fbio.c" />
+    <ClCompile Include=".././libretro-common/file/file_path.c" />
+    <ClCompile Include=".././libretro-common/features/features_cpu.c" />
+    <ClCompile Include=".././libretro-common/audio/conversion/float_to_s16.c" />
+    <ClCompile Include=".././libretro-common/audio/conversion/s16_to_float.c" />
+    <ClCompile Include=".././libretro-common/audio/audio_mix.c" />
+    <ClCompile Include=".././libretro-common/compat/compat_posix_string.c" />
+    <ClCompile Include=".././libretro-common/memmap/memmap.c" />
+    <ClCompile Include=".././libretro-common/compat/compat_strcasestr.c" />
+    <ClCompile Include=".././libretro-common/compat/compat_strl.c" />
+    <ClCompile Include=".././libretro-common/encodings/encoding_utf.c" />
+    <ClCompile Include=".././libretro-common/streams/file_stream.c" />
+    <ClCompile Include=".././libretro-common/vfs/vfs_implementation.c" />
+    <ClCompile Include=".././libretro-common/compat/fopen_utf8.c" />
+    <ClCompile Include=".././deps/luautf8/lutf8lib.c" />
+    <ClCompile Include=".././deps/zlib/ioapi.c" />
+    <ClCompile Include=".././deps/zlib/compress.c" />
+    <ClCompile Include=".././deps/zlib/deflate.c" />
+    <ClCompile Include=".././deps/physfs/physfs.c" />
+    <ClCompile Include="msw-printf-stdout.cpp">
+      <Filter>msw_fixups</Filter>
+    </ClCompile>
+    <ClCompile Include=".././deps/zlib/adler32.c">
+      <Filter>zip</Filter>
+    </ClCompile>
+    <ClCompile Include=".././deps/zlib/crc32.c">
+      <Filter>zip</Filter>
+    </ClCompile>
+    <ClCompile Include=".././deps/physfs/physfs_archiver_7z.c">
+      <Filter>physfs</Filter>
+    </ClCompile>
+    <ClCompile Include=".././deps/physfs/physfs_archiver_dir.c">
+      <Filter>physfs</Filter>
+    </ClCompile>
+    <ClCompile Include=".././deps/physfs/physfs_archiver_grp.c">
+      <Filter>physfs</Filter>
+    </ClCompile>
+    <ClCompile Include=".././deps/physfs/physfs_archiver_hog.c">
+      <Filter>physfs</Filter>
+    </ClCompile>
+    <ClCompile Include=".././deps/physfs/physfs_archiver_iso9660.c">
+      <Filter>physfs</Filter>
+    </ClCompile>
+    <ClCompile Include=".././deps/physfs/physfs_archiver_mvl.c">
+      <Filter>physfs</Filter>
+    </ClCompile>
+    <ClCompile Include=".././deps/physfs/physfs_archiver_qpak.c">
+      <Filter>physfs</Filter>
+    </ClCompile>
+    <ClCompile Include=".././deps/physfs/physfs_archiver_slb.c">
+      <Filter>physfs</Filter>
+    </ClCompile>
+    <ClCompile Include=".././deps/physfs/physfs_archiver_unpacked.c">
+      <Filter>physfs</Filter>
+    </ClCompile>
+    <ClCompile Include=".././deps/physfs/physfs_archiver_vdf.c">
+      <Filter>physfs</Filter>
+    </ClCompile>
+    <ClCompile Include=".././deps/physfs/physfs_archiver_wad.c">
+      <Filter>physfs</Filter>
+    </ClCompile>
+    <ClCompile Include=".././deps/physfs/physfs_archiver_zip.c">
+      <Filter>physfs</Filter>
+    </ClCompile>
+    <ClCompile Include=".././deps/physfs/physfs_byteorder.c">
+      <Filter>physfs</Filter>
+    </ClCompile>
+    <ClCompile Include=".././deps/physfs/physfs_platform_os2.c">
+      <Filter>physfs</Filter>
+    </ClCompile>
+    <ClCompile Include=".././deps/physfs/physfs_platform_posix.c">
+      <Filter>physfs</Filter>
+    </ClCompile>
+    <ClCompile Include=".././deps/physfs/physfs_platform_qnx.c">
+      <Filter>physfs</Filter>
+    </ClCompile>
+    <ClCompile Include=".././deps/physfs/physfs_platform_unix.c">
+      <Filter>physfs</Filter>
+    </ClCompile>
+    <ClCompile Include=".././deps/physfs/physfs_platform_windows.c">
+      <Filter>physfs</Filter>
+    </ClCompile>
+    <ClCompile Include=".././deps/physfs/physfs_unicode.c">
+      <Filter>physfs</Filter>
+    </ClCompile>
+    <ClCompile Include=".././deps/zlib/gzclose.c">
+      <Filter>zip</Filter>
+    </ClCompile>
+    <ClCompile Include=".././deps/zlib/gzlib.c">
+      <Filter>zip</Filter>
+    </ClCompile>
+    <ClCompile Include=".././deps/zlib/gzread.c">
+      <Filter>zip</Filter>
+    </ClCompile>
+    <ClCompile Include=".././deps/zlib/gzwrite.c">
+      <Filter>zip</Filter>
+    </ClCompile>
+    <ClCompile Include=".././deps/zlib/inffast.c">
+      <Filter>zip</Filter>
+    </ClCompile>
+    <ClCompile Include=".././deps/zlib/inflate.c">
+      <Filter>zip</Filter>
+    </ClCompile>
+    <ClCompile Include=".././deps/zlib/inftrees.c">
+      <Filter>zip</Filter>
+    </ClCompile>
+    <ClCompile Include=".././deps/zlib/trees.c">
+      <Filter>zip</Filter>
+    </ClCompile>
+    <ClCompile Include=".././deps/zlib/uncompr.c">
+      <Filter>zip</Filter>
+    </ClCompile>
+    <ClCompile Include=".././deps/zlib/unzip.c">
+      <Filter>zip</Filter>
+    </ClCompile>
+    <ClCompile Include=".././deps/zlib/zutil.c">
+      <Filter>zip</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="msw_fixups">
+      <UniqueIdentifier>{319cb567-2e5b-45dc-8f6c-8dc0d58def3c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="zip">
+      <UniqueIdentifier>{51c9e21e-88aa-4263-9e34-5690f8d63a2e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="physfs">
+      <UniqueIdentifier>{f4123f3d-989b-4f9b-9a6d-fee64abd84b1}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="fi-printf-redirect.h">
+      <Filter>msw_fixups</Filter>
+    </ClInclude>
+    <ClInclude Include="fi-verify-printf-msvc.h">
+      <Filter>msw_fixups</Filter>
+    </ClInclude>
+    <ClInclude Include="fi-msw-buildconf.h">
+      <Filter>msw_fixups</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

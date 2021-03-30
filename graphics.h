@@ -3,7 +3,6 @@
 
 #include <stdlib.h>
 #include "runtime.h"
-#include "formats/rpng.h"
 #include "painter.h"
 
 typedef struct

@@ -31,13 +31,13 @@ void lutro_event_init()
  */
 int event_quit(lua_State *L)
 {
-    int n = lua_gettop(L);
-    if (n > 1) {
-        return luaL_error(L, "lutro.event.quit requires 0 or 1 arguments, %d given.", n);
-    }
+   int n = lua_gettop(L);
+   if (n > 1) {
+      return luaL_error(L, "lutro.event.quit requires 0 or 1 arguments, %d given.", n);
+   }
 
-    // Quit, ignoring the exit status.
-    lutro_shutdown_game();
+   // Quit, ignoring the exit status.
+   lutro_shutdown_game();
 
-    return 0;
+   return 0;
 }

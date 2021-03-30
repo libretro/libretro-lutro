@@ -51,29 +51,29 @@ void lutro_joystick_init()
 
 void lutro_joystickevent(lua_State* L)
 {
-  int i, u;
-  int16_t state;
+   int i, u;
+   int16_t state;
 
-  // Loop through each joystick.
-  for (i = 0; i < 4; i++) {
-    // Loop through each button.
-    for (u = 0; u < 14; u++) {
+   // Loop through each joystick.
+   for (i = 0; i < 4; i++) {
+      // Loop through each button.
+      for (u = 0; u < 14; u++) {
       // Retrieve the state of the button.
       state = settings.input_cb(i, RETRO_DEVICE_JOYPAD, 0, u);
 
       // Check if there's a change of state.
       if (joystick_cache[i][u] != state) {
-        joystick_cache[i][u] = state;
-        // If the button was pressed, invoke the callback.
-        if (state > 0) {
-          lutro_joystickInvokeJoystickEvent(L, "joystickpressed", i, u);
-        }
-        else {
-          lutro_joystickInvokeJoystickEvent(L, "joystickreleased", i, u);
-        }
+         joystick_cache[i][u] = state;
+         // If the button was pressed, invoke the callback.
+         if (state > 0) {
+            lutro_joystickInvokeJoystickEvent(L, "joystickpressed", i, u);
+         }
+         else {
+            lutro_joystickInvokeJoystickEvent(L, "joystickreleased", i, u);
+         }
       }
-    }
-  }
+      }
+   }
 }
 
 /**
@@ -81,26 +81,26 @@ void lutro_joystickevent(lua_State* L)
  * Invokes lutro.joystickreleased(joystick, button)
  */
 void lutro_joystickInvokeJoystickEvent(lua_State* L, char* eventName, int joystick, int button) {
-  lua_getglobal(L, "lutro");
-  lua_getfield(L, -1, eventName);
-  if (lua_isfunction(L, -1))
-  {
-    // Add the first argument (the joystick number).
-    // TODO: Switch to using Joystick objects.
-    lua_pushnumber(L, joystick);
+   lua_getglobal(L, "lutro");
+   lua_getfield(L, -1, eventName);
+   if (lua_isfunction(L, -1))
+   {
+      // Add the first argument (the joystick number).
+      // TODO: Switch to using Joystick objects.
+      lua_pushnumber(L, joystick);
 
-    // Add the second argument (the joystick key).
-    lua_pushnumber(L, button);
+      // Add the second argument (the joystick key).
+      lua_pushnumber(L, button);
 
-    // Call the event callback.
-    if (lua_pcall(L, 2, 0, -5))
-    {
-       fprintf(stderr, "%s\n", lua_tostring(L, -1));
-       lua_pop(L, 1);
-    }
-  } else {
-    lua_pop(L, 1);
-  }
+      // Call the event callback.
+      if (lua_pcall(L, 2, 0, -5))
+      {
+         fprintf(stderr, "%s\n", lua_tostring(L, -1));
+         lua_pop(L, 1);
+      }
+   } else {
+      lua_pop(L, 1);
+   }
 }
 
 /**
@@ -110,15 +110,15 @@ void lutro_joystickInvokeJoystickEvent(lua_State* L, char* eventName, int joysti
  */
 int joystick_getJoystickCount(lua_State *L)
 {
-    int n = lua_gettop(L);
-    if (n > 0) {
-        return luaL_error(L, "lutro.joystick.getJoystickCount requires no arguments, %d given.", n);
-    }
+   int n = lua_gettop(L);
+   if (n > 0) {
+      return luaL_error(L, "lutro.joystick.getJoystickCount requires no arguments, %d given.", n);
+   }
 
-    // TODO: Query libretro to see device capacities of all joysticks.
-    lua_pushnumber(L, 4);
+   // TODO: Query libretro to see device capacities of all joysticks.
+   lua_pushnumber(L, 4);
 
-    return 1;
+   return 1;
 }
 
 /**
@@ -128,21 +128,21 @@ int joystick_getJoystickCount(lua_State *L)
  */
 int joystick_isDown(lua_State *L)
 {
-    int n = lua_gettop(L);
-    if (n != 2) {
-        return luaL_error(L, "lutro.joystick.isDown requires two arguments, %d given.", n);
-    }
+   int n = lua_gettop(L);
+   if (n != 2) {
+      return luaL_error(L, "lutro.joystick.isDown requires two arguments, %d given.", n);
+   }
 
-    bool output;
+   bool output;
 
-    int joystick = luaL_checknumber(L, 1);
-    int button = luaL_checknumber(L, 2);
+   int joystick = luaL_checknumber(L, 1);
+   int button = luaL_checknumber(L, 2);
 
-    output = (bool) joystick_cache[joystick - 1][button - 1];
+   output = (bool) joystick_cache[joystick - 1][button - 1];
 
-    lua_pushboolean(L, output);
+   lua_pushboolean(L, output);
 
-    return 1;
+   return 1;
 }
 
 /**
@@ -162,11 +162,11 @@ const char* joystick_retroToJoystick(unsigned joystickKey)
  */
 int joystick_joystickToRetro(const char* retroKey)
 {
-  unsigned id;
-  if (joystick_find_value(joystick_key_enum, retroKey, &id) == 0) {
-    return 0;
-  }
-  return id;
+   unsigned id;
+   if (joystick_find_value(joystick_key_enum, retroKey, &id) == 0) {
+      return 0;
+   }
+   return id;
 }
 
 /**

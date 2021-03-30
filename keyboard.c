@@ -224,26 +224,26 @@ void lutro_keyboardevent(lua_State* L)
  */
 int keyboard_isDown(lua_State *L)
 {
-    int n = lua_gettop(L);
-    if (n < 1) {
-        return luaL_error(L, "lutro.keyboard.isDown requires 1 or more arguments, %d given.", n);
-    }
+   int n = lua_gettop(L);
+   if (n < 1) {
+      return luaL_error(L, "lutro.keyboard.isDown requires 1 or more arguments, %d given.", n);
+   }
 
-    bool output = false;
-    unsigned i;
-    for (i = 0; i < n; i++) {
+   bool output = false;
+   unsigned i;
+   for (i = 0; i < n; i++) {
       const char* buttonToCheck = luaL_checkstring(L, i + 1);
       unsigned id;
       if (!keyboard_find_value(keyboard_enum, buttonToCheck, &id))
          return luaL_error(L, "invalid button");
       if (keyboard_cache[id]) {
-          output = true;
-          break;
+            output = true;
+            break;
       }
-    }
-    lua_pushboolean(L, output);
+   }
+   lua_pushboolean(L, output);
 
-    return 1;
+   return 1;
 }
 
 /**
@@ -252,19 +252,19 @@ int keyboard_isDown(lua_State *L)
  * https://love2d.org/wiki/love.keyboard.getScancodeFromKey
  */
 int keyboard_getScancodeFromKey(lua_State *L) {
-  int n = lua_gettop(L);
-  if (n != 1) {
+   int n = lua_gettop(L);
+   if (n != 1) {
       return luaL_error(L, "lutro.keyboard.getScancodeFromKey requires 1 argument, %d given.", n);
-  }
+   }
 
-  const char* buttonToCheck = luaL_checkstring(L, 1);
+   const char* buttonToCheck = luaL_checkstring(L, 1);
 
-  unsigned id;
-  if (!keyboard_find_value(keyboard_enum, buttonToCheck, &id))
-     return luaL_error(L, "invalid button");
-  lua_pushnumber(L, id);
+   unsigned id;
+   if (!keyboard_find_value(keyboard_enum, buttonToCheck, &id))
+      return luaL_error(L, "invalid button");
+   lua_pushnumber(L, id);
 
-  return 1;
+   return 1;
 }
 /**
  * lutro.keyboard.getKeyFromScancode(key)
@@ -272,16 +272,16 @@ int keyboard_getScancodeFromKey(lua_State *L) {
  * https://love2d.org/wiki/love.keyboard.getKeyFromScancode
  */
 int keyboard_getKeyFromScancode(lua_State *L) {
-  int n = lua_gettop(L);
-  if (n != 1) {
+   int n = lua_gettop(L);
+   if (n != 1) {
       return luaL_error(L, "lutro.keyboard.getKeyFromScancode requires 1 argument, %d given.", n);
-  }
+   }
 
-  unsigned scancode = luaL_checknumber(L, 1);
-  const char* key = keyboard_find_name(keyboard_enum, scancode);
-  lua_pushstring(L, key);
+   unsigned scancode = luaL_checknumber(L, 1);
+   const char* key = keyboard_find_name(keyboard_enum, scancode);
+   lua_pushstring(L, key);
 
-  return 1;
+   return 1;
 }
 
 int keyboard_find_value(const struct key_int_const_map *map, const char *name, unsigned *value)

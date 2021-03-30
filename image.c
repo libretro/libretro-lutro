@@ -3,6 +3,7 @@
 #include "lutro.h"
 #include "painter.h"
 #include "compat/strl.h"
+#include "lutro_stb_image.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -46,12 +47,13 @@ void *image_data_create(lua_State *L, bitmap_t* self)
    if (luaL_newmetatable(L, "ImageData") != 0)
    {
       static luaL_Reg imgdata_funcs[] = {
-         { "getWidth",   l_getWidth },
-         { "getHeight",  l_getHeight },
-         { "getPixel",   l_getPixel },
-         { "setPixel",   l_setPixel },
-         { "type",       l_type },
-         { "__gc",       l_gc },
+         { "getWidth",      l_getWidth },
+         { "getHeight",     l_getHeight },
+         { "getPixel",      l_getPixel },
+         { "setPixel",      l_setPixel },
+         { "getDimensions", l_getDimensions },
+         { "type",          l_type },
+         { "__gc",          l_gc },
          {NULL, NULL}
       };
 
@@ -78,7 +80,7 @@ void *image_data_create_from_path(lua_State *L, const char *path)
 
    bitmap_t* self = (bitmap_t*)lua_newuserdata(L, sizeof(bitmap_t));
 
-   rpng_load_image_argb(fullpath, &self->data, &self->width, &self->height);
+   lutro_stb_image_load(fullpath, &self->data, &self->width, &self->height);
 
    self->pitch = self->width << 2;
 

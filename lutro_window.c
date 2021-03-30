@@ -3,7 +3,7 @@
 
 #include <libretro.h>
 
-#include "window.h"
+#include "lutro_window.h"
 #include "lutro.h"
 #include "graphics.h"
 
@@ -23,6 +23,8 @@ int lutro_window_preload(lua_State *L)
       { "requestAttention", win_requestAttention },
       { "getDisplayName", win_getDisplayName },
       { "setDisplaySleepEnabled", win_setDisplaySleepEnabled },
+      { "isDisplaySleepEnabled", win_isDisplaySleepEnabled },
+      { "showMessageBox", win_showMessageBox },
       {NULL, NULL}
    };
 
@@ -245,4 +247,46 @@ int win_setDisplaySleepEnabled(lua_State *L)
 
    // Ignore setting the display sleep.
    return 0;
+}
+
+/**
+ * lutro.window.isDisplaySleepEnabled
+ *
+ * https://love2d.org/wiki/love.window.isDisplaySleepEnabled
+ */
+int win_isDisplaySleepEnabled(lua_State *L)
+{
+   int n = lua_gettop(L);
+   if (n != 0)
+      return luaL_error(L, "lutro.window.isDisplaySleepEnabled expects 1 arguments, %d given.", n);
+
+   // Lutro does not support sleeping displays.
+   lua_pushboolean(L, 0);
+
+   return 1;
+}
+
+/**
+ * lutro.window.showMessageBox
+ *
+ * https://love2d.org/wiki/love.window.showMessageBox
+ */
+int win_showMessageBox(lua_State *L)
+{
+   int n = lua_gettop(L);
+   if (n < 2)
+      return luaL_error(L, "lutro.window.win_showMessageBox expects at least 2 arguments, %d given.", n);
+   if (n > 5)
+      return luaL_error(L, "lutro.window.win_showMessageBox expects at most 5 arguments, %d given.", n);
+
+   // TODO: lutro.window.showMessageBox() - Prepend the title to the message... "title: message"
+   // const char* title = luaL_checkstring(L, 1);
+   const char* message = luaL_checkstring(L, 2);
+   struct retro_message msg = { message, 600 };
+
+   (*settings.environ_cb)(RETRO_ENVIRONMENT_SET_MESSAGE, &msg);
+
+   lua_pushboolean(L, 1); // success
+
+   return 1;
 }

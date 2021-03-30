@@ -8,8 +8,7 @@
 #include "runtime.h"
 #include "sound.h"
 #include "decoder.h"
-
-#define AUDIO_FRAMES (44100 / 60)
+#include "audio_mixer.h"
 
 typedef enum
 {
@@ -20,24 +19,29 @@ typedef enum
 
 typedef struct
 {
-   //currently for WAV
-   snd_SoundData sndta;
-   unsigned bps; // bytes per sample
-   
-   //currently for Ogg Vorbis
-   OggData *oggData;
-   
+   // only one of these should be non-null for a given source.
+
+   dec_WavData*   wavData;       // streaming from wav
+   dec_OggData*   oggData;       // streaming from ogg
+
+   snd_SoundData* sndta;         // pre-decoded sound
+   int lua_ref_sndta;            // (REGISTRY) ref to sndta is held as long as this object isn't disposed/__gc'd
+
+   intmax_t sndpos;              // readpos in samples for pre-decoded sound only
+
    bool loop;
    float volume;
    float pitch;
-   unsigned pos;
    audio_source_state state;
 } audio_Source;
 
-void lutro_audio_init();
+void lutro_audio_init(lua_State* L);
 void lutro_audio_deinit();
+void lutro_audio_stop_all();
+
 int lutro_audio_preload(lua_State *L);
 void mixer_render(int16_t *buffer);
+void mixer_unref_stopped_sounds(lua_State* L);
 
 int audio_newSource(lua_State *L);
 int audio_setVolume(lua_State *L);
@@ -58,5 +62,6 @@ int source_getPitch(lua_State *L);
 int source_setPitch(lua_State *L);
 
 int source_gc(lua_State *L);
+
 
 #endif // AUDIO_H

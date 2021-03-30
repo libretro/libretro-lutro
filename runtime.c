@@ -119,12 +119,12 @@ void lutro_relpath_to_modname(char *outmod, const char *relpath)
  * https://love2d.org/wiki/love.getVersion
  */
 int lutro_getVersion(lua_State *L) {
-  lua_pushnumber(L, VERSION_MAJOR);
-  lua_pushnumber(L, VERSION_MINOR);
-  lua_pushnumber(L, VERSION_PATCH);
-  lua_pushstring(L, "Lutro");
+   lua_pushnumber(L, VERSION_MAJOR);
+   lua_pushnumber(L, VERSION_MINOR);
+   lua_pushnumber(L, VERSION_PATCH);
+   lua_pushstring(L, "Lutro");
 
-  return 4;
+   return 4;
 }
 
 #if LUA_VERSION_NUM < 502
@@ -185,15 +185,15 @@ LUA_API int lua_compare (lua_State *L, int index1, int index2, int op)
    int b = lua_absindex(L, index2);
    int i = 0;
 
-  if (!lua_isnil(L, a) && !lua_isnil(L, b)) {
-    switch (op) {
-      case LUA_OPEQ: i = lua_equal(L, a, b); break;
-      case LUA_OPLT: i = lua_lessthan(L, a, b); break;
-      case LUA_OPLE: i = lua_lessthan(L, a, b) || lua_equal(L, a, b); break;
-      default: api_check2(L, 0, "invalid option");
-    }
-  }
-  return i;
+   if (!lua_isnil(L, a) && !lua_isnil(L, b)) {
+      switch (op) {
+         case LUA_OPEQ: i = lua_equal(L, a, b); break;
+         case LUA_OPLT: i = lua_lessthan(L, a, b); break;
+         case LUA_OPLE: i = lua_lessthan(L, a, b) || lua_equal(L, a, b); break;
+         default: api_check2(L, 0, "invalid option");
+      }
+   }
+   return i;
 }
 
 static int typeerror (lua_State *L, int narg, const char *tname)
@@ -226,45 +226,45 @@ int l_not_implemented(lua_State *L)
 
 int luax_insistglobal(lua_State *L, const char *k)
 {
-  lua_getglobal(L, k);
+   lua_getglobal(L, k);
 
-  if (!lua_istable(L, -1))
-  {
-    lua_pop(L, 1); // Pop the non-table.
-    lua_newtable(L);
-    lua_pushvalue(L, -1);
-    lua_setglobal(L, k);
-  }
+   if (!lua_istable(L, -1))
+   {
+      lua_pop(L, 1); // Pop the non-table.
+      lua_newtable(L);
+      lua_pushvalue(L, -1);
+      lua_setglobal(L, k);
+   }
 
-  return 1;
+   return 1;
 }
 
 int luax_c_insistglobal(lua_State *L, const char *k)
 {
-  return luax_insistglobal(L, k);
+   return luax_insistglobal(L, k);
 }
 
 void luax_register(lua_State *L, const char *name, const luaL_Reg *l)
 {
-  if (name)
-    lua_newtable(L);
+   if (name)
+      lua_newtable(L);
 
-  luax_setfuncs(L, l);
-  if (name)
-  {
-    lua_pushvalue(L, -1);
-    lua_setglobal(L, name);
-  }
+   luax_setfuncs(L, l);
+   if (name)
+   {
+      lua_pushvalue(L, -1);
+      lua_setglobal(L, name);
+   }
 }
 
 void luax_setfuncs(lua_State *L, const luaL_Reg *l)
 {
-  if (!l)
-    return;
+   if (!l)
+      return;
 
-  for (; l->name; l++)
-  {
-    lua_pushcfunction(L, l->func);
-    lua_setfield(L, -2, l->name);
-  }
+   for (; l->name; l++)
+   {
+      lua_pushcfunction(L, l->func);
+      lua_setfield(L, -2, l->name);
+   }
 }

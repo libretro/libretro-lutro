@@ -318,6 +318,7 @@ ifeq ($(DEBUG), 1)
 	CFLAGS += -O0 -g
 	LUA_MYCFLAGS += -O0 -g -DLUA_USE_APICHECK
 else
+	DEFINES += -DNDEBUG
 	CFLAGS += -O3
 	LUA_MYCFLAGS += -O3
 endif

@@ -43,6 +43,11 @@ audio_Source* getSourcePtrFromRef(lua_State* L, audioSourceByRef ref)
    return result;
 }
 
+bool sourceIsPlayable(audio_Source* source)
+{
+   return source && (source->wavData || source->oggData || source->sndta);
+}
+
 // unrefs stopped sounds.
 // this is done periodically by lutro to avoid adding lua dependencies to the mixer.
 void mixer_unref_stopped_sounds(lua_State* L)
@@ -103,6 +108,9 @@ void mixer_render(lua_State* L, int16_t *buffer)
          continue;
 
       if (source->state == AUDIO_STOPPED)
+         continue;
+
+      if (source->state == AUDIO_PAUSED)
          continue;
 
       // options here are to premultiply source volumes with master volume, or apply master volume at the end of mixing
@@ -207,9 +215,12 @@ int lutro_audio_preload(lua_State *L)
    static luaL_Reg gfx_funcs[] =  {
       { "play",      audio_play },
       { "stop",      audio_stop },
+      { "pause",     audio_pause },
       { "newSource", audio_newSource },
       { "getVolume", audio_getVolume },
       { "setVolume", audio_setVolume },
+      { "getActiveSources",      audio_getActiveSources },
+      { "getActiveSourceCount",  audio_getActiveSourceCount },
       {NULL, NULL}
    };
 
@@ -272,6 +283,44 @@ static int find_empty_source_slot(audio_Source* self)
    return -1;
 }
 
+// value in the stack specified by 'idx' should be the userdata(audio_Source), either created using newuserdata,
+// or grabbed from the appropriate registry table.
+// returns reference to the lua table 'Source'
+static void make_metatable_Source(lua_State* L, int stidx_udata)
+{
+   if (luaL_newmetatable(L, "Source") != 0)
+   {
+      static const luaL_Reg audio_funcs[] = {
+         { "play",       audio_play }, /* We can reuse audio_play and */
+         { "stop",       audio_stop }, /* audio_stop here. */
+         { "setLooping", source_setLooping },
+         { "isLooping",  source_isLooping },
+         { "isStopped",  source_isStopped },
+         { "pause",      source_pause },
+         { "isPaused",   source_isPaused },
+         { "isPlaying",  source_isPlaying },
+         { "setVolume",  source_setVolume },
+         { "getVolume",  source_getVolume },
+         { "seek",       source_seek },
+         { "tell",       source_tell },
+         { "setPitch",   source_setPitch },
+         { "getPitch",   source_getPitch },
+         { "__gc",       source_gc },
+         {NULL, NULL}
+      };
+
+      lua_pushvalue(L, -1);
+      lua_setfield(L, -2, "__index");
+
+      lua_pushcfunction(L, source_gc);
+      lua_setfield( L, -2, "__gc" );
+
+      luaL_setfuncs(L, audio_funcs, 0);
+   }
+
+   lua_setmetatable(L, stidx_udata);
+}
+
 int audio_newSource(lua_State *L)
 {
    int n = lua_gettop(L);
@@ -280,6 +329,7 @@ int audio_newSource(lua_State *L)
       return luaL_error(L, "lutro.audio.newSource requires 1 or 2 arguments, %d given.", n);
 
    audio_Source* self = (audio_Source*)lua_newuserdata(L, sizeof(audio_Source));
+   int stidx_udata = lua_gettop(L);
    self->oggData = NULL;
    self->wavData = NULL;
    self->sndta   = NULL;
@@ -299,13 +349,21 @@ int audio_newSource(lua_State *L)
       if (strstr(asset.ext, "ogg"))
       {
          self->oggData = malloc(sizeof(dec_OggData));
-         decOgg_init(self->oggData, asset.fullpath);
+         if (!decOgg_init(self->oggData, asset.fullpath))
+         {
+            free(self->oggData);
+            self->oggData = NULL;
+         }
       }
 
       if (strstr(asset.ext, "wav"))
       {
          self->wavData = malloc(sizeof(dec_WavData));
-         decWav_init(self->wavData, asset.fullpath);
+         if (!decWav_init(self->wavData, asset.fullpath))
+         {
+            free(self->wavData);
+            self->wavData = NULL;
+         }
       }
 
    }
@@ -323,38 +381,7 @@ int audio_newSource(lua_State *L)
    self->sndpos = 0;
    self->state = AUDIO_STOPPED;
 
-   if (luaL_newmetatable(L, "Source") != 0)
-   {
-      static luaL_Reg audio_funcs[] = {
-         { "play",       audio_play }, /* We can reuse audio_play and */
-         { "stop",       audio_stop }, /* audio_stop here. */
-         { "setLooping", source_setLooping },
-         { "isLooping",  source_isLooping },
-         { "isStopped",  source_isStopped },
-         { "isPaused",   source_isPaused },
-         { "isPlaying",  source_isPlaying },
-         { "setVolume",  source_setVolume },
-         { "getVolume",  source_getVolume },
-         { "seek",       source_seek },
-         { "tell",       source_tell },
-         { "setPitch",   source_setPitch },
-         { "getPitch",   source_getPitch },
-         { "__gc",       source_gc },
-         {NULL, NULL}
-      };
-
-      lua_pushvalue(L, -1);
-
-      lua_setfield(L, -2, "__index");
-
-      lua_pushcfunction(L, source_gc);
-      lua_setfield( L, -2, "__gc" );
-
-      luaL_setfuncs(L, audio_funcs, 0);
-   }
-
-   lua_setmetatable(L, -2);
-
+   make_metatable_Source(L, stidx_udata);
    return 1;
 }
 
@@ -388,6 +415,14 @@ int source_setLooping(lua_State *L)
    self->loop = loop;
 
    return 0;
+}
+
+int source_pause(lua_State *L)
+{
+   audio_Source* self = (audio_Source*)luaL_checkudata(L, 1, "Source");
+   if (self->state != AUDIO_STOPPED)
+      self->state = AUDIO_PAUSED;
+   return 1;
 }
 
 int source_isLooping(lua_State *L)
@@ -597,6 +632,11 @@ int audio_play(lua_State *L)
    if (self->state == AUDIO_PLAYING)
       return 0;     // nothing to do.
 
+   if (!sourceIsPlayable(self))
+   {
+      lutro_alertf("Audio source is not playable.", self->state);
+   }
+
    if (self->state == AUDIO_PAUSED)
    {
       self->state = AUDIO_PLAYING;
@@ -633,6 +673,8 @@ int audio_play(lua_State *L)
    else
    {
       // existing ref means it should be our same source already.
+      // (technically this should be unreachable, and we might want to assert if this is ever
+      //  reached regardless if it matches or not).
       dbg_assert(getSourcePtrFromRef(L, sources_playing[slot]) == self);
    }
 
@@ -659,6 +701,162 @@ int audio_stop(lua_State *L)
    //lua_getglobal(L, "refs_audio_playing");
    //luaL_unref(L, -1, self->lua_ref);
    //self->lua_ref = LUA_REFNIL;
+
+   return 0;
+}
+
+enum {
+   FILTER_PLAYING          = (1<<AUDIO_PLAYING),
+   FILTER_PAUSED           = (1<<AUDIO_PAUSED),
+   FILTER_STOPPED          = (1<<AUDIO_STOPPED),
+   FILTER_ACTIVE           = (FILTER_PLAYING | FILTER_PAUSED),
+   FILTER_RESULT_TABLE     = (1<<8),
+   FILTER_RESULT_COUNT     = (0),
+   FILTER_ALL              = (0xff)
+};
+
+static void getActiveSourcesFiltered(lua_State *L, int sourceStateFilterMask)
+{
+   int table_insert_idx = 1;     // could also use luaL_getn(L, index_of_table)
+   int stidx_tbl_result = 0;
+   if (sourceStateFilterMask & FILTER_RESULT_TABLE)
+   {
+      lua_newtable(L);
+      stidx_tbl_result = lua_gettop(L);
+   }
+
+   lua_getglobal(L, "refs_audio_playing");
+
+   for (int i = 0; i < num_sources; i++)
+   {
+      lua_pushinteger(L, sources_playing[i].lua_ref);
+      lua_gettable(L, -2);
+      audio_Source* source = lua_touserdata(L, -1);
+
+      if (!source) {
+         lua_pop(L, 1);
+         continue;
+      }
+
+      if ((sourceStateFilterMask & (1<<source->state)) == 0) {
+         lua_pop(L, 1);
+         continue;
+      }
+
+      if (sourceStateFilterMask & FILTER_RESULT_TABLE)
+         lua_rawseti(L, stidx_tbl_result, table_insert_idx);  // pops result
+      else
+         lua_pop(L, 1);
+
+      ++table_insert_idx;
+   }
+
+   lua_pop(L, 1);  // refs_audio_playing
+
+   if (sourceStateFilterMask & FILTER_RESULT_TABLE)
+   {
+      // do nothing, table is already on the stack at -1
+   }
+   else
+   {
+      lua_pushinteger(L, table_insert_idx-1);
+   }
+}
+
+int audio_getActiveSources(lua_State *L)
+{
+   getActiveSourcesFiltered(L, FILTER_ACTIVE | FILTER_RESULT_TABLE);
+   return 1;
+}
+
+int audio_getActiveSourceCount(lua_State *L)
+{
+   getActiveSourcesFiltered(L, FILTER_ACTIVE | FILTER_RESULT_COUNT);
+   return 1;
+}
+
+
+static void pause_sources_in_table(lua_State* L, int idx)
+{
+}
+
+// returns list of sources paused by this call.
+// love2D docs indicate that it only returns a value when called with no arguments. This hardly 
+// makes sense - might as well return a list of sources which were paused regardless. The user
+// may optionally pass in a list of sources and this will filter them and return just the ones
+// that were not already paused.
+int audio_pause(lua_State *L)
+{
+   int nargs = lua_gettop(L);
+
+   lua_newtable(L);
+
+   if (nargs == 0)
+   {
+      getActiveSourcesFiltered(L, FILTER_PLAYING | FILTER_RESULT_TABLE);
+      lua_pushnil(L);  /* first key */
+      while (lua_next(L, -2) != 0)
+      {
+         // uses 'key' (at index -2) and 'value' (at index -1)
+         audio_Source* self = (audio_Source*)luaL_checkudata(L, -1, "Source");
+         dbg_assume(self);    // some kind of table management problem
+
+         self->state = AUDIO_PAUSED;
+         lua_pop(L, 1);       // remove 'value'; keep 'key' for next iteration
+      }
+   }
+   else
+   {
+      int table_insert_idx = 1;
+      int i;
+      for(i=1; i<nargs+1; ++i)
+      {
+         int type = lua_type(L, i);
+         if (type == LUA_TTABLE)
+         {
+            audio_Source* self = (audio_Source*)luaL_checkudata(L, -1, "Source");
+            if (self)
+            {
+               self->state = AUDIO_PAUSED;
+               lua_rawseti(L, -3, table_insert_idx);
+               ++table_insert_idx;
+            }
+            else
+            {
+               lua_pushnil(L);  /* first key */
+               while (lua_next(L, i) != 0)
+               {
+                  // uses 'key' (at index -2) and 'value' (at index -1)
+                  self = (audio_Source*)luaL_checkudata(L, -1, "Source");
+                  if (self)
+                  {
+                     self->state = AUDIO_PAUSED;
+                     lua_rawseti(L, nargs+1, table_insert_idx);
+                     ++table_insert_idx;
+                  }
+                  lua_pop(L, 1);       // remove 'value'; keep 'key' for next iteration
+               }
+            }
+         }
+      }
+   }
+
+   return 1;
+
+#if 0
+   }
+
+   if (lua_istable(L, 1))
+
+   audio_Source* self = (audio_Source*)luaL_checkudata(L, 1, "Source");
+
+   if (self->state == AUDIO_STOPPED)
+      return 0;
+
+   self->sndpos = 0;
+   self->state  = AUDIO_STOPPED;
+   
+#endif
 
    return 0;
 }

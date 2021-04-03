@@ -364,14 +364,15 @@ static __always_inline bool _inl_decode_wav(dec_WavData *data, intmax_t bufsz, m
    {  
       uint8_t sample_raw[8];
       int readResult = 0;
+
+   reloadSample:
       if (data->pos < numSamples)
          readResult = (int)fread(sample_raw, bytesPerSample * chan_src, 1, data->fp);
 
       if (!readResult)
       {
-         intmax_t seekpos = decWav_CalcOffsetDataStart(data) + data->pos;
-         dbg_assertf(ftell(data->fp) == seekpos, "numSamples=%jd dataPos=%jd and ftell=%jd",
-            (intmax_t)numSamples, (intmax_t)data->pos, ftell(data->fp)
+         dbg_assertf(data->pos == ftell(data->fp) - decWav_CalcOffsetDataStart(data), "numSamples=%jd dataPos=%jd and ftell=%jd",
+            (intmax_t)numSamples, (intmax_t)data->pos, (intmax_t)ftell(data->fp)
          );
  
          if (!loop)
@@ -383,8 +384,8 @@ static __always_inline bool _inl_decode_wav(dec_WavData *data, intmax_t bufsz, m
          }
 
          data->pos = 0;
-         fseek(data->fp, seekpos, SEEK_SET);
-         --j; continue;    // attempt to re-read sample.
+         fseek(data->fp, decWav_CalcOffsetDataStart(data), SEEK_SET);
+         --j; goto reloadSample;    // attempt to re-read sample.
       }
       
       if (chan_src == 2)
@@ -417,8 +418,8 @@ static __always_inline bool _inl_decode_wav(dec_WavData *data, intmax_t bufsz, m
       }
    }
 
-   dbg_assertf(ftell(data->fp) == decWav_CalcOffsetDataStart(data) + data->pos, "numSamples=%jd dataPos=%jd and ftell=%jd",
-      (intmax_t)numSamples, (intmax_t)data->pos, ftell(data->fp)
+   dbg_assertf(data->pos == ftell(data->fp) - decWav_CalcOffsetDataStart(data), "numSamples=%jd dataPos=%jd and ftell=%jd",
+      (intmax_t)numSamples, (intmax_t)data->pos, (intmax_t)ftell(data->fp)
    );
    return 0;
 }

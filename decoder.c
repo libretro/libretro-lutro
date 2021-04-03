@@ -36,7 +36,15 @@ bool decOgg_init(dec_OggData *data, const char *filename)
    data->info = NULL;
    if (ov_fopen(filename, &data->vf) < 0)
    {
-      fprintf(stderr, "Failed to open vorbis file: %s\n", filename);
+      // only print for file not found errors.
+      // caller's intent might be to silently try opening "optional" files until one succeeeds.
+      if (errno == ENOENT)
+      {
+         fprintf(stderr, "vorbis file not found: %s\n", filename);
+         return false;
+      }
+
+      lutro_errorf("vorbis: Failed to open file: %s", filename, strerror(errno));
       return false;
    }
 
@@ -46,7 +54,7 @@ bool decOgg_init(dec_OggData *data, const char *filename)
    data->info = (vorbis_info*)ov_info(&data->vf, 0);
    if (!data->info)
    {
-      fprintf(stderr, "couldn't get info for file\n");
+      lutro_errorf("vorbis: couldn't get info for file: %s", filename);
       return false;
    }
 
@@ -55,13 +63,13 @@ bool decOgg_init(dec_OggData *data, const char *filename)
 
    if (data->info->channels != 1 && data->info->channels != 2)
    {
-      fprintf(stderr, "unsupported number of channels\n");
+      lutro_errorf("vorbis: unsupported number of channels");
       return false;
    }
    
    if (data->info->rate != 44100)
    {
-      fprintf(stderr, "unsupported sample rate\n");
+      lutro_errorf("vorbis: unsupported sample rate");
       return false;
    }
 
@@ -113,7 +121,7 @@ bool decOgg_decode(dec_OggData *data, presaturate_buffer_desc *buffer, float vol
 
       if (ret < 0)
       {
-         fprintf(stderr, "Vorbis decoding failed with: %jd\n", ret);
+         lutro_errorf("Vorbis decoding failed with: %jd", ret);
          return true;
       }
 
@@ -204,18 +212,21 @@ bool decWav_init(dec_WavData *data, const char *filename)
    {
       int err = errno;
 
-      // if file is missing do not report error.
+      // only print for file not found errors.
       // caller's intent might be to silently try opening "optional" files until one succeeeds.
       if (errno == ENOENT)
+      {
+         fprintf(stderr, "wavfile not found '%s'\n", filename);
          return 0;
+      }
 
-      fprintf(stderr, "Failed to open wavfile '%s': %s\n", filename, strerror(err));
+      lutro_errorf("Failed to open wavfile '%s': %s", filename, strerror(err));
       return 0;
    }
 
    if (fread(&data->head, WAV_HEADER_SIZE, 1, fp) == 0)
    {
-      fprintf(stderr, "%s is not a valid wav file or is truncated.\n", filename);
+      lutro_errorf("%s is not a valid wav file or is truncated.", filename);
       fclose(fp);
       return 0;
    }

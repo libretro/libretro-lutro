@@ -90,4 +90,7 @@ void luax_register(lua_State *L, const char *name, const luaL_Reg *l);
 int luax_c_insistglobal(lua_State *L, const char *k);
 void luax_setfuncs(lua_State *L, const luaL_Reg *l);
 
+int traceback(lua_State *L);
+int lutro_pcall(lua_State *L, int narg, int nret);
+
 #endif // RUNTIME_H

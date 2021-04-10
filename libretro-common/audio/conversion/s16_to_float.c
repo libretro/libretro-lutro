@@ -1,4 +1,4 @@
-/* Copyright  (C) 2010-2017 The RetroArch team
+/* Copyright  (C) 2010-2020 The RetroArch team
  *
  * ---------------------------------------------------------------------------------------
  * The following license statement only applies to this file (s16_to_float.c).
@@ -29,7 +29,7 @@
 #include <features/features_cpu.h>
 #include <audio/conversion/s16_to_float.h>
 
-#if defined(__ARM_NEON__) && !defined(DONT_WANT_ARM_OPTIMIZATIONS) || defined(HAVE_NEON)
+#if (defined(__ARM_NEON__) && !defined(DONT_WANT_ARM_OPTIMIZATIONS)) || defined(HAVE_NEON)
 #ifndef HAVE_ARM_NEON_OPTIMIZATIONS
 #define HAVE_ARM_NEON_OPTIMIZATIONS
 #endif
@@ -56,7 +56,7 @@ void convert_s16_float_asm(float *out, const int16_t *in,
 void convert_s16_to_float(float *out,
       const int16_t *in, size_t samples, float gain)
 {
-   size_t i      = 0;
+   unsigned i      = 0;
 
 #if defined(__SSE2__)
    float fgain   = gain / UINT32_C(0x80000000);
@@ -79,11 +79,10 @@ void convert_s16_to_float(float *out,
 #elif defined(__ALTIVEC__)
    size_t samples_in = samples;
 
-   /* Unaligned loads/store is a bit expensive, so we 
+   /* Unaligned loads/store is a bit expensive, so we
     * optimize for the good path (very likely). */
    if (((uintptr_t)out & 15) + ((uintptr_t)in & 15) == 0)
    {
-      size_t i;
       const vector float gain_vec = { gain, gain , gain, gain };
       const vector float zero_vec = { 0.0f, 0.0f, 0.0f, 0.0f};
 
@@ -119,15 +118,18 @@ void convert_s16_to_float(float *out,
       i       = 0;
    }
 
-#elif defined(_MIPS_ARCH_ALLEGREX)
+#endif
+
+   gain = gain / 0x8000;
+
+#if defined(_MIPS_ARCH_ALLEGREX)
 #ifdef DEBUG
-   /* Make sure the buffer is 16 byte aligned, this should be the 
+   /* Make sure the buffer is 16 byte aligned, this should be the
     * default behaviour of malloc in the PSPSDK.
     * Only the output buffer can be assumed to be 16-byte aligned. */
    retro_assert(((uintptr_t)out & 0xf) == 0);
 #endif
 
-   gain = gain / 0x8000;
    __asm__ (
          ".set    push                    \n"
          ".set    noreorder               \n"
@@ -172,10 +174,9 @@ void convert_s16_to_float(float *out,
    }
 
 #endif
-   gain    = gain / 0x8000;
 
    for (; i < samples; i++)
-      out[i] = (float)in[i] * gain; 
+      out[i] = (float)in[i] * gain;
 }
 
 /**

@@ -64,16 +64,25 @@ endif
 ifneq ($(STATIC_LINKING), 1)
 SOURCES_C += \
 				 $(CORE_DIR)/libretro-common/file/file_path.c \
+				 $(CORE_DIR)/libretro-common/file/file_path_io.c \
 				 $(CORE_DIR)/libretro-common/features/features_cpu.c \
 				 $(CORE_DIR)/libretro-common/audio/conversion/float_to_s16.c \
 				 $(CORE_DIR)/libretro-common/audio/conversion/s16_to_float.c \
 				 $(CORE_DIR)/libretro-common/audio/audio_mix.c \
 				 $(CORE_DIR)/libretro-common/compat/compat_posix_string.c \
+				 $(CORE_DIR)/libretro-common/memmap/memalign.c \
 				 $(CORE_DIR)/libretro-common/memmap/memmap.c \
 				 $(CORE_DIR)/libretro-common/compat/compat_strcasestr.c \
 				 $(CORE_DIR)/libretro-common/compat/compat_strl.c \
+				 $(CORE_DIR)/libretro-common/encodings/encoding_crc32.c \
 				 $(CORE_DIR)/libretro-common/encodings/encoding_utf.c \
+				 $(CORE_DIR)/libretro-common/time/rtime.c \
 				 $(CORE_DIR)/libretro-common/streams/file_stream.c \
+             $(CORE_DIR)/libretro-common/streams/trans_stream.c \
+				 $(CORE_DIR)/libretro-common/streams/trans_stream_pipe.c \
+             $(CORE_DIR)/libretro-common/streams/interface_stream.c \
+             $(CORE_DIR)/libretro-common/streams/memory_stream.c \
+             $(CORE_DIR)/libretro-common/string/stdstring.c \
 				 $(CORE_DIR)/libretro-common/vfs/vfs_implementation.c \
 				 $(CORE_DIR)/libretro-common/compat/fopen_utf8.c
 ifeq ($(HAVE_NEON),1)

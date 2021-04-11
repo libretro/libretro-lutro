@@ -429,7 +429,7 @@ obj/%.o: %.c
 clean:
 	-make -C $(LUADIR) clean
 	-rm -f $(OBJS) $(TARGET)
-	-rm -rf obj
+	if [ -d "obj" ]; then rm -rf obj; fi
 
 test: all
 	retroarch --verbose -L lutro_libretro.so test/main.lua

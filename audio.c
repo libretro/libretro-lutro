@@ -445,33 +445,12 @@ int source_tell(lua_State *L)
 {
    audio_Source* self = (audio_Source*)luaL_checkudata(L, 1, "Source");
 
-   const char* type = lua_isstring(L,2) ? lua_tostring(L,2) : NULL;
+   //currently assuming samples vs seconds
+   //TODO: check if 2nd param is "seconds" or "samples"
 
    // sndpos should always be accurate for any given source or stream.
-   // (validation of this would be best performed per-frame, before and/or after mixing, and not here)
+   lua_pushnumber(L, self->sndpos);
 
-   intmax_t npSamples = self->sndpos;
-
-   if (type)
-   {
-      if (strcmp(type, "seconds") == 0)
-      {
-         double npSeconds = npSamples / 44100.0;
-         lua_pushnumber(L, npSeconds);
-      }
-      else if(strcmp(type, "samples") == 0)
-      {
-         lua_pushinteger(L, npSamples);
-      }
-      else
-      {
-         return luaL_error(L, "Source:tell '%s' given for second argument. Expected either 'seconds' or 'samples'", type);      
-      }
-   }
-   else
-   {
-      lua_pushinteger(L, npSamples);
-   }
    return 1;
 }
 
@@ -484,7 +463,7 @@ int source_seek(lua_State *L)
 
    audio_Source* self = (audio_Source*)luaL_checkudata(L, 1, "Source");
 
-   const char* type = lua_isstring(L,3) ? lua_tostring(L, 3) : NULL;
+   const char* type = lua_tostring(L, 3);
 
    intmax_t npSamples = 0;
 
@@ -501,7 +480,7 @@ int source_seek(lua_State *L)
       }
       else
       {
-         return luaL_error(L, "Source:seek '%s' given for third argument. Expected either 'seconds' or 'samples'", type);      
+         return luaL_error(L, "Source:seek third argument is invalid, '%s' given. Expected either 'seconds' or 'samples'.\n", type);      
       }
    }
    else 

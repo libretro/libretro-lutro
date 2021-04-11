@@ -1,4 +1,4 @@
-/* Copyright  (C) 2010-2020 The RetroArch team
+/* Copyright  (C) 2010-2015 The RetroArch team
  *
  * ---------------------------------------------------------------------------------------
  * The following license statement only applies to this file (retro_inline.h).
@@ -23,17 +23,18 @@
 #ifndef __LIBRETRO_SDK_INLINE_H
 #define __LIBRETRO_SDK_INLINE_H
 
+#if !defined(__cplusplus) && defined(_WIN32)
+
 #ifndef INLINE
+#define INLINE _inline
+#endif
 
-#if defined(_WIN32) || defined(__INTEL_COMPILER)
-#define INLINE __inline
-#elif defined(__STDC_VERSION__) && __STDC_VERSION__>=199901L
-#define INLINE inline
-#elif defined(__GNUC__)
-#define INLINE __inline__
 #else
-#define INLINE
+
+#ifndef INLINE
+#define INLINE inline
 #endif
 
 #endif
+
 #endif

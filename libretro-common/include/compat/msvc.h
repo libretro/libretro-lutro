@@ -1,7 +1,7 @@
-/* Copyright  (C) 2010-2020 The RetroArch team
+/* Copyright  (C) 2010-2015 The RetroArch team
  *
  * ---------------------------------------------------------------------------------------
- * The following license statement only applies to this file (msvc.h).
+ * The following license statement only applies to this file (msvc_compat.h).
  * ---------------------------------------------------------------------------------------
  *
  * Permission is hereby granted, free of charge,
@@ -25,36 +25,9 @@
 
 #ifdef _MSC_VER
 
-#ifdef __cplusplus
-extern "C"  {
-#endif
-
-/* Pre-MSVC 2015 compilers don't implement snprintf, vsnprintf in a cross-platform manner. */
-#if _MSC_VER < 1900
-   #include <stdio.h>
-   #include <stdarg.h>
-   #include <stdlib.h>
-
-   #ifndef snprintf
-      #define snprintf c99_snprintf_retro__
-   #endif
-   int c99_snprintf_retro__(char *outBuf, size_t size, const char *format, ...);
-
-   #ifndef vsnprintf
-      #define vsnprintf c99_vsnprintf_retro__
-   #endif
-   int c99_vsnprintf_retro__(char *outBuf, size_t size, const char *format, va_list ap);
-#endif
-
-#ifdef __cplusplus
-}
-#endif
-
 #undef UNICODE /* Do not bother with UNICODE at this time. */
 #include <direct.h>
 #include <stddef.h>
-
-#define _USE_MATH_DEFINES
 #include <math.h>
 
 /* Python headers defines ssize_t and sets HAVE_SSIZE_T.
@@ -69,6 +42,7 @@ typedef int ssize_t;
 #endif
 
 #define mkdir(dirname, unused) _mkdir(dirname)
+#define snprintf _snprintf
 #define strtoull _strtoui64
 #undef strcasecmp
 #define strcasecmp _stricmp
@@ -85,34 +59,7 @@ typedef int ssize_t;
 #pragma warning(disable : 4723)
 #pragma warning(disable : 4996)
 
-/* roundf and va_copy is available since MSVC 2013 */
-#if _MSC_VER < 1800
 #define roundf(in) (in >= 0.0f ? floorf(in + 0.5f) : ceilf(in - 0.5f))
-#define va_copy(x, y) ((x) = (y))
-#endif
-
-#if _MSC_VER <= 1310
-   #ifndef __cplusplus
-      /* VC6 math.h doesn't define some functions when in C mode.
-       * Trying to define a prototype gives "undefined reference".
-       * But providing an implementation then gives "function already has body".
-       * So the equivalent of the implementations from math.h are used as
-       * defines here instead, and it seems to work.
-       */
-      #define cosf(x) ((float)cos((double)x))
-      #define powf(x, y) ((float)pow((double)x, (double)y))
-      #define sinf(x) ((float)sin((double)x))
-      #define ceilf(x) ((float)ceil((double)x))
-      #define floorf(x) ((float)floor((double)x))
-      #define sqrtf(x) ((float)sqrt((double)x))
-      #define fabsf(x)    ((float)fabs((double)(x)))
-   #endif
-
-   #ifndef _strtoui64
-      #define _strtoui64(x, y, z) (_atoi64(x))
-   #endif
-
-#endif
 
 #ifndef PATH_MAX
 #define PATH_MAX _MAX_PATH
@@ -124,3 +71,4 @@ typedef int ssize_t;
 
 #endif
 #endif
+

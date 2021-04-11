@@ -1,4 +1,4 @@
-/* Copyright  (C) 2010-2020 The RetroArch team
+/* Copyright  (C) 2010-2017 The RetroArch team
  *
  * ---------------------------------------------------------------------------------------
  * The following license statement only applies to this file (memmap.c).
@@ -148,7 +148,7 @@ int memsync(void *start, void *end)
 #elif defined(HAVE_MMAN)
    return msync(start, len, MS_SYNC | MS_INVALIDATE
 #ifdef __QNX__
-         MS_CACHE_ONLY
+         | MS_CACHE_ONLY | MS_INVALIDATE_ICACHE
 #endif
          );
 #else

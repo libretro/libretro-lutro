@@ -1,4 +1,4 @@
-/* Copyright  (C) 2010-2020 The RetroArch team
+/* Copyright  (C) 2010-2015 The RetroArch team
  *
  * ---------------------------------------------------------------------------------------
  * The following license statement only applies to this file (libco.h).
@@ -23,8 +23,6 @@
 #ifndef LIBCO_H
 #define LIBCO_H
 
-#include <retro_common_api.h>
-
 #ifdef LIBCO_C
   #ifdef LIBCO_MP
     #define thread_local __thread
@@ -33,7 +31,9 @@
   #endif
 #endif
 
-RETRO_BEGIN_DECLS
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 typedef void* cothread_t;
 
@@ -73,7 +73,9 @@ void co_delete(cothread_t cothread);
  */
 void co_switch(cothread_t cothread);
 
-RETRO_END_DECLS
+#ifdef __cplusplus
+}
+#endif
 
 /* ifndef LIBCO_H */
 #endif

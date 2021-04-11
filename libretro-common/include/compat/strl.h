@@ -1,4 +1,4 @@
-/* Copyright  (C) 2010-2020 The RetroArch team
+/* Copyright  (C) 2010-2017 The RetroArch team
  *
  * ---------------------------------------------------------------------------------------
  * The following license statement only applies to this file (strl.h).
@@ -26,7 +26,7 @@
 #include <string.h>
 #include <stddef.h>
 
-#if defined(RARCH_INTERNAL) && defined(HAVE_CONFIG_H)
+#ifdef HAVE_CONFIG_H
 #include "../../../config.h"
 #endif
 
@@ -57,3 +57,4 @@ char *strldup(const char *s, size_t n);
 RETRO_END_DECLS
 
 #endif
+

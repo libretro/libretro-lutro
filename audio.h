@@ -37,10 +37,11 @@ typedef struct
 
 void lutro_audio_init(lua_State* L);
 void lutro_audio_deinit();
-void lutro_audio_stop_all();
-
+void lutro_audio_stop_all(lua_State* L);
 int lutro_audio_preload(lua_State *L);
-void mixer_render(int16_t *buffer);
+void lutro_mixer_render(int16_t* buffer);
+
+void mixer_render(lua_State* L, int16_t *buffer);
 void mixer_unref_stopped_sounds(lua_State* L);
 
 int audio_newSource(lua_State *L);

@@ -63,8 +63,8 @@ int snd_newSoundData(lua_State *L)
    {
       dec_WavData wavData;
       decWav_init(&wavData, asset.fullpath);
-      self->numSamples  = wavData.head.Subchunk2Size / ((wavData.head.BitsPerSample/8) * wavData.head.NumChannels);
-      self->numChannels = wavData.head.NumChannels;
+      self->numSamples  = wavData.headc2.Subchunk2Size / ((wavData.headc1.BitsPerSample/8) * wavData.headc1.NumChannels);
+      self->numChannels = wavData.headc1.NumChannels;
       self->data = calloc(1, sizeof(mixer_presaturate_t) * self->numSamples * self->numChannels);   
 
       bufdesc.data      = self->data;

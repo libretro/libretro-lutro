@@ -19,21 +19,29 @@
     <ClCompile Include=".././lutro_math.c" />
     <ClCompile Include=".././joystick.c" />
     <ClCompile Include=".././mouse.c" />
+    <ClCompile Include=".././lutro_stb_image.c" />
     <ClCompile Include=".././lutro_window.c" />
     <ClCompile Include=".././painter.c" />
-    <ClCompile Include=".././libretro-common/formats/png/rpng_decode.c" />
-    <ClCompile Include=".././libretro-common/formats/png/rpng_fbio.c" />
     <ClCompile Include=".././libretro-common/file/file_path.c" />
+    <ClCompile Include=".././libretro-common/file/file_path_io.c" />
     <ClCompile Include=".././libretro-common/features/features_cpu.c" />
     <ClCompile Include=".././libretro-common/audio/conversion/float_to_s16.c" />
     <ClCompile Include=".././libretro-common/audio/conversion/s16_to_float.c" />
     <ClCompile Include=".././libretro-common/audio/audio_mix.c" />
     <ClCompile Include=".././libretro-common/compat/compat_posix_string.c" />
+    <ClCompile Include=".././libretro-common/memmap/memalign.c" />
     <ClCompile Include=".././libretro-common/memmap/memmap.c" />
     <ClCompile Include=".././libretro-common/compat/compat_strcasestr.c" />
     <ClCompile Include=".././libretro-common/compat/compat_strl.c" />
+    <ClCompile Include=".././libretro-common/encodings/encoding_crc32.c" />
     <ClCompile Include=".././libretro-common/encodings/encoding_utf.c" />
+    <ClCompile Include=".././libretro-common/time/rtime.c" />
     <ClCompile Include=".././libretro-common/streams/file_stream.c" />
+    <ClCompile Include=".././libretro-common/streams/trans_stream.c" />
+    <ClCompile Include=".././libretro-common/streams/trans_stream_pipe.c" />
+    <ClCompile Include=".././libretro-common/streams/interface_stream.c" />
+    <ClCompile Include=".././libretro-common/streams/memory_stream.c" />
+    <ClCompile Include=".././libretro-common/string/stdstring.c" />
     <ClCompile Include=".././libretro-common/vfs/vfs_implementation.c" />
     <ClCompile Include=".././libretro-common/compat/fopen_utf8.c" />
     <ClCompile Include=".././deps/luautf8/lutf8lib.c" />
@@ -53,26 +61,6 @@
     <ClCompile Include=".././deps/zlib/trees.c" />
     <ClCompile Include=".././deps/zlib/uncompr.c" />
     <ClCompile Include=".././deps/zlib/zutil.c" />
-    <ClCompile Include=".././deps/physfs/physfs.c" />
-    <ClCompile Include=".././deps/physfs/physfs_byteorder.c" />
-    <ClCompile Include=".././deps/physfs/physfs_unicode.c" />
-    <ClCompile Include=".././deps/physfs/physfs_archiver_7z.c" />
-    <ClCompile Include=".././deps/physfs/physfs_archiver_dir.c" />
-    <ClCompile Include=".././deps/physfs/physfs_archiver_grp.c" />
-    <ClCompile Include=".././deps/physfs/physfs_archiver_hog.c" />
-    <ClCompile Include=".././deps/physfs/physfs_archiver_iso9660.c" />
-    <ClCompile Include=".././deps/physfs/physfs_archiver_mvl.c" />
-    <ClCompile Include=".././deps/physfs/physfs_archiver_qpak.c" />
-    <ClCompile Include=".././deps/physfs/physfs_archiver_slb.c" />
-    <ClCompile Include=".././deps/physfs/physfs_archiver_unpacked.c" />
-    <ClCompile Include=".././deps/physfs/physfs_archiver_vdf.c" />
-    <ClCompile Include=".././deps/physfs/physfs_archiver_wad.c" />
-    <ClCompile Include=".././deps/physfs/physfs_archiver_zip.c" />
-    <ClCompile Include=".././deps/physfs/physfs_platform_os2.c" />
-    <ClCompile Include=".././deps/physfs/physfs_platform_posix.c" />
-    <ClCompile Include=".././deps/physfs/physfs_platform_qnx.c" />
-    <ClCompile Include=".././deps/physfs/physfs_platform_unix.c" />
-    <ClCompile Include=".././deps/physfs/physfs_platform_windows.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include=".././audio.h" />
@@ -209,6 +197,7 @@
     <ClInclude Include=".././deps/physfs/physfs_lzmasdk.h" />
     <ClInclude Include=".././deps/physfs/physfs_miniz.h" />
     <ClInclude Include=".././deps/physfs/physfs_platforms.h" />
+    <ClInclude Include=".././deps/stb/stb_image.h" />
     <ClInclude Include=".././deps/utf8/utf8/checked.h" />
     <ClInclude Include=".././deps/utf8/utf8/core.h" />
     <ClInclude Include=".././deps/utf8/utf8/unchecked.h" />
@@ -278,9 +267,8 @@
     <ClInclude Include=".././input.h" />
     <ClInclude Include=".././joystick.h" />
     <ClInclude Include=".././keyboard.h" />
-    <ClInclude Include=".././libretro-common/formats/png/rpng_common.h" />
-    <ClInclude Include=".././libretro-common/formats/png/rpng_decode.h" />
     <ClInclude Include=".././libretro-common/include/audio/audio_mix.h" />
+    <ClInclude Include=".././libretro-common/include/audio/audio_resampler.h" />
     <ClInclude Include=".././libretro-common/include/audio/conversion/float_to_s16.h" />
     <ClInclude Include=".././libretro-common/include/audio/conversion/s16_to_float.h" />
     <ClInclude Include=".././libretro-common/include/boolean.h" />
@@ -292,13 +280,15 @@
     <ClInclude Include=".././libretro-common/include/compat/posix_string.h" />
     <ClInclude Include=".././libretro-common/include/compat/strcasestr.h" />
     <ClInclude Include=".././libretro-common/include/compat/strl.h" />
+    <ClInclude Include=".././libretro-common/include/encodings/crc32.h" />
     <ClInclude Include=".././libretro-common/include/encodings/utf.h" />
     <ClInclude Include=".././libretro-common/include/features/features_cpu.h" />
     <ClInclude Include=".././libretro-common/include/file/file_path.h" />
-    <ClInclude Include=".././libretro-common/include/formats/image.h" />
-    <ClInclude Include=".././libretro-common/include/formats/rpng.h" />
+    <ClInclude Include=".././libretro-common/include/filters.h" />
+    <ClInclude Include=".././libretro-common/include/formats/rwav.h" />
     <ClInclude Include=".././libretro-common/include/libco.h" />
     <ClInclude Include=".././libretro-common/include/libretro.h" />
+    <ClInclude Include=".././libretro-common/include/memalign.h" />
     <ClInclude Include=".././libretro-common/include/memmap.h" />
     <ClInclude Include=".././libretro-common/include/retro_assert.h" />
     <ClInclude Include=".././libretro-common/include/retro_common.h" />
@@ -306,15 +296,22 @@
     <ClInclude Include=".././libretro-common/include/retro_endianness.h" />
     <ClInclude Include=".././libretro-common/include/retro_environment.h" />
     <ClInclude Include=".././libretro-common/include/retro_inline.h" />
-    <ClInclude Include=".././libretro-common/include/retro_log.h" />
+    <ClInclude Include=".././libretro-common/include/retro_math.h" />
     <ClInclude Include=".././libretro-common/include/retro_miscellaneous.h" />
+    <ClInclude Include=".././libretro-common/include/retro_timers.h" />
     <ClInclude Include=".././libretro-common/include/streams/file_stream.h" />
+    <ClInclude Include=".././libretro-common/include/streams/interface_stream.h" />
+    <ClInclude Include=".././libretro-common/include/streams/memory_stream.h" />
+    <ClInclude Include=".././libretro-common/include/streams/trans_stream.h" />
     <ClInclude Include=".././libretro-common/include/string/stdstring.h" />
+    <ClInclude Include=".././libretro-common/include/time/rtime.h" />
     <ClInclude Include=".././libretro-common/include/vfs/vfs.h" />
     <ClInclude Include=".././libretro-common/include/vfs/vfs_implementation.h" />
     <ClInclude Include=".././live.h" />
     <ClInclude Include=".././lutro.h" />
+    <ClInclude Include=".././lutro_assert.h" />
     <ClInclude Include=".././lutro_math.h" />
+    <ClInclude Include=".././lutro_stb_image.h" />
     <ClInclude Include=".././lutro_window.h" />
     <ClInclude Include=".././mouse.h" />
     <ClInclude Include=".././msbuild/fi-msw-buildconf.h" />
@@ -328,7 +325,6 @@
   </ItemGroup>
   <ItemDefinitionGroup>
     <ClCompile>
-      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);.././deps/physfs</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);../.</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);.././libretro-common/include</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);.././deps/zlib</AdditionalIncludeDirectories>
@@ -336,6 +332,32 @@
       <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);.././deps/ogg</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);.././deps</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);../deps/lua/src</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)'=='Debug'">
+    <ClCompile>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);LUTRO_ENABLE_ERROR=1</PreprocessorDefinitions>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);LUTRO_ENABLE_ALERT=1</PreprocessorDefinitions>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);LUTRO_ENABLE_ASSERT_TOOL=1</PreprocessorDefinitions>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);LUTRO_ENABLE_ASSERT_DBG=1</PreprocessorDefinitions>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)'=='Tool'">
+    <ClCompile>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);NDEBUG</PreprocessorDefinitions>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);LUTRO_ENABLE_ERROR=1</PreprocessorDefinitions>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);LUTRO_ENABLE_ALERT=1</PreprocessorDefinitions>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);LUTRO_ENABLE_ASSERT_TOOL=1</PreprocessorDefinitions>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);LUTRO_ENABLE_ASSERT_DBG=0</PreprocessorDefinitions>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);LUTRO_ENABLE_ERROR=1</PreprocessorDefinitions>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);LUTRO_ENABLE_ALERT=0</PreprocessorDefinitions>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);LUTRO_ENABLE_ASSERT_TOOL=0</PreprocessorDefinitions>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);LUTRO_ENABLE_ASSERT_DBG=0</PreprocessorDefinitions>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)'=='Player'">
+    <ClCompile>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);NDEBUG</PreprocessorDefinitions>
     </ClCompile>
   </ItemDefinitionGroup>
 </Project>

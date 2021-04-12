@@ -8,7 +8,6 @@
 #include <file/file_path.h>
 #include <audio/conversion/float_to_s16.h>
 #include <math.h>
-#include <assert.h>
 #include <errno.h>
 
 /* TODO/FIXME - no sound on big-endian */
@@ -179,8 +178,8 @@ void mixer_render(int16_t *buffer)
                }  
             }
 
-            assert(source->sndpos <= sndta->numSamples);
-            assert(total_mixed <= AUDIO_FRAMES);
+            dbg_assume(source->sndpos <= sndta->numSamples);
+            dbg_assume(total_mixed <= AUDIO_FRAMES);
 
             if (source->sndpos == sndta->numSamples)
             {
@@ -617,7 +616,12 @@ int audio_play(lua_State *L)
       return 0;
    }
 
-   assert(self->state == AUDIO_STOPPED);
+   if (self->state != AUDIO_STOPPED)
+   {
+      lutro_alertf("Invalid audio state value=%d", self->state);
+      return 0;
+   }
+
    self->state = AUDIO_PLAYING;
 
    // add a ref to our playing audio registry. this blocks __gc until the ref(s) are removed.
@@ -642,7 +646,7 @@ int audio_play(lua_State *L)
    else
    {
       // existing ref means it should be our same source already.
-      assert(sources_playing[slot].source == self);
+      dbg_assert(sources_playing[slot].source == self);
    }
 
    // for now sources always succeed in lutro.

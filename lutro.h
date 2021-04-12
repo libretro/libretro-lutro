@@ -5,6 +5,8 @@
 #include <stdbool.h>
 #include <libretro.h>
 
+#include "lutro_assert.h"
+
 #ifndef PATH_MAX_LENGTH
 #define PATH_MAX_LENGTH 4096
 #endif

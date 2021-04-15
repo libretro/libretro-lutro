@@ -371,7 +371,7 @@ static __always_inline bool _inl_decode_wav(dec_WavData *data, intmax_t bufsz, m
       {
          intmax_t seekpos = decWav_CalcOffsetDataStart(data) + data->pos;
          dbg_assertf(ftell(data->fp) == seekpos, "numSamples=%jd dataPos=%jd and ftell=%jd",
-            numSamples, (intmax_t)data->pos, ftell(data->fp)
+            (intmax_t)numSamples, (intmax_t)data->pos, ftell(data->fp)
          );
  
          if (!loop)
@@ -418,7 +418,7 @@ static __always_inline bool _inl_decode_wav(dec_WavData *data, intmax_t bufsz, m
    }
 
    dbg_assertf(ftell(data->fp) == decWav_CalcOffsetDataStart(data) + data->pos, "numSamples=%jd dataPos=%jd and ftell=%jd",
-      numSamples, (intmax_t)data->pos, ftell(data->fp)
+      (intmax_t)numSamples, (intmax_t)data->pos, ftell(data->fp)
    );
    return 0;
 }

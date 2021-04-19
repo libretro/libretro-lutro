@@ -446,5 +446,7 @@ bool decWav_decode(dec_WavData *data, presaturate_buffer_desc *buffer, float vol
    if (data->headc1.BitsPerSample == 16 && data->headc1.NumChannels == 1 && buffer->channels == 2) return _inl_decode_wav(data, bufsz, dst, 2, 1, 2, volume, loop); 
    if (data->headc1.BitsPerSample == 16 && data->headc1.NumChannels == 1 && buffer->channels == 1) return _inl_decode_wav(data, bufsz, dst, 2, 1, 1, volume, loop);
 
-   return 0;
+   // TODO: some unsupported format (32-bit float?)
+   // Return true to ensure the mixer stops and unrefs the sound data
+   return true;
 }

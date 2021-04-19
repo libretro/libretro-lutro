@@ -317,13 +317,18 @@ void lutro_deinit()
       lutro_live_deinit();
 #endif
 
-   lutro_audio_stop_all();
+   lutro_audio_stop_all(L);
    lua_gc(L, LUA_GCSTEP, 0);
    lua_close(L);
 
    lutro_audio_deinit();
    lutro_filesystem_deinit();
+}
 
+void lutro_mixer_render(int16_t* buffer)
+{
+   if (!L) return;
+   mixer_render(L, buffer);
 }
 
 int lutro_set_package_path(lua_State* L, const char* path)
@@ -666,7 +671,7 @@ void lutro_reset()
 
    if (lua_isfunction(L, -1))
    {
-      lutro_audio_stop_all();
+      lutro_audio_stop_all(L);
       if(lua_pcall(L, 0, 0, 0))
       {
          fprintf(stderr, "%s\n", lua_tostring(L, -1));

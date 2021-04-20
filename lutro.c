@@ -565,7 +565,6 @@ void lutro_gamepadevent(lua_State* L)
          lua_getfield(L, -1, is_down ? "gamepadpressed" : "gamepadreleased");
          if (lua_isfunction(L, -1))
          {
-            lua_pushcfunction(L, traceback);
             lua_pushnumber(L, i);
             lua_pushstring(L, input_find_name(joystick_enum, i));
             if (lutro_pcall(L, 2, 0))
@@ -574,8 +573,8 @@ void lutro_gamepadevent(lua_State* L)
                lua_pop(L, 1);
             }
             input_cache[i] = is_down;
-            lua_pop(L, 1);
          }
+         lua_pop(L, 1);
       }
    }
    lua_settop(L, oldtop);

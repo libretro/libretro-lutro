@@ -116,6 +116,32 @@ static void dumpstack( lua_State* L )
 }
 #endif
 
+int _lutro_assertf_internal(int ignorable, const char *fmt, ...)
+{
+   va_list argptr;
+   va_start(argptr, fmt);
+   vfprintf(stderr, fmt, argptr);
+   va_end(argptr);
+   fflush(NULL);
+
+   // tips: the fmt input should always be in the predefined format of:
+   //   FILE(LINE): assertion `cond` failed.
+   // example:
+   //   lutro.cpp(444): assertion `x > 0` failed.
+   // 
+   // We can use this knowledge to parse the file and line positions and perform additional clever filtering
+   // or log prep/routing.
+
+   if (ignorable)
+   {
+      // TODO : suspend the core, show up some user dialog via libretro api?
+      // (it could even have lots of info, like lua stacktrace... )
+      // return 0 if ignored.
+   }
+
+   return 1;
+}
+
 #define LEVELS1	12	/* size of the first part of the stack */
 #define LEVELS2	10	/* size of the second part of the stack */
 
@@ -291,13 +317,18 @@ void lutro_deinit()
       lutro_live_deinit();
 #endif
 
-   lutro_audio_stop_all();
+   lutro_audio_stop_all(L);
    lua_gc(L, LUA_GCSTEP, 0);
    lua_close(L);
 
    lutro_audio_deinit();
    lutro_filesystem_deinit();
+}
 
+void lutro_mixer_render(int16_t* buffer)
+{
+   if (!L) return;
+   mixer_render(L, buffer);
 }
 
 int lutro_set_package_path(lua_State* L, const char* path)
@@ -640,7 +671,7 @@ void lutro_reset()
 
    if (lua_isfunction(L, -1))
    {
-      lutro_audio_stop_all();
+      lutro_audio_stop_all(L);
       if(lua_pcall(L, 0, 0, 0))
       {
          fprintf(stderr, "%s\n", lua_tostring(L, -1));

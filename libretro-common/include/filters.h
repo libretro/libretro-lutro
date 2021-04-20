@@ -1,7 +1,7 @@
-/* Copyright  (C) 2010-2015 The RetroArch team
+/* Copyright  (C) 2010-2020 The RetroArch team
  *
  * ---------------------------------------------------------------------------------------
- * The following license statement only applies to this file (rpng.c).
+ * The following license statement only applies to this file (filters.h).
  * ---------------------------------------------------------------------------------------
  *
  * Permission is hereby granted, free of charge,
@@ -20,61 +20,23 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef _RPNG_COMMON_H
-#define _RPNG_COMMON_H
+#ifndef _LIBRETRO_SDK_FILTERS_H
+#define _LIBRETRO_SDK_FILTERS_H
 
+/* for MSVC; should be benign under any circumstances */
+#define _USE_MATH_DEFINES
+
+#include <stdlib.h>
+#include <math.h>
 #include <retro_inline.h>
+#include <retro_math.h>
 
-#undef GOTO_END_ERROR
-#define GOTO_END_ERROR() do { \
-   fprintf(stderr, "[RPNG]: Error in line %d.\n", __LINE__); \
-   ret = false; \
-   goto end; \
-} while(0)
-
-#ifndef ARRAY_SIZE
-#define ARRAY_SIZE(a) (sizeof(a) / sizeof((a)[0]))
-#endif
-
-static const uint8_t png_magic[8] = {
-   0x89, 'P', 'N', 'G', 0x0d, 0x0a, 0x1a, 0x0a,
-};
-
-enum png_chunk_type
+static INLINE double sinc(double val)
 {
-   PNG_CHUNK_NOOP = 0,
-   PNG_CHUNK_ERROR,
-   PNG_CHUNK_IHDR,
-   PNG_CHUNK_IDAT,
-   PNG_CHUNK_PLTE,
-   PNG_CHUNK_IEND
-};
-
-enum png_line_filter
-{
-   PNG_FILTER_NONE = 0,
-   PNG_FILTER_SUB,
-   PNG_FILTER_UP,
-   PNG_FILTER_AVERAGE,
-   PNG_FILTER_PAETH,
-};
-
-enum png_ihdr_color_type
-{
-   PNG_IHDR_COLOR_GRAY       = 0,
-   PNG_IHDR_COLOR_RGB        = 2,
-   PNG_IHDR_COLOR_PLT        = 3,
-   PNG_IHDR_COLOR_GRAY_ALPHA = 4,
-   PNG_IHDR_COLOR_RGBA       = 6,
-};
-
-struct adam7_pass
-{
-   unsigned x;
-   unsigned y;
-   unsigned stride_x;
-   unsigned stride_y;
-};
+   if (fabs(val) < 0.00001)
+      return 1.0;
+   return sin(val) / val;
+}
 
 /* Paeth prediction filter. */
 static INLINE int paeth(int a, int b, int c)
@@ -91,10 +53,41 @@ static INLINE int paeth(int a, int b, int c)
    return c;
 }
 
-static INLINE uint32_t dword_be(const uint8_t *buf)
+/* Modified Bessel function of first order.
+ * Check Wiki for mathematical definition ... */
+static INLINE double besseli0(double x)
 {
-   return (buf[0] << 24) | (buf[1] << 16) | (buf[2] << 8) | (buf[3] << 0);
+   unsigned i;
+   double sum            = 0.0;
+   double factorial      = 1.0;
+   double factorial_mult = 0.0;
+   double x_pow          = 1.0;
+   double two_div_pow    = 1.0;
+   double x_sqr          = x * x;
+
+   /* Approximate. This is an infinite sum.
+    * Luckily, it converges rather fast. */
+   for (i = 0; i < 18; i++)
+   {
+      sum += x_pow * two_div_pow / (factorial * factorial);
+
+      factorial_mult += 1.0;
+      x_pow *= x_sqr;
+      two_div_pow *= 0.25;
+      factorial *= factorial_mult;
+   }
+
+   return sum;
 }
 
+static INLINE double kaiser_window_function(double index, double beta)
+{
+   return besseli0(beta * sqrtf(1 - index * index));
+}
+
+static INLINE double lanzcos_window_function(double index)
+{
+   return sinc(M_PI * index);
+}
 
 #endif

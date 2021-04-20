@@ -1,7 +1,7 @@
-/* Copyright  (C) 2010-2015 The RetroArch team
+/* Copyright  (C) 2010-2020 The RetroArch team
  *
  * ---------------------------------------------------------------------------------------
- * The following license statement only applies to this file (rpng.c).
+ * The following license statement only applies to this file (memalign.c).
  * ---------------------------------------------------------------------------------------
  *
  * Permission is hereby granted, free of charge,
@@ -20,25 +20,44 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef _RPNG_DECODE_H
-#define _RPNG_DECODE_H
+#include <stdint.h>
+#include <stdlib.h>
 
-enum png_process_code
+#include <memalign.h>
+
+void *memalign_alloc(size_t boundary, size_t size)
 {
-   PNG_PROCESS_ERROR     = -2,
-   PNG_PROCESS_ERROR_END = -1,
-   PNG_PROCESS_NEXT      =  0,
-   PNG_PROCESS_END       =  1,
-};
+   void **place   = NULL;
+   uintptr_t addr = 0;
+   void *ptr      = (void*)malloc(boundary + size + sizeof(uintptr_t));
+   if (!ptr)
+      return NULL;
 
-enum png_chunk_type png_chunk_type(const struct png_chunk *chunk);
+   addr           = ((uintptr_t)ptr + sizeof(uintptr_t) + boundary)
+      & ~(boundary - 1);
+   place          = (void**)addr;
+   place[-1]      = ptr;
 
-bool png_process_ihdr(struct png_ihdr *ihdr);
+   return (void*)addr;
+}
 
-int png_reverse_filter_iterate(struct rpng_t *rpng,
-      uint32_t **data);
+void memalign_free(void *ptr)
+{
+   void **p = NULL;
+   if (!ptr)
+      return;
 
-bool rpng_load_image_argb_process_init(struct rpng_t *rpng,
-      uint32_t **data, unsigned *width, unsigned *height);
+   p = (void**)ptr;
+   free(p[-1]);
+}
 
+void *memalign_alloc_aligned(size_t size)
+{
+#if defined(__x86_64__) || defined(__LP64) || defined(__IA64__) || defined(_M_X64) || defined(_M_X64) || defined(_WIN64)
+   return memalign_alloc(64, size);
+#elif defined(__i386__) || defined(__i486__) || defined(__i686__) || defined(GEKKO) || defined(_M_IX86)
+   return memalign_alloc(32, size);
+#else
+   return memalign_alloc(32, size);
 #endif
+}

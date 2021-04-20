@@ -4,14 +4,15 @@
 #include <vorbis/vorbisfile.h>
 #include "audio_mixer.h"
 
-#define WAV_HEADER_SIZE 44
+#define WAV_HEADER_CHUNK1_SIZE 36      // minimum size. the chunk can be larger. See Subchunk1Size.
+#define WAV_HEADER_CHUNK2_SIZE 8
 
 typedef struct
 {
-   char ChunkID[4];
+   char     ChunkID[4];
    uint32_t ChunkSize;
-   char Format[4];
-   char Subchunk1ID[4];
+   char     Format[4];
+   char     Subchunk1ID[4];
    uint32_t Subchunk1Size;
    uint16_t AudioFormat;
    uint16_t NumChannels;
@@ -19,9 +20,13 @@ typedef struct
    uint32_t ByteRate;
    uint16_t BlockAlign;
    uint16_t BitsPerSample;
+} wavhead_t;
+
+typedef struct
+{
    char Subchunk2ID[4];
    uint32_t Subchunk2Size;
-} wavhead_t;
+} wav_subchunk2_t;
 
 typedef struct
 {
@@ -31,9 +36,11 @@ typedef struct
 
 typedef struct
 {
-   void*      fp;
-   intmax_t   pos;
-   wavhead_t head;
+   void*           fp;
+   intmax_t        pos;
+   wavhead_t       headc1;             // RIFF header and Chunk 1
+   wav_subchunk2_t headc2;             // data chunk header (other headers are not tracked)
+   intmax_t        seekPosSubChunk2;   // data subchunk could be anywhere in this evil file format.
 } dec_WavData;
 
 bool decWav_init(dec_WavData *data, const char *filename);

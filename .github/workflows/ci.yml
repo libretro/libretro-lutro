@@ -10,25 +10,31 @@ defaults:
   run:
     shell: bash
 
+# some jobs are currently running multiple config builds on the same worktree.
+# it might be better to issue these as separate jobs or as a config matrix.
+
+# debug builds are currently not built to keep the turnaround time on PRs shorter.
+
 jobs:
   build_linux:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - run: make -j4
+      - run:                 make -j4 config=tool
+      - run: git clean -f && make -j4 config=player
 
   build_linux_jit:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - run: make WANT_JIT=1 -j4
+      - run: make -j4 config=player WANT_JIT=1
 
   build_linux_armv7_neon:
     runs-on: ubuntu-latest
     container: dockcross/linux-armv7
     steps:
       - uses: actions/checkout@v2
-      - run: make platform=unix-armv7-neon-hardfloat -j4
+      - run:                 make -j4 platform=unix-armv7-neon-hardfloat config=player 
 
 #  build_linux_armv7_neon_jit:
 #    runs-on: ubuntu-latest
@@ -41,23 +47,25 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v2
-      - run: make platform=osx -j4
+      - run:                 make -j4 platform=osx config=tool
+      - run: git clean -f && make -j4 platform=osx config=player
 
   build_osx_jit:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v2
-      - run: make WANT_JIT=1 platform=osx -j4
+      - run:                 make -j4 platform=osx config=player WANT_JIT=1 
 
   build_windows:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v2
-      - run: CC=gcc make platform=win -j4
+      - run:                 CC=gcc make -j4 platform=win config=tool   
+      - run: git clean -f && CC=gcc make -j4 platform=win config=player
 
   build_windows_jit:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v2
-      - run: CC=gcc make WANT_JIT=1 platform=win -j4
+      - run:                 CC=gcc make -j4 platform=win config=player WANT_JIT=1 
 

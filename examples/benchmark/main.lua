@@ -24,6 +24,7 @@ function lutro.draw()
 end
 
 function lutro.update(dt)
+	local width, height = spriteImg:getDimensions()
 	for index,value in ipairs(sprites) do
 		local tempSpriteId = value[1]
 		local tempSpritePosX = value[2]
@@ -42,13 +43,13 @@ function lutro.update(dt)
 			tempSpriteSpeedY = tempSpriteSpeedY * -1
 			tempSpritePosY = 0
 		end
-		if tempSpritePosX > lutro.graphics.getWidth() then
+		if tempSpritePosX > lutro.graphics.getWidth() - width then
 			tempSpriteSpeedX = tempSpriteSpeedX * -1
-			tempSpritePosX = lutro.graphics.getWidth()
+			tempSpritePosX = lutro.graphics.getWidth() - width
 		end
-		if tempSpritePosY > lutro.graphics.getHeight() then
+		if tempSpritePosY > lutro.graphics.getHeight() - height then
 			tempSpriteSpeedY = tempSpriteSpeedY * -1
-			tempSpritePosY = lutro.graphics.getHeight()
+			tempSpritePosY = lutro.graphics.getHeight() - height
 		end
 
 		local sprite = {tempSpriteId, tempSpritePosX, tempSpritePosY, tempSpriteSpeedX, tempSpriteSpeedY }

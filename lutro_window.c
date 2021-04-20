@@ -279,7 +279,8 @@ int win_showMessageBox(lua_State *L)
    if (n > 5)
       return luaL_error(L, "lutro.window.win_showMessageBox expects at most 5 arguments, %d given.", n);
 
-   const char* title = luaL_checkstring(L, 1);
+   // TODO: lutro.window.showMessageBox() - Prepend the title to the message... "title: message"
+   // const char* title = luaL_checkstring(L, 1);
    const char* message = luaL_checkstring(L, 2);
    struct retro_message msg = { message, 600 };
 

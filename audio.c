@@ -8,20 +8,18 @@
 #include <file/file_path.h>
 #include <audio/conversion/float_to_s16.h>
 #include <math.h>
-#include <assert.h>
 #include <errno.h>
 
 /* TODO/FIXME - no sound on big-endian */
 
 // any source which is playing must maintain a ref in lua, to avoid __gc.
 typedef struct {
-   audio_Source* source;
    int           lua_ref;
-} audioSourceWithRef;
+} audioSourceByRef;
 
 
 static int num_sources = 0;
-static audioSourceWithRef* sources_playing = NULL;
+static audioSourceByRef* sources_playing = NULL;
 static float volume = 1.0;
 
 #define CHANNELS 2
@@ -32,29 +30,17 @@ static int16_t saturate(mixer_presaturate_t in) {
    return cvt_presaturate_to_int16(in);
 }
 
-int audio_sources_nullify_refs(const audio_Source* source)
+audio_Source* getSourcePtrFromRef(lua_State* L, audioSourceByRef ref)
 {
-   int counted = 0;
-   if (!source) return 0;
+   if (ref.lua_ref < 0)
+      return NULL;
 
-   // rather than crash, let's nullify any known references here,
-   // even if they're currently playing (they'll be cut to silence)
-
-   for(int i=0; i<num_sources; ++i)
-   {
-      audioSourceWithRef* srcref = &sources_playing[i];
-      if (srcref->source == source)
-      {
-         if (srcref->source->state != AUDIO_STOPPED)
-            ++counted;
-   
-         // do not free - the pointers in sources are lua user data
-         srcref->source = NULL;
-         srcref->lua_ref = LUA_NOREF;
-      }
-   }
-
-   return counted;
+   lua_getglobal(L, "refs_audio_playing");
+   lua_pushinteger(L, ref.lua_ref);
+   lua_gettable(L, -2);
+   audio_Source* result = lua_touserdata(L, -1);
+   lua_pop(L,2);
+   return result;
 }
 
 // unrefs stopped sounds.
@@ -66,31 +52,38 @@ void mixer_unref_stopped_sounds(lua_State* L)
    {
       if (sources_playing[i].lua_ref >= 0)
       {
-         audio_Source* source = sources_playing[i].source;
+         audio_Source* source = getSourcePtrFromRef(L, sources_playing[i]);
          if (!source || source->state == AUDIO_STOPPED)
          {
-            lua_getglobal(L, "refs_audio_playing");
-            luaL_unref(L, -1, sources_playing[i].lua_ref);
+            // only unref is source is non-NULL -- assume a null source is already unref'd and that the
+            // stale part of our data is just sources_playing (to avoid unref'ing something that might already
+            // be re-using this ref ID)
+
+            if (source)
+            {
+               lua_getglobal(L, "refs_audio_playing");
+               luaL_unref(L, -1, sources_playing[i].lua_ref);
+               lua_pop(L,1);
+            }
             sources_playing[i].lua_ref = LUA_REFNIL;
          }
       }
-      if (sources_playing[i].lua_ref < 0)
-         sources_playing[i].source  = NULL;
    }
 }
 
-void lutro_audio_stop_all(void)
+void lutro_audio_stop_all(lua_State* L)
 {
    // Loop over audio sources
    // no cleanup needed, __gc will handle it later after a call to mixer_unref_stopped_sounds()
    for (int i = 0; i < num_sources; i++)
    {
-      if (sources_playing[i].source)
-         sources_playing[i].source->state = AUDIO_STOPPED;
+      audio_Source* source = getSourcePtrFromRef(L, sources_playing[i]);
+      if (source)
+         source->state = AUDIO_STOPPED;
    }
 }
 
-void mixer_render(int16_t *buffer)
+void mixer_render(lua_State* L, int16_t *buffer)
 {
    static mixer_presaturate_t presaturateBuffer[AUDIO_FRAMES * CHANNELS];
 
@@ -104,7 +97,8 @@ void mixer_render(int16_t *buffer)
    // Loop over audio sources
    for (int i = 0; i < num_sources; i++)
    {
-      audio_Source* source = sources_playing[i].source;
+      audio_Source* source = getSourcePtrFromRef(L, sources_playing[i]);
+
       if (!source)
          continue;
 
@@ -179,8 +173,8 @@ void mixer_render(int16_t *buffer)
                }  
             }
 
-            assert(source->sndpos <= sndta->numSamples);
-            assert(total_mixed <= AUDIO_FRAMES);
+            dbg_assume(source->sndpos <= sndta->numSamples);
+            dbg_assume(total_mixed <= AUDIO_FRAMES);
 
             if (source->sndpos == sndta->numSamples)
             {
@@ -193,7 +187,11 @@ void mixer_render(int16_t *buffer)
                }
             }
          }
+         continue;
       }
+
+      // invalid source object - possibly asset loading failed, was invalid or it's been partially GC'd.
+      source->state = AUDIO_STOPPED;
    }
 
    // final saturation step - downsample.
@@ -242,18 +240,16 @@ void lutro_audio_deinit()
    //  1. assume luaState has been forcibly destroyed without its own cleanup.
    //  2. run lua_close() and let it clean most of this up first.
 
-   lutro_audio_stop_all();
    int counted = 0;
    for (int i = 0; i < num_sources; i++)
    {
-      if (sources_playing[i].source)
+      if (sources_playing[i].lua_ref >= 0)
          ++counted;
    }
 
    if (counted)
    {
       fprintf(stderr, "Found %d leaked audio source references. Was lua_close() called first?\n", counted);
-      fflush(stderr);
       //assert(false);
       return;
    }
@@ -270,7 +266,7 @@ static int find_empty_source_slot(audio_Source* self)
       // it's possible a stopped source is still in the sources_playing list, since cleanup
       // operations are deferred. This is OK and expected, just use the slot that's still assigned...
 
-      if (!sources_playing[i].source || sources_playing[i].source == self)
+      if (sources_playing[i].lua_ref < 0)
          return i;
    }
    return -1;
@@ -446,12 +442,33 @@ int source_tell(lua_State *L)
 {
    audio_Source* self = (audio_Source*)luaL_checkudata(L, 1, "Source");
 
-   //currently assuming samples vs seconds
-   //TODO: check if 2nd param is "seconds" or "samples"
+   const char* type = lua_isstring(L,2) ? lua_tostring(L,2) : NULL;
 
    // sndpos should always be accurate for any given source or stream.
-   lua_pushnumber(L, self->sndpos);
+   // (validation of this would be best performed per-frame, before and/or after mixing, and not here)
 
+   intmax_t npSamples = self->sndpos;
+
+   if (type)
+   {
+      if (strcmp(type, "seconds") == 0)
+      {
+         double npSeconds = npSamples / 44100.0;
+         lua_pushnumber(L, npSeconds);
+      }
+      else if(strcmp(type, "samples") == 0)
+      {
+         lua_pushinteger(L, npSamples);
+      }
+      else
+      {
+         return luaL_error(L, "Source:tell '%s' given for second argument. Expected either 'seconds' or 'samples'", type);      
+      }
+   }
+   else
+   {
+      lua_pushinteger(L, npSamples);
+   }
    return 1;
 }
 
@@ -464,7 +481,7 @@ int source_seek(lua_State *L)
 
    audio_Source* self = (audio_Source*)luaL_checkudata(L, 1, "Source");
 
-   const char* type = lua_tostring(L, 3);
+   const char* type = lua_isstring(L,3) ? lua_tostring(L, 3) : NULL;
 
    intmax_t npSamples = 0;
 
@@ -481,7 +498,7 @@ int source_seek(lua_State *L)
       }
       else
       {
-         return luaL_error(L, "Source:seek third argument is invalid, '%s' given. Expected either 'seconds' or 'samples'.\n", type);      
+         return luaL_error(L, "Source:seek '%s' given for third argument. Expected either 'seconds' or 'samples'", type);      
       }
    }
    else 
@@ -497,7 +514,6 @@ int source_seek(lua_State *L)
          // TODO: it'd be nice to log with the full lua FILE(LINE): context that's normally prefixed by lua_error,
          // in a manner that allows us to log it without stopping the system. --jstine
          fprintf(stderr, "WAV decoder seek failed: %s\n", strerror(errno));
-         fflush(stdout);
       }
       self->sndpos = decWav_sampleTell(self->wavData);
    }
@@ -519,7 +535,6 @@ int source_seek(lua_State *L)
    {
       // the underlying media source will fixup the seek position...
       fprintf(stderr, "warning: seek asked for sample pos %jd, got pos %jd\n", npSamples, self->sndpos);
-      fflush(stderr);
    }
    return 0;
 }
@@ -548,18 +563,6 @@ int source_gc(lua_State *L)
 {
    audio_Source* self = (audio_Source*)luaL_checkudata(L, 1, "Source");
 
-   // todo - add some info to help identify the offending leaker.
-   // (don't get carried away tho - this message is only really useful to lutro core devs since
-   //  it indiciates a failure of our internal Lua/C glue)
-
-   int leaks = audio_sources_nullify_refs(self);
-   if (leaks)
-   {
-      fprintf(stderr, "source_gc: playing audio references were nullified.\n");
-      fflush(stderr);
-      //assert(false);
-   }
-   
    luaL_unref(L, LUA_REGISTRYINDEX, self->lua_ref_sndta);
    self->lua_ref_sndta = LUA_REFNIL;
 
@@ -600,7 +603,12 @@ int audio_play(lua_State *L)
       return 0;
    }
 
-   assert(self->state == AUDIO_STOPPED);
+   if (self->state != AUDIO_STOPPED)
+   {
+      lutro_alertf("Invalid audio state value=%d", self->state);
+      return 0;
+   }
+
    self->state = AUDIO_PLAYING;
 
    // add a ref to our playing audio registry. this blocks __gc until the ref(s) are removed.
@@ -608,10 +616,11 @@ int audio_play(lua_State *L)
    int slot = find_empty_source_slot(self);
    if (slot < 0)
    {
+      // TODO: This should be converted into a pooled allocator (a linked list of reusable blocks)
+
       slot = num_sources++;
-      sources_playing = (audioSourceWithRef*)realloc(sources_playing, num_sources * sizeof(audioSourceWithRef));
+      sources_playing = (audioSourceByRef*)realloc(sources_playing, num_sources * sizeof(audioSourceByRef));
       sources_playing[slot].lua_ref = LUA_REFNIL;
-      sources_playing[slot].source  = NULL;
    }
 
    // assume that find_empty_source_slot with either return the current slot, or an empty one.
@@ -619,13 +628,12 @@ int audio_play(lua_State *L)
    {
       lua_getglobal(L, "refs_audio_playing");
       lua_pushvalue(L, 1);    // push ref to Source parameter
-      sources_playing[slot].source  = self;
       sources_playing[slot].lua_ref = luaL_ref(L, -2);
    }
    else
    {
       // existing ref means it should be our same source already.
-      assert(sources_playing[slot].source == self);
+      dbg_assert(getSourcePtrFromRef(L, sources_playing[slot]) == self);
    }
 
    // for now sources always succeed in lutro.

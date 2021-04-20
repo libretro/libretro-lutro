@@ -30,7 +30,7 @@ double frame_time = 0;
 
 static void emit_audio(void)
 {
-   mixer_render(audio_buffer);
+   lutro_mixer_render(audio_buffer);
    audio_batch_cb(audio_buffer, AUDIO_FRAMES);
 }
 

@@ -49,7 +49,11 @@ int audio_setVolume(lua_State *L);
 int audio_getVolume(lua_State *L);
 int audio_play(lua_State *L);
 int audio_stop(lua_State *L);
+int audio_pause(lua_State *L);
+int audio_getActiveSources(lua_State *L);
+int audio_getActiveSourceCount(lua_State *L);
 
+int source_pause(lua_State *L);
 int source_setLooping(lua_State *L);
 int source_isLooping(lua_State *L);
 int source_isStopped(lua_State *L);

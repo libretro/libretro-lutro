@@ -80,6 +80,15 @@
       <Filter>zip</Filter>
     </ClCompile>
     <ClCompile Include=".././lutro_stb_image.c" />
+    <ClCompile Include=".././libretro-common/file/file_path_io.c" />
+    <ClCompile Include=".././libretro-common/memmap/memalign.c" />
+    <ClCompile Include=".././libretro-common/encodings/encoding_crc32.c" />
+    <ClCompile Include=".././libretro-common/time/rtime.c" />
+    <ClCompile Include=".././libretro-common/streams/trans_stream.c" />
+    <ClCompile Include=".././libretro-common/streams/trans_stream_pipe.c" />
+    <ClCompile Include=".././libretro-common/streams/interface_stream.c" />
+    <ClCompile Include=".././libretro-common/streams/memory_stream.c" />
+    <ClCompile Include=".././libretro-common/string/stdstring.c" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="msw_fixups">
@@ -314,7 +323,6 @@
     <ClInclude Include=".././libretro-common/include/retro_endianness.h" />
     <ClInclude Include=".././libretro-common/include/retro_environment.h" />
     <ClInclude Include=".././libretro-common/include/retro_inline.h" />
-    <ClInclude Include=".././libretro-common/include/retro_log.h" />
     <ClInclude Include=".././libretro-common/include/retro_miscellaneous.h" />
     <ClInclude Include=".././libretro-common/include/streams/file_stream.h" />
     <ClInclude Include=".././libretro-common/include/string/stdstring.h" />
@@ -354,5 +362,16 @@
     <ClInclude Include=".././deps/stb/stb_image.h" />
     <ClInclude Include=".././lutro_assert.h" />
     <ClInclude Include=".././lutro_stb_image.h" />
+    <ClInclude Include=".././libretro-common/include/audio/audio_resampler.h" />
+    <ClInclude Include=".././libretro-common/include/encodings/crc32.h" />
+    <ClInclude Include=".././libretro-common/include/filters.h" />
+    <ClInclude Include=".././libretro-common/include/formats/rwav.h" />
+    <ClInclude Include=".././libretro-common/include/memalign.h" />
+    <ClInclude Include=".././libretro-common/include/retro_math.h" />
+    <ClInclude Include=".././libretro-common/include/retro_timers.h" />
+    <ClInclude Include=".././libretro-common/include/streams/interface_stream.h" />
+    <ClInclude Include=".././libretro-common/include/streams/memory_stream.h" />
+    <ClInclude Include=".././libretro-common/include/streams/trans_stream.h" />
+    <ClInclude Include=".././libretro-common/include/time/rtime.h" />
   </ItemGroup>
 </Project>

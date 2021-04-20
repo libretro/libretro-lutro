@@ -351,27 +351,31 @@ static __always_inline int inl_get_sample(const uint8_t* sample_raw, int sz, int
 
 // this is a pseudo template with several cont literal parameters.
 // it should always be agressively inlined.
-static __always_inline bool _inl_decode_wav(dec_WavData *data, intmax_t bufsz, mixer_presaturate_t* dst, int bytesPerSample, int chan_src, int chan_dst, float volume, bool loop)
+static __always_inline bool _inl_decode_wav(dec_WavData *data, intmax_t bufsz, mixer_presaturate_t* dst, int bytesPerSamplePerChan, int chan_src, int chan_dst, float volume, bool loop)
 {
    // a normalized sound sample is considered range -1.0 to 1.0
    // 16-bit wav outputs values range 32767 to -32768
    // 8-bit wav is scaled up to 16 bit and then normalized using 16-bit divisor.
    float mul_volume_and_normalize = volume / 32767;
 
-   int numSamples = data->headc2.Subchunk2Size / bytesPerSample;
+   int bytesPerMultiSample = bytesPerSamplePerChan * chan_src;
 
-   for (int j = 0; j < bufsz; j++, data->pos += (bytesPerSample * chan_src))
+   int byteLen    = data->headc2.Subchunk2Size;
+   int numSamples = data->headc2.Subchunk2Size / bytesPerMultiSample;
+
+   for (int j = 0; j < bufsz; j++, data->pos += bytesPerMultiSample)
    {  
       uint8_t sample_raw[8];
       int readResult = 0;
-      if (data->pos < numSamples)
-         readResult = (int)fread(sample_raw, bytesPerSample * chan_src, 1, data->fp);
+
+   reloadSample:
+      if (data->pos < byteLen)
+         readResult = (int)fread(sample_raw, bytesPerMultiSample, 1, data->fp);
 
       if (!readResult)
       {
-         intmax_t seekpos = decWav_CalcOffsetDataStart(data) + data->pos;
-         dbg_assertf(ftell(data->fp) == seekpos, "numSamples=%jd dataPos=%jd and ftell=%jd",
-            (intmax_t)numSamples, (intmax_t)data->pos, ftell(data->fp)
+         dbg_assertf(data->pos == ftell(data->fp) - decWav_CalcOffsetDataStart(data), "numSamples=%jd byteLen=%jd dataPos=%jd and ftell=%jd",
+            (intmax_t)numSamples, (intmax_t)byteLen, (intmax_t)data->pos, (intmax_t)ftell(data->fp)
          );
  
          if (!loop)
@@ -383,22 +387,22 @@ static __always_inline bool _inl_decode_wav(dec_WavData *data, intmax_t bufsz, m
          }
 
          data->pos = 0;
-         fseek(data->fp, seekpos, SEEK_SET);
-         --j; continue;    // attempt to re-read sample.
+         fseek(data->fp, decWav_CalcOffsetDataStart(data), SEEK_SET);
+         --j; goto reloadSample;    // attempt to re-read sample.
       }
       
       if (chan_src == 2)
       {
          if (chan_dst == 1)
          {
-            dst[j] += inl_get_sample(sample_raw, bytesPerSample, 0) * mul_volume_and_normalize;
-            dst[j] += inl_get_sample(sample_raw, bytesPerSample, 1) * mul_volume_and_normalize;
+            dst[j] += inl_get_sample(sample_raw, bytesPerSamplePerChan, 0) * mul_volume_and_normalize;
+            dst[j] += inl_get_sample(sample_raw, bytesPerSamplePerChan, 1) * mul_volume_and_normalize;
          }
 
          if (chan_dst == 2)
          {
-            dst[(j*2)+0] += inl_get_sample(sample_raw, bytesPerSample, 0) * mul_volume_and_normalize;
-            dst[(j*2)+1] += inl_get_sample(sample_raw, bytesPerSample, 1) * mul_volume_and_normalize;
+            dst[(j*2)+0] += inl_get_sample(sample_raw, bytesPerSamplePerChan, 0) * mul_volume_and_normalize;
+            dst[(j*2)+1] += inl_get_sample(sample_raw, bytesPerSamplePerChan, 1) * mul_volume_and_normalize;
          }
       }
 
@@ -406,19 +410,19 @@ static __always_inline bool _inl_decode_wav(dec_WavData *data, intmax_t bufsz, m
       {
          if (chan_dst == 1)
          {
-            dst[j] += inl_get_sample(sample_raw, bytesPerSample, 0) * mul_volume_and_normalize;
+            dst[j] += inl_get_sample(sample_raw, bytesPerSamplePerChan, 0) * mul_volume_and_normalize;
          }
 
          if (chan_dst == 2)
          {
-            dst[(j*2)+0] += inl_get_sample(sample_raw, bytesPerSample, 0) * mul_volume_and_normalize;
-            dst[(j*2)+1] += inl_get_sample(sample_raw, bytesPerSample, 0) * mul_volume_and_normalize;
+            dst[(j*2)+0] += inl_get_sample(sample_raw, bytesPerSamplePerChan, 0) * mul_volume_and_normalize;
+            dst[(j*2)+1] += inl_get_sample(sample_raw, bytesPerSamplePerChan, 0) * mul_volume_and_normalize;
          }
       }
    }
 
-   dbg_assertf(ftell(data->fp) == decWav_CalcOffsetDataStart(data) + data->pos, "numSamples=%jd dataPos=%jd and ftell=%jd",
-      (intmax_t)numSamples, (intmax_t)data->pos, ftell(data->fp)
+   dbg_assertf(data->pos == ftell(data->fp) - decWav_CalcOffsetDataStart(data), "numSamples=%jd byteLen=%jd dataPos=%jd and ftell=%jd",
+      (intmax_t)numSamples, (intmax_t)byteLen, (intmax_t)data->pos, (intmax_t)ftell(data->fp)
    );
    return 0;
 }

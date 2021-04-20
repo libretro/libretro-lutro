@@ -54,26 +54,29 @@ void lutro_joystickevent(lua_State* L)
    int i, u;
    int16_t state;
 
+   lua_pushcfunction(L, traceback);
+
    // Loop through each joystick.
    for (i = 0; i < 4; i++) {
       // Loop through each button.
       for (u = 0; u < 14; u++) {
-      // Retrieve the state of the button.
-      state = settings.input_cb(i, RETRO_DEVICE_JOYPAD, 0, u);
+         // Retrieve the state of the button.
+         state = settings.input_cb(i, RETRO_DEVICE_JOYPAD, 0, u);
 
-      // Check if there's a change of state.
-      if (joystick_cache[i][u] != state) {
-         joystick_cache[i][u] = state;
-         // If the button was pressed, invoke the callback.
-         if (state > 0) {
-            lutro_joystickInvokeJoystickEvent(L, "joystickpressed", i, u);
+         // Check if there's a change of state.
+         if (joystick_cache[i][u] != state) {
+            joystick_cache[i][u] = state;
+            // If the button was pressed, invoke the callback.
+            if (state > 0) {
+               lutro_joystickInvokeJoystickEvent(L, "joystickpressed", i, u);
+            }
+            else {
+               lutro_joystickInvokeJoystickEvent(L, "joystickreleased", i, u);
+            }
          }
-         else {
-            lutro_joystickInvokeJoystickEvent(L, "joystickreleased", i, u);
-         }
-      }
       }
    }
+   lua_pop(L, 1);      // pop traceback
 }
 
 /**
@@ -93,13 +96,11 @@ void lutro_joystickInvokeJoystickEvent(lua_State* L, char* eventName, int joysti
       lua_pushnumber(L, button);
 
       // Call the event callback.
-      if (lua_pcall(L, 2, 0, -5))
+      if (lutro_pcall(L, 2, 0))
       {
          fprintf(stderr, "%s\n", lua_tostring(L, -1));
          lua_pop(L, 1);
       }
-   } else {
-      lua_pop(L, 1);
    }
 }
 

@@ -172,6 +172,7 @@ int lutro_keyboard_preload(lua_State *L)
 
 void lutro_keyboard_init()
 {
+   memset(keyboard_cache, 0, sizeof(keyboard_cache));
 }
 
 /**
@@ -183,16 +184,20 @@ void lutro_keyboard_init()
 void lutro_keyboardevent(lua_State* L)
 {
    int16_t is_down;
+
    for (unsigned i = 0; i < RETROK_LAST; i++)
    {
-      // Check if the keyboard key is pressed.
+      // Check if the keyboard key is pressed
+      // and change the state if needed.
+
       is_down = settings.input_cb(0, RETRO_DEVICE_KEYBOARD, 0, i);
-      // Change the state if needed.
+
       if (is_down != keyboard_cache[i]) {
-         // Load up the lutro.keypressed event Lua function.
+         lua_getglobal(L, "lutro");
          lua_getfield(L, -1, is_down ? "keypressed" : "keyreleased");
          if (lua_isfunction(L, -1))
          {
+            lua_pushcfunction(L, traceback);  // could put this in outer loop, but kdb state changes are uncommon
             // Set up the arguments.
             lua_pushstring(L, keyboard_find_name(keyboard_enum, i)); // KeyConstant key
             lua_pushnumber(L, i); // Scancode scancode
@@ -200,16 +205,14 @@ void lutro_keyboardevent(lua_State* L)
             lua_pushboolean(L, false);
 
             // Call the function.
-            if (lua_pcall(L, 3, 0, 0))
+            if (lutro_pcall(L, 3, 0))
             {
                fprintf(stderr, "%s\n", lua_tostring(L, -1));
                lua_pop(L, 1);
             }
-         }
-         else
-         {
             lua_pop(L, 1);
          }
+         lua_pop(L, 2);
 
          // Update the keyboard state.
          keyboard_cache[i] = is_down;

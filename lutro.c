@@ -142,76 +142,56 @@ int _lutro_assertf_internal(int ignorable, const char *fmt, ...)
    return 1;
 }
 
-#define LEVELS1	12	/* size of the first part of the stack */
-#define LEVELS2	10	/* size of the second part of the stack */
+static int lutro_lua_panic (lua_State *L) {
+   // currently this aborts, but it is also possible to set up a setjmp/longmp handler for
+   // these, as the vast majority of them _are_ recoverable, in the sense that we can usually
+   // bounce all the way out to retro_run and continue executing some unrelated system.
+   // For example, if keyboard or pad or audio APIs panic, this doesn't have to  stop video,
+   // or other portions of the engine, fron continuing on (usually).
 
-static int db_errorfb (lua_State *L) {
-   int level;
-   int firstpart = 1;  /* still before eventual `...' */
-   int arg = 0;
-   lua_State *L1 = L; /*getthread(L, &arg);*/
-   lua_Debug ar;
-   if (lua_isnumber(L, arg+2)) {
-      level = (int)lua_tointeger(L, arg+2);
-      lua_pop(L, 1);
-   }
-   else
-      level = (L == L1) ? 1 : 0;  /* level 0 may be this own function */
-   if (lua_gettop(L) == arg)
-      lua_pushliteral(L, "");
-   else if (!lua_isstring(L, arg+1)) return 1;  /* message is not a string */
-   else lua_pushliteral(L, "\n");
-   lua_pushliteral(L, "stack traceback:");
-   while (lua_getstack(L1, level++, &ar)) {
-      if (level > LEVELS1 && firstpart) {
-         /* no more than `LEVELS2' more levels? */
-         if (!lua_getstack(L1, level+LEVELS2, &ar))
-            level--;  /* keep going */
-         else {
-            lua_pushliteral(L, "\n\t...");  /* too many levels */
-            while (lua_getstack(L1, level+LEVELS2, &ar))  /* find last levels */
-               level++;
-         }
-         firstpart = 0;
-         continue;
-      }
-      lua_pushliteral(L, "\n\t");
-      lua_getinfo(L1, "Snl", &ar);
-      lua_pushfstring(L, "%s:", ar.short_src);
-      if (ar.currentline > 0)
-         lua_pushfstring(L, "%d:", ar.currentline);
-      if (*ar.namewhat != '\0')  /* is there a name? */
-         lua_pushfstring(L, " in function " LUA_QS, ar.name);
-      else {
-      if (*ar.what == 'm')  /* main? */
-         lua_pushfstring(L, " in main chunk");
-      else if (*ar.what == 'C' || *ar.what == 't')
-         lua_pushliteral(L, " ?");  /* C function or tail call */
-      else
-         lua_pushfstring(L, " in function <%s:%d>",
-                           ar.short_src, ar.linedefined);
-      }
-      lua_concat(L, lua_gettop(L) - arg);
-   }
-   lua_concat(L, lua_gettop(L) - arg);
+   // If implementing longjmp, it would be nice to change this into a play_assert (ignorable).
+
+   fprintf(stderr, "lua_panic!\n%s\n", lua_tostring(L, -1));
+   abort();
+}
+
+int traceback(lua_State *L) {
+   // use lua's provided debug.traceback to get a contextual error.
+   lua_getglobal(L, "debug");
+   lua_getfield(L, -1, "traceback");
+   lua_pushvalue(L, 1);
+   lua_pushinteger(L, 2);
+   lua_call(L, 2, 1);
+
+   // generally we don't want to stop/assert on lua errors. The majority are ignorable/recoverable
+   // and the better strategy is to surface the info the the content creator via some interface
+   // that's slightly more friendly than a console window. (eg, something that captures all the spam
+   // and produces a summary report of unique errors)
+   //tool_errorf("%s\n", lua_tostring(L, -1));
+
+   fprintf(stderr, "%s\n", lua_tostring(L, -1));
+
    return 1;
+}
+
+int lutro_pcall(lua_State *L, int narg, int nret)
+{
+   int handler = lua_gettop(L) - narg - 1;
+   while (handler && (lua_tocfunction(L, handler) != traceback)) --handler;
+   dbg_assert(lua_tocfunction(L, handler) == traceback);
+   return lua_pcall(L, narg, nret, handler);
 }
 
 static int dofile(lua_State *L, const char *path)
 {
    int res;
 
-   lua_pushcfunction(L, db_errorfb);
+   lua_pushcfunction(L, traceback);
    res = luaL_loadfile(L, path);
-
-   if (res != 0)
-   {
-      lua_pop(L, 1);
+   if (res)
       return res;
-   }
 
-   res = lua_pcall(L, 0, LUA_MULTRET, -2);
-   lua_pop(L, 1);
+   res = lutro_pcall(L, 0, LUA_MULTRET);
    return res;
 }
 
@@ -242,6 +222,10 @@ static void init_settings(lua_State *L)
 void lutro_init()
 {
    L = luaL_newstate();
+
+   // handler for errors thatr occur outside pcall() scope
+   lua_atpanic(L, &lutro_lua_panic);
+
    luaL_openlibs(L);
 
 #ifdef HAVE_JIT
@@ -500,8 +484,11 @@ int lutro_load(const char *path)
        return 0;
    }
 
-   lua_pushcfunction(L, db_errorfb);
+   int oldtop = lua_gettop(L);
+   lua_pushcfunction(L, traceback);
    lua_getglobal(L, "lutro");
+
+   int tbl_top_lutro = lua_gettop(L);
 
    strlcpy(settings.gamedir, gamedir, PATH_MAX_LENGTH);
 
@@ -512,7 +499,7 @@ int lutro_load(const char *path)
    {
       lua_getfield(L, -2, "settings");
 
-      if(lua_pcall(L, 1, 0, 0))
+      if(lutro_pcall(L, 1, 0))
       {
          fprintf(stderr, "%s\n", lua_tostring(L, -1));
          lua_pop(L, 1);
@@ -520,26 +507,20 @@ int lutro_load(const char *path)
          return 0;
       }
 
+      // no stack cleanup necessary inside oldtop scope.
+
       lua_getfield(L, -1, "settings");
 
       lua_getfield(L, -1, "width");
-      settings.width = lua_tointeger(L, -1);
-      lua_remove(L, -1);
+      lua_getfield(L, -2, "height");
+      lua_getfield(L, -3, "live_enable");
+      lua_getfield(L, -4, "live_call_load");
 
-      lua_getfield(L, -1, "height");
-      settings.height = lua_tointeger(L, -1);
-      lua_remove(L, -1);
-
-      lua_getfield(L, -1, "live_enable");
-      settings.live_enable = lua_toboolean(L, -1);
-      lua_remove(L, -1);
-
-      lua_getfield(L, -1, "live_call_load");
+      settings.width          = lua_tointeger(L, -4);
+      settings.height         = lua_tointeger(L, -3);
+      settings.live_enable    = lua_toboolean(L, -2);
       settings.live_call_load = lua_toboolean(L, -1);
-      lua_remove(L, -1);
    }
-
-   lua_pop(L, 1); // either lutro.settings or lutro.conf
 
    lutro_graphics_init(L);
    lutro_audio_init(L);
@@ -551,30 +532,31 @@ int lutro_load(const char *path)
    if (settings.live_enable)
       lutro_live_init();
 #endif
-
+   lua_settop(L, tbl_top_lutro);
    lua_getfield(L, -1, "load");
 
+   int result = 1;
    // Check if lutro.load() exists.
    if (lua_isfunction(L, -1))
    {
       // It exists, so call lutro.load().
-      if(lua_pcall(L, 0, 0, 0))
+      if(lutro_pcall(L, 0, 0))
       {
          fprintf(stderr, "%s\n", lua_tostring(L, -1));
          lua_pop(L, 1);
-
-         return 0;
+         result = 0;
       }
    }
 
-   lua_pop(L, 1);
-
+   lua_settop(L, oldtop);
    return 1;
 }
 
 void lutro_gamepadevent(lua_State* L)
 {
+   int oldtop = lua_gettop(L);
    unsigned i;
+
    for (i = 0; i < 16; i++)
    {
       int16_t is_down = settings.input_cb(0, RETRO_DEVICE_JOYPAD, 0, i);
@@ -583,21 +565,20 @@ void lutro_gamepadevent(lua_State* L)
          lua_getfield(L, -1, is_down ? "gamepadpressed" : "gamepadreleased");
          if (lua_isfunction(L, -1))
          {
+            lua_pushcfunction(L, traceback);
             lua_pushnumber(L, i);
             lua_pushstring(L, input_find_name(joystick_enum, i));
-            if (lua_pcall(L, 2, 0, 0))
+            if (lutro_pcall(L, 2, 0))
             {
                fprintf(stderr, "%s\n", lua_tostring(L, -1));
                lua_pop(L, 1);
             }
             input_cache[i] = is_down;
-         }
-         else
-         {
             lua_pop(L, 1);
          }
       }
    }
+   lua_settop(L, oldtop);
 }
 
 void lutro_run(double delta)
@@ -617,38 +598,33 @@ void lutro_run(double delta)
       lutro_live_update(L);
 #endif
 
-   lua_pushcfunction(L, db_errorfb);
+   int oldtop = lua_gettop(L);
+   lua_pushcfunction(L, traceback);
 
    lua_getglobal(L, "lutro");
    lua_getfield(L, -1, "update");
-
    if (lua_isfunction(L, -1))
    {
       lua_pushnumber(L, delta);
 
-      if(lua_pcall(L, 1, 0, -4))
+      if(lutro_pcall(L, 1, 0))
       {
          fprintf(stderr, "%s\n", lua_tostring(L, -1));
          lua_pop(L, 1);
       }
-   } else {
-      lua_pop(L, 1);
    }
 
    lua_getfield(L, -1, "draw");
-
    if (lua_isfunction(L, -1))
    {
       lutro_graphics_begin_frame(L);
 
-      if(lua_pcall(L, 0, 0, -3))
+      if(lutro_pcall(L, 0, 0))
       {
          fprintf(stderr, "%s\n", lua_tostring(L, -1));
          lua_pop(L, 1);
       }
       lutro_graphics_end_frame(L);
-   } else {
-      lua_pop(L, 1);
    }
 
    lutro_keyboardevent(L);
@@ -656,7 +632,7 @@ void lutro_run(double delta)
    lutro_mouseevent(L);
    lutro_joystickevent(L);
 
-   lua_pop(L, 2);
+   lua_settop(L, oldtop);
 
    mixer_unref_stopped_sounds(L);
    lua_gc(L, LUA_GCSTEP, 0);
@@ -664,7 +640,9 @@ void lutro_run(double delta)
 
 void lutro_reset()
 {
-   lua_pushcfunction(L, db_errorfb);
+   int oldtop = lua_gettop(L);
+
+   lua_pushcfunction(L, traceback);
 
    lua_getglobal(L, "lutro");
    lua_getfield(L, -1, "reset");
@@ -672,47 +650,42 @@ void lutro_reset()
    if (lua_isfunction(L, -1))
    {
       lutro_audio_stop_all(L);
-      if(lua_pcall(L, 0, 0, 0))
+      if(lutro_pcall(L, 0, 0))
       {
          fprintf(stderr, "%s\n", lua_tostring(L, -1));
          lua_pop(L, 1);
       }
-   } else {
-      lua_pop(L, 1);
    }
 
+   lua_settop(L, oldtop);
    lua_gc(L, LUA_GCSTEP, 0);
 }
 
 size_t lutro_serialize_size()
 {
    size_t size = 0;
+   int oldtop = lua_gettop(L);
 
-   lua_pushcfunction(L, db_errorfb);
+   lua_pushcfunction(L, traceback);
 
    lua_getglobal(L, "lutro");
    lua_getfield(L, -1, "serializeSize");
 
    if (lua_isfunction(L, -1))
    {
-      if (lua_pcall(L, 0, 1, 0))
+      if (lutro_pcall(L, 0, 1))
       {
          fprintf(stderr, "%s\n", lua_tostring(L, -1));
          lua_pop(L, 1);
       }
 
-      if (!lua_isnumber(L, -1))
-      {
-         fprintf(stderr, "%s\n", lua_tostring(L, -1));
-         lua_pop(L, 1);
-      }
-
-      size = lua_tonumber(L, -1);
-      lua_pop(L, 1);
-   } else {
-      lua_pop(L, 1);
+      if (lua_isnumber(L, -1))
+         size = lua_tonumber(L, -1);
+      else
+         tool_assertf(false, "Invalid type returned from lutro.serializeSize. An integer result is expected.\n");
    }
 
+   lua_settop(L, oldtop);
    lua_gc(L, LUA_GCSTEP, 0);
 
    return size;
@@ -720,7 +693,8 @@ size_t lutro_serialize_size()
 
 bool lutro_serialize(void *data_, size_t size)
 {
-   lua_pushcfunction(L, db_errorfb);
+   int oldtop = lua_gettop(L);
+   lua_pushcfunction(L, traceback);
 
    lua_getglobal(L, "lutro");
    lua_getfield(L, -1, "serialize");
@@ -728,22 +702,22 @@ bool lutro_serialize(void *data_, size_t size)
    if (lua_isfunction(L, -1))
    {
       lua_pushnumber(L, size);
-      if (lua_pcall(L, 1, 1, 0))
+      if (lutro_pcall(L, 1, 1))
       {
          fprintf(stderr, "%s\n", lua_tostring(L, -1));
          lua_pop(L, 1);
-         return false;
       }
+      else
+      {
+         const char* data = lua_tostring(L, -1);
+         lua_pop(L, 1);
 
-      const char* data = lua_tostring(L, -1);
-      lua_pop(L, 1);
-
-      memset(data_, 0, size);
-      memcpy(data_, data, strlen(data));
-   } else {
-      lua_pop(L, 1);
+         memset(data_, 0, size);
+         memcpy(data_, data, strlen(data));
+      }
    }
 
+   lua_settop(L, oldtop);
    lua_gc(L, LUA_GCSTEP, 0);
 
    return true;
@@ -751,7 +725,8 @@ bool lutro_serialize(void *data_, size_t size)
 
 bool lutro_unserialize(const void *data_, size_t size)
 {
-   lua_pushcfunction(L, db_errorfb);
+   int oldtop = lua_gettop(L);
+   lua_pushcfunction(L, traceback);
 
    lua_getglobal(L, "lutro");
    lua_getfield(L, -1, "unserialize");
@@ -760,16 +735,14 @@ bool lutro_unserialize(const void *data_, size_t size)
    {
       lua_pushstring(L, data_);
       lua_pushnumber(L, size);
-      if (lua_pcall(L, 2, 0, 0))
+      if (lutro_pcall(L, 2, 0))
       {
          fprintf(stderr, "%s\n", lua_tostring(L, -1));
          lua_pop(L, 1);
-         return false;
       }
-   } else {
-      lua_pop(L, 1);
    }
 
+   lua_settop(L, oldtop);
    lua_gc(L, LUA_GCSTEP, 0);
 
    return true;

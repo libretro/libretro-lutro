@@ -16,7 +16,7 @@
 # it's better to keep these vars in slightly strong named vars for use through-out Makefile tho.
 
 LUTRO_CONFIG ?= $(config)
-LUTRO_CONFIG ?= tool
+LUTRO_CONFIG ?= player
 
 # WANTS use ?= syntax to allow things to be provided on command line
 # NOTE: if you change these on the CLI then you MUST manually run clean!

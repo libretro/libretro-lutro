@@ -52,9 +52,17 @@ include:
     file: '/ios9.yml'
 
   ################################## CONSOLES ################################
+  # PlayStation Portable
+  - project: 'libretro-infrastructure/ci-templates'
+    file: '/psp-static.yml'
+
   # PlayStation Vita
   - project: 'libretro-infrastructure/ci-templates'
     file: '/vita-static.yml'
+
+  # Nintendo 3DS
+  - project: 'libretro-infrastructure/ci-templates'
+    file: '/ctr-static.yml'
 
   # Nintendo GameCube
   - project: 'libretro-infrastructure/ci-templates'
@@ -63,6 +71,14 @@ include:
   # Nintendo Wii
   - project: 'libretro-infrastructure/ci-templates'
     file: '/wii-static.yml'
+
+  # Nintendo Switch
+  - project: 'libretro-infrastructure/ci-templates'
+    file: '/libnx-static.yml'
+
+  # OpenDingux
+  - project: 'libretro-infrastructure/ci-templates'
+    file: '/dingux-mips32.yml'
 
   # tvOS (AppleTV)
   - project: 'libretro-infrastructure/ci-templates'
@@ -161,20 +177,35 @@ libretro-build-tvos-arm64:
     - .core-defs
 
 ################################### CONSOLES #################################
-# Nintendo GameCube
-libretro-build-ngc:
+# PlayStation Portable
+libretro-build-psp:
   extends:
-    - .libretro-ngc-static-retroarch-master
+    - .libretro-psp-static-retroarch-master
     - .core-defs
 
-# Nintendo Wii
-libretro-build-wii:
-  extends:
-    - .libretro-wii-static-retroarch-master
-    - .core-defs
-    
 # PlayStation Vita
 libretro-build-vita:
   extends:
     - .libretro-vita-static-retroarch-master
     - .core-defs
+
+# Nintendo 3DS
+libretro-build-ctr:
+  extends:
+    - .libretro-ctr-static-retroarch-master
+    - .core-defs
+
+# OpenDingux
+libretro-build-dingux-mips32:
+  extends:
+    - .libretro-dingux-mips32-make-default
+    - .core-defs
+
+# OpenDingux Beta
+libretro-build-dingux-odbeta-mips32:
+  extends:
+    - .libretro-dingux-odbeta-mips32-make-default
+    - .core-defs
+  variables:
+    platform: gcw0-odbeta
+

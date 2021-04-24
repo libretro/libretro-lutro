@@ -85,8 +85,8 @@ include:
     file: '/libnx-static.yml'
 
   # OpenDingux
-  - project: 'libretro-infrastructure/ci-templates'
-    file: '/dingux-mips32.yml'
+  #- project: 'libretro-infrastructure/ci-templates'
+  #  file: '/dingux-mips32.yml'
 
   # tvOS (AppleTV)
   - project: 'libretro-infrastructure/ci-templates'
@@ -231,18 +231,18 @@ libretro-build-libnx-aarch64:
     - .core-defs
 
 # OpenDingux
-libretro-build-dingux-mips32:
-  extends:
-    - .libretro-dingux-mips32-make-default
-    - .core-defs
+#libretro-build-dingux-mips32:
+#  extends:
+#    - .libretro-dingux-mips32-make-default
+#    - .core-defs
 
 # OpenDingux Beta
-libretro-build-dingux-odbeta-mips32:
-  extends:
-    - .libretro-dingux-odbeta-mips32-make-default
-    - .core-defs
-  variables:
-    platform: gcw0-odbeta
+#libretro-build-dingux-odbeta-mips32:
+#  extends:
+#    - .libretro-dingux-odbeta-mips32-make-default
+#    - .core-defs
+#  variables:
+#    platform: gcw0-odbeta
 
 #################################### MISC ##################################
 # Emscripten

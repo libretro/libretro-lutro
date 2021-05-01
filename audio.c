@@ -88,14 +88,38 @@ void lutro_audio_stop_all(lua_State* L)
    }
 }
 
+#if LUTRO_BUILD_IS_TOOL
+#  define mixer_buffer_guardband 64
+#else
+#  define mixer_buffer_guardband 0
+#endif
+
+typedef struct mixer_presaturate_t_guarded
+{
+#if mixer_buffer_guardband
+   uint8_t guard_f[mixer_buffer_guardband];
+#endif
+
+   mixer_presaturate_t presaturated[(AUDIO_FRAMES * CHANNELS)];
+
+#if mixer_buffer_guardband
+   uint8_t guard_b[mixer_buffer_guardband];
+#endif
+} mixer_presaturate_t_guarded;
+
 void mixer_render(lua_State* L, int16_t *buffer)
 {
-   static mixer_presaturate_t presaturateBuffer[AUDIO_FRAMES * CHANNELS];
+   static mixer_presaturate_t_guarded localbuffer;
 
-   memset(presaturateBuffer, 0, AUDIO_FRAMES * CHANNELS * sizeof(mixer_presaturate_t));
+   memset(localbuffer.presaturated, 0, sizeof(localbuffer.presaturated));
+ 
+ #if mixer_buffer_guardband
+   memset(localbuffer.guard_f, 0xcd, sizeof(localbuffer.guard_f));
+   memset(localbuffer.guard_b, 0xcd, sizeof(localbuffer.guard_f));
+#endif
 
    presaturate_buffer_desc bufdesc;
-   bufdesc.data      = presaturateBuffer;
+   bufdesc.data      = localbuffer.presaturated;
    bufdesc.channels  = CHANNELS;
    bufdesc.samplelen = AUDIO_FRAMES;
 
@@ -104,6 +128,7 @@ void mixer_render(lua_State* L, int16_t *buffer)
    {
       audio_Source* source = getSourcePtrFromRef(L, sources_playing[i]);
 
+        continue;
       if (!source)
          continue;
 
@@ -167,8 +192,8 @@ void mixer_render(lua_State* L, int16_t *buffer)
             {
                for (int j = 0; j < mixchunksz; ++j, ++total_mixed, ++source->sndpos)
                {
-                  presaturateBuffer[(total_mixed*2) + 0] += sndta->data[source->sndpos] * srcvol;
-                  presaturateBuffer[(total_mixed*2) + 1] += sndta->data[source->sndpos] * srcvol;
+                  localbuffer.presaturated[(total_mixed*2) + 0] += sndta->data[source->sndpos] * srcvol;
+                  localbuffer.presaturated[(total_mixed*2) + 1] += sndta->data[source->sndpos] * srcvol;
                }  
             }
 
@@ -176,8 +201,8 @@ void mixer_render(lua_State* L, int16_t *buffer)
             {
                for (int j = 0; j < mixchunksz; ++j, ++total_mixed, ++source->sndpos)
                {
-                  presaturateBuffer[(total_mixed*2) + 0] += sndta->data[(source->sndpos*2) + 0] * srcvol;
-                  presaturateBuffer[(total_mixed*2) + 1] += sndta->data[(source->sndpos*2) + 1] * srcvol;
+                  localbuffer.presaturated[(total_mixed*2) + 0] += sndta->data[(source->sndpos*2) + 0] * srcvol;
+                  localbuffer.presaturated[(total_mixed*2) + 1] += sndta->data[(source->sndpos*2) + 1] * srcvol;
                }  
             }
 
@@ -206,8 +231,19 @@ void mixer_render(lua_State* L, int16_t *buffer)
    float mastervol_and_scale_to_int16 = volume * 32767;
    for (int j = 0; j < AUDIO_FRAMES * CHANNELS; j++)
    {
-      buffer[j] = saturate(presaturateBuffer[j] * mastervol_and_scale_to_int16);
+      buffer[j] = saturate(localbuffer.presaturated[j] * mastervol_and_scale_to_int16);
    }
+
+ #if mixer_buffer_guardband
+   if (mixer_buffer_guardband > 0) {
+      int bi;
+      for (bi=0; bi < mixer_buffer_guardband; ++bi)
+      {
+         tool_assert(localbuffer.guard_f[bi] == 0xcd);
+         tool_assert(localbuffer.guard_b[bi] == 0xcd);
+      }
+   }
+#endif
 }
 
 int lutro_audio_preload(lua_State *L)

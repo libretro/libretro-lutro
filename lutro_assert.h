@@ -13,15 +13,15 @@
 #define LUTRO_ENABLE_ALERT   1
 #endif
 
-#ifndef LUTRO_ENABLE_TOOL_ASSERT
-#define LUTRO_ENABLE_TOOL_ASSERT    1
+#ifndef LUTRO_ENABLE_ASSERT_TOOL
+#define LUTRO_ENABLE_ASSERT_TOOL    1
 #endif
 
-#if !defined(LUTRO_ENABLE_DBG_ASSERT)
+#if !defined(LUTRO_ENABLE_ASSERT_DBG)
 #  if defined(NDEBUG)
-#    define LUTRO_ENABLE_DBG_ASSERT   0
+#    define LUTRO_ENABLE_ASSERT_DBG   0
 #  else
-#    define LUTRO_ENABLE_DBG_ASSERT   1
+#    define LUTRO_ENABLE_ASSERT_DBG   1
 #  endif
 #endif
 
@@ -117,7 +117,7 @@ extern int _lutro_assertf_internal(int ignorable, const char *fmt, ...);
 //    make sense in the context of the player
 //
 // tool_assume is a "hardened" version of assert, and is not ignorable.
-#if LUTRO_ENABLE_TOOL_ASSERT
+#if LUTRO_ENABLE_ASSERT_TOOL
 #  define tool_assert(cond)                 _base_soft_assert (cond)
 #  define tool_assertf(cond, msg, ...)      _base_soft_assertf(cond, msg, ## __VA_ARGS__)
 #  define tool_assume(cond)                 _base_hard_assert (cond)
@@ -135,7 +135,7 @@ extern int _lutro_assertf_internal(int ignorable, const char *fmt, ...);
 // obvious that it might do so (a good example would be assertions within the audio mixer loop).
 //
 // dbg_assume is a "hardened" version of assert, and is not ignorable.
-#if LUTRO_ENABLE_DBG_ASSERT
+#if LUTRO_ENABLE_ASSERT_DBG
 #  define dbg_assert(cond)                  _base_soft_assert (cond)
 #  define dbg_assertf(cond, msg, ...)       _base_soft_assertf(cond, msg, ## __VA_ARGS__)
 #  define dbg_assume(cond)                  _base_hard_assert (cond)

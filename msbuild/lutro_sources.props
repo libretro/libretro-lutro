@@ -336,6 +336,8 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)'=='Debug'">
     <ClCompile>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);LUTRO_BUILD_IS_PLAYER=0</PreprocessorDefinitions>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);LUTRO_BUILD_IS_TOOL=1</PreprocessorDefinitions>
       <PreprocessorDefinitions>%(PreprocessorDefinitions);LUTRO_ENABLE_ERROR=1</PreprocessorDefinitions>
       <PreprocessorDefinitions>%(PreprocessorDefinitions);LUTRO_ENABLE_ALERT=1</PreprocessorDefinitions>
       <PreprocessorDefinitions>%(PreprocessorDefinitions);LUTRO_ENABLE_ASSERT_TOOL=1</PreprocessorDefinitions>
@@ -345,19 +347,23 @@
   <ItemDefinitionGroup Condition="'$(Configuration)'=='Tool'">
     <ClCompile>
       <PreprocessorDefinitions>%(PreprocessorDefinitions);NDEBUG</PreprocessorDefinitions>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);LUTRO_BUILD_IS_PLAYER=0</PreprocessorDefinitions>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);LUTRO_BUILD_IS_TOOL=1</PreprocessorDefinitions>
       <PreprocessorDefinitions>%(PreprocessorDefinitions);LUTRO_ENABLE_ERROR=1</PreprocessorDefinitions>
       <PreprocessorDefinitions>%(PreprocessorDefinitions);LUTRO_ENABLE_ALERT=1</PreprocessorDefinitions>
       <PreprocessorDefinitions>%(PreprocessorDefinitions);LUTRO_ENABLE_ASSERT_TOOL=1</PreprocessorDefinitions>
-      <PreprocessorDefinitions>%(PreprocessorDefinitions);LUTRO_ENABLE_ASSERT_DBG=0</PreprocessorDefinitions>
-      <PreprocessorDefinitions>%(PreprocessorDefinitions);LUTRO_ENABLE_ERROR=1</PreprocessorDefinitions>
-      <PreprocessorDefinitions>%(PreprocessorDefinitions);LUTRO_ENABLE_ALERT=0</PreprocessorDefinitions>
-      <PreprocessorDefinitions>%(PreprocessorDefinitions);LUTRO_ENABLE_ASSERT_TOOL=0</PreprocessorDefinitions>
       <PreprocessorDefinitions>%(PreprocessorDefinitions);LUTRO_ENABLE_ASSERT_DBG=0</PreprocessorDefinitions>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)'=='Player'">
     <ClCompile>
       <PreprocessorDefinitions>%(PreprocessorDefinitions);NDEBUG</PreprocessorDefinitions>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);LUTRO_BUILD_IS_PLAYER=1</PreprocessorDefinitions>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);LUTRO_BUILD_IS_TOOL=0</PreprocessorDefinitions>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);LUTRO_ENABLE_ERROR=1</PreprocessorDefinitions>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);LUTRO_ENABLE_ALERT=0</PreprocessorDefinitions>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);LUTRO_ENABLE_ASSERT_TOOL=0</PreprocessorDefinitions>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);LUTRO_ENABLE_ASSERT_DBG=0</PreprocessorDefinitions>
     </ClCompile>
   </ItemDefinitionGroup>
 </Project>

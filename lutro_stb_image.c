@@ -17,7 +17,7 @@
  */
 int lutro_stb_image_load(const char* filename, uint32_t** data, unsigned int* width, unsigned int* height) {
    void* buf;
-   ssize_t len;
+   int64_t len;
    int x, y, channels_in_file;
    int channels = 4;
 

@@ -31,8 +31,8 @@ WANT_PHYSFS      ?= 0
 #### END CLI OPTIONS
 
 # setup some things that will be reassigned per-platform
-HAVE_COMPOSITION = 0
-HAVE_INOTIFY = 0
+HAVE_COMPOSITION ?= 0
+HAVE_INOTIFY ?= 0
 MMD := -MMD
 
 ifeq ($(platform),)
@@ -79,13 +79,11 @@ ifeq ($(platform), unix)
 	fpic := -fPIC
 	SHARED := -shared -Wl,--no-as-needed,--no-undefined
 	LUA_SYSCFLAGS := -DLUA_USE_POSIX
-	HAVE_INOTIFY=1
 	LDFLAGS += -Wl,-E
 else ifeq ($(platform), linux-portable)
 	TARGET := $(TARGET_NAME)_libretro.so
 	fpic := -fPIC -nostdlib
 	SHARED := -shared
-	HAVE_INOTIFY=1
 	LUA_SYSCFLAGS := -DLUA_USE_POSIX
 	LIBM :=
 	LDFLAGS += -Wl,-E

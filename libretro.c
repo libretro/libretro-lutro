@@ -13,7 +13,6 @@
 
 #include "joystick.h"
 
-static bool use_audio_cb;
 int16_t audio_buffer[2 * AUDIO_FRAMES];
 
 static struct retro_log_callback logging;
@@ -32,11 +31,6 @@ static void emit_audio(void)
 {
    lutro_mixer_render(audio_buffer);
    audio_batch_cb(audio_buffer, AUDIO_FRAMES);
-}
-
-static void audio_set_state(bool enable)
-{
-   (void)enable;
 }
 
 static void fallback_log(enum retro_log_level level, const char *fmt, ...)
@@ -178,6 +172,7 @@ void retro_run(void)
 
    lutro_run(frame_time);
    video_cb(settings.framebuffer, settings.width, settings.height, settings.pitch);
+   emit_audio();
 }
 
 bool retro_load_game(const struct retro_game_info *info)
@@ -216,9 +211,6 @@ bool retro_load_game(const struct retro_game_info *info)
 
    struct retro_frame_time_callback frame_cb = { frame_time_cb, 1000000 / 60 };
    environ_cb(RETRO_ENVIRONMENT_SET_FRAME_TIME_CALLBACK, &frame_cb);
-
-   struct retro_audio_callback audio_cb = { emit_audio, audio_set_state };
-   use_audio_cb = environ_cb(RETRO_ENVIRONMENT_SET_AUDIO_CALLBACK, &audio_cb);
 
    if (!perf_cb.get_time_usec)
    {

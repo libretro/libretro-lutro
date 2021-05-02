@@ -128,7 +128,6 @@ void mixer_render(lua_State* L, int16_t *buffer)
    {
       audio_Source* source = getSourcePtrFromRef(L, sources_playing[i]);
 
-        continue;
       if (!source)
          continue;
 

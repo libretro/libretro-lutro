@@ -113,7 +113,7 @@ void mixer_render(lua_State* L, int16_t *buffer)
 
    memset(localbuffer.presaturated, 0, sizeof(localbuffer.presaturated));
  
- #if mixer_buffer_guardband
+#if mixer_buffer_guardband
    memset(localbuffer.guard_f, 0xcd, sizeof(localbuffer.guard_f));
    memset(localbuffer.guard_b, 0xcd, sizeof(localbuffer.guard_f));
 #endif
@@ -234,7 +234,7 @@ void mixer_render(lua_State* L, int16_t *buffer)
       buffer[j] = saturate(localbuffer.presaturated[j] * mastervol_and_scale_to_int16);
    }
 
- #if mixer_buffer_guardband
+#if mixer_buffer_guardband
    if (mixer_buffer_guardband > 0) {
       int bi;
       for (bi=0; bi < mixer_buffer_guardband; ++bi)

@@ -118,11 +118,12 @@ static void dumpstack( lua_State* L )
 
 int _lutro_assertf_internal(int ignorable, const char *fmt, ...)
 {
+   fflush(NULL);
+
    va_list argptr;
    va_start(argptr, fmt);
    vfprintf(stderr, fmt, argptr);
    va_end(argptr);
-   fflush(NULL);
 
    // tips: the fmt input should always be in the predefined format of:
    //   FILE(LINE): assertion `cond` failed.
@@ -131,6 +132,19 @@ int _lutro_assertf_internal(int ignorable, const char *fmt, ...)
    // 
    // We can use this knowledge to parse the file and line positions and perform additional clever filtering
    // or log prep/routing.
+
+   int top = lua_gettop(L);
+   lua_getglobal(L, "debug");
+   lua_getfield(L, -1, "traceback");
+   lua_pushstring(L, "");
+   lua_pushinteger(L, 2);
+   lua_call(L, 2, 1);
+
+   fflush(NULL);
+   const char* msg = lua_tostring(L, -1);
+   while (*msg == '\r' || *msg == '\n') ++msg;  // lua pads some newlines at the beginning.. strip 'em
+   fprintf(stderr, "%s\n", msg);
+   lua_pop(L, 1);
 
    if (ignorable)
    {
@@ -169,6 +183,7 @@ int traceback(lua_State *L) {
    // and produces a summary report of unique errors)
    //tool_errorf("%s\n", lua_tostring(L, -1));
 
+   fflush(NULL);
    fprintf(stderr, "%s\n", lua_tostring(L, -1));
 
    return 1;

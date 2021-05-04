@@ -25,7 +25,7 @@ LUTRO_CONFIG ?= player
 WANT_JIT         ?= 0
 WANT_ZLIB        ?= 1
 WANT_UNZIP       ?= 1
-WANT_LUASOCKET   ?= 1
+WANT_LUASOCKET   ?= 0
 WANT_PHYSFS      ?= 0
 
 #### END CLI OPTIONS

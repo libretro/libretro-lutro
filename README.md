@@ -6,11 +6,15 @@ Experimental [Lua](http://lua.org) game framework for [libretro](http://libretro
 
 ## Sample Games
 
+ * https://github.com/kivutar/onion-kidd
+ * https://github.com/kivutar/love-vespa
+ * https://github.com/kivutar/lutro-spaceship
  * https://github.com/libretro/lutro-platformer
  * https://github.com/libretro/lutro-game-of-life
  * https://github.com/libretro/lutro-snake
  * https://github.com/libretro/lutro-tetris
  * https://github.com/libretro/lutro-iyfct
+ * https://github.com/libretro/lutro-sienna
  * https://github.com/libretro/lutro-pong
 
 ## Usage

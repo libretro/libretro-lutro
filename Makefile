@@ -31,8 +31,8 @@ WANT_PHYSFS      ?= 0
 #### END CLI OPTIONS
 
 # setup some things that will be reassigned per-platform
-HAVE_COMPOSITION = 0
-HAVE_INOTIFY = 0
+HAVE_COMPOSITION ?= 0
+HAVE_INOTIFY ?= 0
 MMD := -MMD
 
 ifeq ($(platform),)
@@ -79,13 +79,11 @@ ifeq ($(platform), unix)
 	fpic := -fPIC
 	SHARED := -shared -Wl,--no-as-needed,--no-undefined
 	LUA_SYSCFLAGS := -DLUA_USE_POSIX
-	HAVE_INOTIFY=1
 	LDFLAGS += -Wl,-E
 else ifeq ($(platform), linux-portable)
 	TARGET := $(TARGET_NAME)_libretro.so
 	fpic := -fPIC -nostdlib
 	SHARED := -shared
-	HAVE_INOTIFY=1
 	LUA_SYSCFLAGS := -DLUA_USE_POSIX
 	LIBM :=
 	LDFLAGS += -Wl,-E
@@ -191,6 +189,17 @@ else ifeq ($(platform), qnx)
 else ifeq ($(platform), emscripten)
 	TARGET := $(TARGET_NAME)_libretro_$(platform).bc
 	STATIC_LINKING = 1
+
+# PS2
+else ifeq ($(platform),ps2)
+	TARGET := $(TARGET_NAME)_libretro_$(platform).a
+	CC = mips64r5900el-ps2-elf-gcc$(EXE_EXT)
+	CXX = mips64r5900el-ps2-elf-g++$(EXE_EXT)
+	AR = mips64r5900el-ps2-elf-ar$(EXE_EXT)
+	FLAGS += -G0 -DPS2 -DABGR1555 -DHAVE_NO_LANGEXTRA
+	INCFLAGS_PLATFORM += -O3
+	STATIC_LINKING := 1
+	LIBS :=
 
 # PSP
 else ifeq ($(platform), psp1)

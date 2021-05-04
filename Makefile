@@ -25,7 +25,7 @@ LUTRO_CONFIG ?= player
 WANT_JIT         ?= 0
 WANT_ZLIB        ?= 1
 WANT_UNZIP       ?= 1
-WANT_LUASOCKET   ?= 0
+WANT_LUASOCKET   ?= 1
 WANT_PHYSFS      ?= 0
 
 #### END CLI OPTIONS
@@ -410,6 +410,10 @@ ifeq ($(WANT_JIT),1)
 		LIBS += -ldl
 	endif
 	CFLAGS += -DHAVE_JIT
+endif
+
+ifeq ($(WANT_LUASOCKET),1)
+	CFLAGS += -DHAVE_LUASOCKET
 endif
 
 CFLAGS += -I$(LUADIR) $(DEFINES) -DOUTSIDE_SPEEX -DRANDOM_PREFIX=speex -DEXPORT= -DFIXED_POINT

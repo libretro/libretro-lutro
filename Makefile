@@ -348,7 +348,7 @@ else
 	TARGET := $(TARGET_NAME)_libretro.dll
 	SHARED := -shared -static-libgcc -static-libstdc++ -s -Wl,--no-undefined
 	ifeq ($(WANT_LUASOCKET),1)
-		LDFLAGS += -lwsock32 -lws2_32
+		LIBS += -lwsock32 -lws2_32
 	endif
 endif
 

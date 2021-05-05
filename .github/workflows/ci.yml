@@ -75,3 +75,9 @@ jobs:
       - uses: actions/checkout@v2
       - run:                 CC=gcc make -j4 platform=win config=player WANT_JIT=1 
 
+  build_windows_luasocket:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run:                 CC=gcc make -j4 platform=win config=player WANT_LUASOCKET=1 
+

@@ -13,15 +13,15 @@
 #define LUTRO_ENABLE_ALERT   1
 #endif
 
-#ifndef LUTRO_ENABLE_TOOL_ASSERT
-#define LUTRO_ENABLE_TOOL_ASSERT    1
+#ifndef LUTRO_ENABLE_ASSERT_TOOL
+#define LUTRO_ENABLE_ASSERT_TOOL    1
 #endif
 
-#if !defined(LUTRO_ENABLE_DBG_ASSERT)
+#if !defined(LUTRO_ENABLE_ASSERT_DBG)
 #  if defined(NDEBUG)
-#    define LUTRO_ENABLE_DBG_ASSERT   0
+#    define LUTRO_ENABLE_ASSERT_DBG   0
 #  else
-#    define LUTRO_ENABLE_DBG_ASSERT   1
+#    define LUTRO_ENABLE_ASSERT_DBG   1
 #  endif
 #endif
 
@@ -48,19 +48,19 @@ typedef enum
 
 extern int _lutro_assertf_internal(int ignorable, const char *fmt, ...);
 
-#define _base_hard_error()                            ((void)(          ((_lutro_assertf_internal(AssertUnrecoverable, __FILE__ "(%d):unrecoverable error "        "\n", __LINE__                        ),1) && (abort(), 0))))
-#define _base_hard_errorf(msg, ...)                   ((void)(          ((_lutro_assertf_internal(AssertUnrecoverable, __FILE__ "(%d):unrecoverable error "    msg "\n", __LINE__,         ## __VA_ARGS__),1) && (abort(), 0))))
-#define _base_soft_alert()                            ((void)(          ((_lutro_assertf_internal(AssertIgnorable,     __FILE__ "(%d):alert "                      "\n", __LINE__                        )  ) && (abort(), 0))))
-#define _base_soft_alertf(msg, ...)                   ((void)(          ((_lutro_assertf_internal(AssertIgnorable,     __FILE__ "(%d):alert "                  msg "\n", __LINE__,         ## __VA_ARGS__)  ) && (abort(), 0))))
-#define _base_soft_error()                            ((void)(          ((_lutro_assertf_internal(AssertErrorOnly,     __FILE__ "(%d):error "                      "\n", __LINE__                        ),0)                )))
-#define _base_soft_errorf(msg, ...)                   ((void)(          ((_lutro_assertf_internal(AssertErrorOnly,     __FILE__ "(%d):error "                  msg "\n", __LINE__,         ## __VA_ARGS__),0)                )))
-#define _base_cond_error(cond)                        ((void)((cond) || ((_lutro_assertf_internal(AssertErrorOnly,     __FILE__ "(%d):assertion `%s` failed. "     "\n", __LINE__, #cond                 ),0)                )))
-#define _base_cond_errorf(cond, msg, ...)             ((void)((cond) || ((_lutro_assertf_internal(AssertErrorOnly,     __FILE__ "(%d):assertion `%s` failed. " msg "\n", __LINE__, #cond , ## __VA_ARGS__),0)                )))
-
-#define _base_hard_assert(cond)                       ((void)((cond) || ((_lutro_assertf_internal(AssertUnrecoverable, __FILE__ "(%d):assertion `%s` failed. "     "\n", __LINE__, #cond                 ),1) && (abort(), 0))))
-#define _base_hard_assertf(cond, msg, ...)            ((void)((cond) || ((_lutro_assertf_internal(AssertUnrecoverable, __FILE__ "(%d):assertion `%s` failed. " msg "\n", __LINE__, #cond , ## __VA_ARGS__),1) && (abort(), 0))))
-#define _base_soft_assert(cond)                       ((void)((cond) || ((_lutro_assertf_internal(AssertIgnorable,     __FILE__ "(%d):assertion `%s` failed. "     "\n", __LINE__, #cond                 )  ) && (abort(), 0))))
-#define _base_soft_assertf(cond, msg, ...)            ((void)((cond) || ((_lutro_assertf_internal(AssertIgnorable,     __FILE__ "(%d):assertion `%s` failed. " msg "\n", __LINE__, #cond , ## __VA_ARGS__)  ) && (abort(), 0))))
+#define _base_hard_error()                            ((void)(          ((_lutro_assertf_internal(AssertUnrecoverable, __FILE__ "(%d): unrecoverable error "        "\n", __LINE__                        ),1) && (abort(), 0))))
+#define _base_hard_errorf(msg, ...)                   ((void)(          ((_lutro_assertf_internal(AssertUnrecoverable, __FILE__ "(%d): unrecoverable error "    msg "\n", __LINE__,         ## __VA_ARGS__),1) && (abort(), 0))))
+#define _base_soft_alert()                            ((void)(          ((_lutro_assertf_internal(AssertIgnorable,     __FILE__ "(%d): alert "                      "\n", __LINE__                        )  ) && (abort(), 0))))
+#define _base_soft_alertf(msg, ...)                   ((void)(          ((_lutro_assertf_internal(AssertIgnorable,     __FILE__ "(%d): alert "                  msg "\n", __LINE__,         ## __VA_ARGS__)  ) && (abort(), 0))))
+#define _base_soft_error()                            ((void)(          ((_lutro_assertf_internal(AssertErrorOnly,     __FILE__ "(%d): error "                      "\n", __LINE__                        ),0)                )))
+#define _base_soft_errorf(msg, ...)                   ((void)(          ((_lutro_assertf_internal(AssertErrorOnly,     __FILE__ "(%d): error "                  msg "\n", __LINE__,         ## __VA_ARGS__),0)                )))
+#define _base_cond_error(cond)                        ((void)((cond) || ((_lutro_assertf_internal(AssertErrorOnly,     __FILE__ "(%d): assertion `%s` failed. "     "\n", __LINE__, #cond                 ),0)                )))
+#define _base_cond_errorf(cond, msg, ...)             ((void)((cond) || ((_lutro_assertf_internal(AssertErrorOnly,     __FILE__ "(%d): assertion `%s` failed. " msg "\n", __LINE__, #cond , ## __VA_ARGS__),0)                )))
+                                                                                                                                       
+#define _base_hard_assert(cond)                       ((void)((cond) || ((_lutro_assertf_internal(AssertUnrecoverable, __FILE__ "(%d): assertion `%s` failed. "     "\n", __LINE__, #cond                 ),1) && (abort(), 0))))
+#define _base_hard_assertf(cond, msg, ...)            ((void)((cond) || ((_lutro_assertf_internal(AssertUnrecoverable, __FILE__ "(%d): assertion `%s` failed. " msg "\n", __LINE__, #cond , ## __VA_ARGS__),1) && (abort(), 0))))
+#define _base_soft_assert(cond)                       ((void)((cond) || ((_lutro_assertf_internal(AssertIgnorable,     __FILE__ "(%d): assertion `%s` failed. "     "\n", __LINE__, #cond                 )  ) && (abort(), 0))))
+#define _base_soft_assertf(cond, msg, ...)            ((void)((cond) || ((_lutro_assertf_internal(AssertIgnorable,     __FILE__ "(%d): assertion `%s` failed. " msg "\n", __LINE__, #cond , ## __VA_ARGS__)  ) && (abort(), 0))))
 
 // lutro error reporting. Errors come in two forms:
 //  - error / alert /fail (no condition is provided in the paramters)
@@ -117,7 +117,7 @@ extern int _lutro_assertf_internal(int ignorable, const char *fmt, ...);
 //    make sense in the context of the player
 //
 // tool_assume is a "hardened" version of assert, and is not ignorable.
-#if LUTRO_ENABLE_TOOL_ASSERT
+#if LUTRO_ENABLE_ASSERT_TOOL
 #  define tool_assert(cond)                 _base_soft_assert (cond)
 #  define tool_assertf(cond, msg, ...)      _base_soft_assertf(cond, msg, ## __VA_ARGS__)
 #  define tool_assume(cond)                 _base_hard_assert (cond)
@@ -135,7 +135,7 @@ extern int _lutro_assertf_internal(int ignorable, const char *fmt, ...);
 // obvious that it might do so (a good example would be assertions within the audio mixer loop).
 //
 // dbg_assume is a "hardened" version of assert, and is not ignorable.
-#if LUTRO_ENABLE_DBG_ASSERT
+#if LUTRO_ENABLE_ASSERT_DBG
 #  define dbg_assert(cond)                  _base_soft_assert (cond)
 #  define dbg_assertf(cond, msg, ...)       _base_soft_assertf(cond, msg, ## __VA_ARGS__)
 #  define dbg_assume(cond)                  _base_hard_assert (cond)

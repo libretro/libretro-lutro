@@ -8,9 +8,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-static unsigned num_imgdatas = 0;
-static bitmap_t** imgdatas = NULL;
-
 static int l_newImageData(lua_State *L);
 static int l_getWidth(lua_State *L);
 static int l_getHeight(lua_State *L);
@@ -40,10 +37,6 @@ void lutro_image_init()
 
 void *image_data_create(lua_State *L, bitmap_t* self)
 {
-   num_imgdatas++;
-   imgdatas = (bitmap_t**)realloc(imgdatas, num_imgdatas * sizeof(bitmap_t));
-   imgdatas[num_imgdatas-1] = self;
-
    if (luaL_newmetatable(L, "ImageData") != 0)
    {
       static luaL_Reg imgdata_funcs[] = {

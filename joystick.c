@@ -6,7 +6,7 @@
 #include "joystick.h"
 #include "lutro.h"
 
-static int16_t joystick_cache[4][14];
+static int16_t joystick_cache[5][14];
 
 const struct joystick_int_const_map joystick_key_enum[17] = {
    {RETRO_DEVICE_ID_JOYPAD_B, "b"},
@@ -57,7 +57,7 @@ void lutro_joystickevent(lua_State* L)
    lua_pushcfunction(L, traceback);
 
    // Loop through each joystick.
-   for (i = 0; i < 4; i++) {
+   for (i = 0; i < 5; i++) {
       // Loop through each button.
       for (u = 0; u < 14; u++) {
          // Retrieve the state of the button.
@@ -117,7 +117,7 @@ int joystick_getJoystickCount(lua_State *L)
    }
 
    // TODO: Query libretro to see device capacities of all joysticks.
-   lua_pushnumber(L, 4);
+   lua_pushnumber(L, 5);
 
    return 1;
 }

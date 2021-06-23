@@ -287,13 +287,37 @@ void pntr_draw(painter_t *p, const bitmap_t *bmp, const rect_t *src_rect, const 
 {
    rect_t srect = *src_rect, drect = *dst_rect;
 
+#ifdef HAVE_TRANSFORM
+   drect.x += p->trans->tx * p->trans->sx;
+   drect.y += p->trans->ty * p->trans->sy;
+
+   uint32_t is_x_reversed = p->trans->sx < 0;
+   uint32_t is_y_reversed = p->trans->sy < 0;
+
+   float abs_sx = is_x_reversed ? -p->trans->sx : p->trans->sx;
+   float abs_sy = is_y_reversed ? -p->trans->sy : p->trans->sy;
+
+   drect.width  = srect.width * abs_sx;
+   drect.height = srect.height * abs_sy;
+
+   // negative scaling reverses the top-left and bottom-right corners like so:
+   if (is_x_reversed)
+   {
+      drect.x -= drect.width;
+   }
+   if (is_y_reversed)
+   {
+      drect.y -= drect.height;
+   }
+#else
    drect.x += p->trans->tx;
    drect.y += p->trans->ty;
 
-   /* scaling not supported */
    drect.width  = srect.width;
    drect.height = srect.height;
+#endif
 
+   // crop source rect to destination
    if (drect.x < 0)
    {
       srect.x     += -drect.x;
@@ -302,15 +326,18 @@ void pntr_draw(painter_t *p, const bitmap_t *bmp, const rect_t *src_rect, const 
 
    if (drect.y < 0)
    {
-      srect.y     += -drect.y;
+      srect.y      += -drect.y;
       srect.height += drect.y;
    }
 
    drect        = rect_intersect(&drect, &p->clip);
+
+#ifndef HAVE_TRANSFORM
    drect.width  = MIN(drect.width, srect.width);
    drect.height = MIN(drect.height, srect.height);
+#endif
 
-   if (rect_is_null(&drect) || rect_is_null(&srect))
+   if (rect_is_null(&drect) || rect_is_null(&srect) || p->trans->sx == 0 || p->trans->sy == 0)
       return;
 
    size_t dst_skip = p->target->pitch >> 2;
@@ -323,39 +350,51 @@ void pntr_draw(painter_t *p, const bitmap_t *bmp, const rect_t *src_rect, const 
    int cols = drect.width;
    int x = 0;
 
+#ifdef HAVE_TRANSFORM
+   const uint32_t k_binexp = 16;
+   const uint32_t k_binexp_centre = (1 << (k_binexp - 1));
+   const uint32_t inv_scale_x = (1 << k_binexp) / abs_sx;
+   const uint32_t inv_scale_y = (1 << k_binexp) / abs_sy;
+   uint32_t y = 0;
+#endif
 #ifdef HAVE_COMPOSITION
    uint32_t sa, sr, sg, sb, da, dr, dg, db, s, d;
+#else
+   uint32_t s;
+#endif
    while (rows_left--)
    {
       for (x = 0; x < cols; ++x)
       {
+#ifdef HAVE_TRANSFORM
+         uint32_t xo = (x & ~is_x_reversed) | ((cols - x - 1) & is_x_reversed);
+         uint32_t yo = (y & ~is_y_reversed) | ((drect.height - y - 1) & is_y_reversed);
+         uint32_t xi = (uint32_t)(xo * inv_scale_x + k_binexp_centre) >> k_binexp;
+         uint32_t yi = (uint32_t)(yo * inv_scale_y + k_binexp_centre) >> k_binexp;
+         s = src[xi + yi * src_skip];
+#else
          s = src[x];
+#endif
+#ifdef HAVE_COMPOSITION
          d = dst[x];
          sa = s >> 24;
          da = d >> 24;
          DISASSEMBLE_RGB(s, sr, sg, sb);
          DISASSEMBLE_RGB(d, dr, dg, db);
          dst[x] = ((sa + da * (255 - sa)) << 24) | (COMPOSE_FAST(sr, dr, sa) << 16) | (COMPOSE_FAST(sg, dg, sa) << 8) | (COMPOSE_FAST(sb, db, sa));
-      }
-
-      dst += dst_skip;
-      src += src_skip;
-   }
 #else
-   uint32_t c;
-   while (rows_left--)
-   {
-      for (x = 0; x < cols; ++x)
-      {
-         c = src[x];
-         if (c & 0xff000000)
-            dst[x] = c;
+         if (s & 0xff000000)
+         dst[x] = s;
+#endif
       }
 
       dst += dst_skip;
+#ifdef HAVE_TRANSFORM
+      y += 1;
+#else
       src += src_skip;
-   }
 #endif
+   }
 }
 
 

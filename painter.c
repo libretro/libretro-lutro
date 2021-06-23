@@ -46,12 +46,31 @@ void pntr_reset(painter_t *p)
 
 void pntr_clear(painter_t *p)
 {
-   uint32_t *begin = p->target->data;
-   uint32_t *end   = p->target->data + p->target->height * (p->target->pitch >> 2);
    uint32_t color  = p->background;
 
-   while (begin < end)
-      *begin++ = color;
+   if (p->clip.x == 0 && p->clip.width == p->target->width
+      && p->clip.y == 0 && p->clip.height == p->target->height)
+   {
+      // this loop might be optimized by the compiler in comparison with
+      // the alternative loop below.
+      uint32_t *begin = p->target->data;
+      uint32_t *end   = p->target->data + p->target->height * (p->target->pitch >> 2);
+      while (begin < end)
+      {
+         *begin++ = color;
+      }
+   }
+   else
+   {
+      // less efficient loop than above, but can handle clipping rect.
+      for (uint32_t x = MAX(0, p->clip.x); x < MIN(p->clip.x + p->clip.width, p->target->width); ++x)
+      {
+         for (uint32_t y = MAX(0, p->clip.y); y < MAX(p->clip.y + p->clip.height, y < p->target->height); ++y)
+         {
+            p->target->data[x + y * (p->target->pitch >> 2)] = color;
+         }
+      }
+   }
 }
 
 

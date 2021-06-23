@@ -156,6 +156,10 @@ ifeq ($(TRACE_ALLOCATION),1)
     CFLAGS += -DTRACE_ALLOCATION
 endif
 
+ifeq ($(HAVE_TRANSFORM),1)
+    CFLAGS += -DHAVE_TRANSFORM
+endif
+
 # PhysFS
 ifeq ($(WANT_PHYSFS), 1)
     DEFINES += -DWANT_PHYSFS=1

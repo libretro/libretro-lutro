@@ -306,10 +306,10 @@ void pntr_draw(painter_t *p, const bitmap_t *bmp, const rect_t *src_rect, const 
 {
    rect_t srect = *src_rect, drect = *dst_rect;
 
-#ifdef HAVE_TRANSFORM
-   drect.x += p->trans->tx * p->trans->sx;
-   drect.y += p->trans->ty * p->trans->sy;
+   drect.x += p->trans->tx;
+   drect.y -= p->trans->ty;
 
+#ifdef HAVE_TRANSFORM
    // stored as 0 or 0xffffffff for masking properties.
    const uint32_t is_x_reversed = (p->trans->sx < 0) ? 0xffffffff : 0;
    const uint32_t is_y_reversed = (p->trans->sy < 0) ? 0xffffffff : 0;
@@ -342,9 +342,6 @@ void pntr_draw(painter_t *p, const bitmap_t *bmp, const rect_t *src_rect, const 
       drect.y -= drect.height;
    }
 #else
-   drect.x += p->trans->tx;
-   drect.y += p->trans->ty;
-
    drect.width  = srect.width;
    drect.height = srect.height;
 

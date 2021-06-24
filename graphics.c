@@ -957,9 +957,17 @@ static int gfx_draw(lua_State *L)
    // int kx = OPTNUMBER(L, start + 8, 0);
    // int ky = OPTNUMBER(L, start + 9, 0);
 
+#ifndef HAVE_TRANSFORM
+   // if transformations are not enabled, we set them to default values here
+   // in order to prevent them from having any unexpected effects whatsoever.
+   sx = 1;
+   sy = 1;
+   r = 0;
+#endif
+
    rect_t drect = {
-      x + ox,
-      y + oy,
+      x - ox * sx,
+      y - oy * sy,
       (int)data->width,
       (int)data->height
    };

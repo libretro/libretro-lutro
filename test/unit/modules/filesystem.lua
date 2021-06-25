@@ -24,7 +24,7 @@ function lutro.filesystem.getUserDirectoryTest()
     -- Other aspects of UserDirectory are platform specific and non-trivial to calculate and there
     -- isn't much value to trying to replicate it here.
     local userDir = lutro.filesystem.getUserDirectory()
-    local userDirFixed = getUserDir
+    local userDirFixed = userDir
     if userDirFixed:sub(-1) ~= '/' then
         userDirFixed = userDirFixed .. '/'
     end

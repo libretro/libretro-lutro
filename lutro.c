@@ -383,7 +383,7 @@ int lutro_unzip(const char *path, const char *extraction_directory)
       const size_t filename_length = strlen(filename);
       if (filename[filename_length-1] == '/')
       {
-         printf("dir:%s\n", filename);
+         //printf("dir:%s\n", filename);
          char abs_path[PATH_MAX_LENGTH];
          fill_pathname_join(abs_path,
                extraction_directory, filename, sizeof(abs_path));
@@ -391,7 +391,7 @@ int lutro_unzip(const char *path, const char *extraction_directory)
       }
       else
       {
-         printf("file:%s\n", filename);
+         //printf("file:%s\n", filename);
          if (unzOpenCurrentFile(zipfile) != UNZ_OK)
          {
             printf("could not open file\n");

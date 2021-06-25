@@ -234,6 +234,31 @@ static void init_settings(lua_State *L)
    lua_pop(L, 1);
 }
 
+// reveals which configuration options were used to compile lutro.
+static void init_config(lua_State *L)
+{
+   lutro_ensure_global_table(L, "lutro");
+
+   lua_newtable(L);
+
+   #define STR(a) #a
+   #define CAPABILITY(_cap_)                           \
+      lua_pushboolean(L, strcmp(STR(_cap_), #_cap_));  \
+      lua_setfield(L, -2, #_cap_);
+
+   CAPABILITY(HAVE_COMPOSITION);
+   CAPABILITY(HAVE_TRANSFORM);
+   CAPABILITY(HAVE_INOTIFY);
+   CAPABILITY(HAVE_JIT);
+   CAPABILITY(HAVE_LUASOCKET);
+
+   #undef STR
+   #undef CAPABILITY
+
+   lua_setfield(L, -2, "config");
+   lua_pop(L, 1);
+}
+
 void lutro_init()
 {
    L = luaL_newstate();
@@ -250,6 +275,8 @@ void lutro_init()
    lutro_checked_stack_begin();
 
    init_settings(L);
+
+   init_config(L);
 
    lutro_preload(L, lutro_core_preload, "lutro");
    lutro_preload(L, lutro_image_preload, "lutro.image");

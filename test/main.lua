@@ -5,7 +5,8 @@ local availableStates = {
 	"joystick/isDown",
 	"graphics/rectangle",
 	"graphics/line",
-	"graphics/scale",
+	-- ignore this test if lutro compiled without HAVE_TRANSFORM:
+  lutro.config.HAVE_TRANSFORM and "graphics/scale" or false,
 	"audio/play",
 	"joystick/getJoystickCount",
 	"window/close"
@@ -22,9 +23,11 @@ function lutro.load()
 
 	-- Initiate all available test states.
 	for i, state in ipairs(availableStates) do
-		local test = require(state)
-		test['name'] = "lutro." .. string.gsub(state, "/", ".")
-		table.insert(states, test)
+		if state then
+			local test = require(state)
+			test['name'] = "lutro." .. string.gsub(state, "/", ".")
+			table.insert(states, test)
+		end
 	end
 
 	-- Load all states.

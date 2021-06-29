@@ -8,6 +8,7 @@
 #include <retro_miscellaneous.h>
 
 #include "painter.h"
+#include "image.h"
 #include "lutro_stb_image.h"
 
 #define _USE_MATH_DEFINES
@@ -17,9 +18,9 @@
 /* from http://www.codeguru.com/cpp/cpp/algorithms/general/article.php/c15989/Tip-An-Optimized-Formula-for-Alpha-Blending-Pixels.htm */
 #define COMPOSE_FAST(S, D, A) (((S * A) + (D * (256U - A))) >> 8U)
 #define DISASSEMBLE_RGB(COLOR, R, G, B) \
-   R = ((COLOR & 0xff0000)>>16);\
-   G = ((COLOR & 0xff00)>>8);\
-   B = (COLOR & 0xff);
+   R = ((COLOR & RED_MASK) >> RED_SHIFT);\
+   G = ((COLOR & GREEN_MASK) >> GREEN_SHIFT);\
+   B = ((COLOR & BLUE_MASK) >> BLUE_SHIFT);
 #endif
 
 static int strpos(const char *haystack, char needle)

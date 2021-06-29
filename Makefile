@@ -196,10 +196,12 @@ else ifeq ($(platform),ps2)
 	CC = mips64r5900el-ps2-elf-gcc$(EXE_EXT)
 	CXX = mips64r5900el-ps2-elf-g++$(EXE_EXT)
 	AR = mips64r5900el-ps2-elf-ar$(EXE_EXT)
-	FLAGS += -G0 -DPS2 -DABGR1555 -DHAVE_NO_LANGEXTRA
-	INCFLAGS_PLATFORM += -O3
-	STATIC_LINKING := 1
-	LIBS :=
+	TARGET := $(TARGET_NAME)_libretro_$(platform).a
+	fpic := -fno-PIC
+	DEFINES := -G0 -DPS2 -DABGR -DHAVE_NO_LANGEXTRA -O3
+	LUA_MYCFLAGS := $(DEFINES) $(CFLAGS)
+	STATIC_LINKING = 1
+	WANT_PHYSFS=0
 
 # PSP
 else ifeq ($(platform), psp1)

@@ -38,7 +38,7 @@ audio_Source* getSourcePtrFromRef(lua_State* L, audioSourceByRef ref)
    lua_getglobal(L, "refs_audio_playing");
    lua_rawgeti(L, -1, ref.lua_ref);
    audio_Source* result = lua_touserdata(L, -1);
-   lua_pop(L,1);
+   lua_pop(L, 2);
    return result;
 }
 

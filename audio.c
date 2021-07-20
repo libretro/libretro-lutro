@@ -592,7 +592,7 @@ int source_seek(lua_State *L)
       {
          fprintf(stderr, "OGG decoder seek failed: %s\n", strerror(errno));
       }
-      self->sndpos = decOgg_sampleTell(self-oggData);
+      self->sndpos = decOgg_sampleTell(self->oggData);
    }
 
    if (self->sndta)

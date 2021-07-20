@@ -586,11 +586,13 @@ int source_seek(lua_State *L)
       }
       self->sndpos = decWav_sampleTell(self->wavData);
    }
-   
-   if (self->oggData)
+   else if (self->oggData)
    {
-      decOgg_seek(self->oggData, npSamples); 
-      self->sndpos = decWav_sampleTell(self->wavData);
+      if (!decOgg_seek(self->oggData, npSamples))
+      {
+         fprintf(stderr, "OGG decoder seek failed: %s\n", strerror(errno));
+      }
+      self->sndpos = decOgg_sampleTell(self-oggData);
    }
 
    if (self->sndta)

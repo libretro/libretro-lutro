@@ -589,7 +589,6 @@ void lutro_gamepadevent(lua_State* L)
             }
             input_cache[i] = is_down;
          }
-         lua_pop(L, 1);
       }
    }
    lua_settop(L, oldtop);

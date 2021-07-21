@@ -49,6 +49,7 @@
 
 static lua_State *L;
 static int16_t input_cache[16];
+int g_lua_stack = 0;
 
 lutro_settings_t settings = {
    .width = 320,
@@ -569,7 +570,7 @@ int lutro_load(const char *path)
 
 void lutro_gamepadevent(lua_State* L)
 {
-   int oldtop = lua_gettop(L);
+   ENTER_LUA_STACK
    unsigned i;
 
    for (i = 0; i < 16; i++)
@@ -591,7 +592,7 @@ void lutro_gamepadevent(lua_State* L)
          }
       }
    }
-   lua_settop(L, oldtop);
+   EXIT_LUA_STACK
 }
 
 void lutro_run(double delta)

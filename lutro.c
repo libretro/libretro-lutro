@@ -577,18 +577,24 @@ void lutro_gamepadevent(lua_State* L)
       int16_t is_down = settings.input_cb(0, RETRO_DEVICE_JOYPAD, 0, i);
       if (is_down != input_cache[i])
       {
+         lua_getglobal(L, "lutro");
          lua_getfield(L, -1, is_down ? "gamepadpressed" : "gamepadreleased");
          if (lua_isfunction(L, -1))
          {
             lua_pushnumber(L, i);
             lua_pushstring(L, input_find_name(joystick_enum, i));
-            if (lutro_pcall(L, 2, 0))
+            if (lutro_pcall(L, 2, 0)) // takes care of poping the function too
             {
                fprintf(stderr, "%s\n", lua_tostring(L, -1));
                lua_pop(L, 1);
             }
             input_cache[i] = is_down;
          }
+         else
+         {
+            lua_pop(L, 1); // pop getfield gamepadpressed or gamepadreleased
+         }
+         lua_pop(L, 1); // pop getglobal lutro
       }
    }
    lua_settop(L, oldtop);

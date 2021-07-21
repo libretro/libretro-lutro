@@ -183,6 +183,7 @@ void lutro_keyboard_init()
  */
 void lutro_keyboardevent(lua_State* L)
 {
+   ENTER_LUA_STACK
    int16_t is_down;
 
    for (unsigned i = 0; i < RETROK_LAST; i++)
@@ -218,6 +219,7 @@ void lutro_keyboardevent(lua_State* L)
          keyboard_cache[i] = is_down;
       }
    }
+   EXIT_LUA_STACK
 }
 
 /**

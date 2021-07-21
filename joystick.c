@@ -104,6 +104,11 @@ void lutro_joystickInvokeJoystickEvent(lua_State* L, char* eventName, int joysti
          lua_pop(L, 1);
       }
    }
+   else
+   {
+      lua_pop(L, 1); // pop eventName
+   }
+   lua_pop(L, 1); // pop lutro
 }
 
 /**

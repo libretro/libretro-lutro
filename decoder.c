@@ -49,8 +49,8 @@ bool decOgg_init(dec_OggData *data, const char *filename)
       return false;
    }
 
-   printf("vorbis info:\n");
-   printf("\tnum streams: %d\n",  ov_streams(&data->vf));
+   // printf("vorbis info:\n");
+   // printf("\tnum streams: %d\n",  ov_streams(&data->vf));
 
    data->info = (vorbis_info*)ov_info(&data->vf, 0);
    if (!data->info)
@@ -59,8 +59,8 @@ bool decOgg_init(dec_OggData *data, const char *filename)
       return false;
    }
 
-   printf("\tnum channels: %d\n", data->info->channels);
-   printf("\tsample rate: %d\n", data->info->rate);
+   // printf("\tnum channels: %d\n", data->info->channels);
+   // printf("\tsample rate: %d\n", data->info->rate);
 
    if (data->info->channels != 1 && data->info->channels != 2)
    {
@@ -74,7 +74,7 @@ bool decOgg_init(dec_OggData *data, const char *filename)
       return false;
    }
 
-   printf("vorbis init success\n");
+   // printf("vorbis init success\n");
    return true;
 }
 
@@ -105,8 +105,6 @@ intmax_t decOgg_sampleLength(dec_OggData *data)
 // the buffer must be manually cleared to zero for non-mixing (raw) use cases.
 bool decOgg_decode(dec_OggData *data, presaturate_buffer_desc *buffer, float volume, bool loop)
 {
-   //printf("decOgg_decode\n");
-
    bool finished = false;
 
    size_t rendered = 0;
@@ -117,7 +115,7 @@ bool decOgg_decode(dec_OggData *data, presaturate_buffer_desc *buffer, float vol
    {
       float **pcm;
       int bitstream;
-      //printf("pcmoffs: %d\n", data->vf.pcm_offset);
+      // printf("pcmoffs: %d\n", data->vf.pcm_offset);
       intmax_t ret = ov_read_float(&data->vf, &pcm, bufsz, &bitstream);
 
       if (ret < 0)
@@ -327,7 +325,7 @@ intmax_t decWav_sampleTell(dec_WavData *data)
       if ((ret % bps) != 0)
       {
          // print size, it helps identify the offender.
-         fprintf(stderr, "Unaligned read position in wav decoder stream. size=%d bps=%d channels=%d pos=%jd\n",
+         fprintf(stderr, "Unaligned read position in wav decoder stream. size=%u bps=%u channels=%d pos=%jd\n",
             data->headc2.Subchunk2Size,
             data->headc1.BitsPerSample,
             data->headc1.NumChannels,

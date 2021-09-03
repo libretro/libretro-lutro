@@ -123,6 +123,24 @@ void pntr_fill_rect(painter_t *p, const rect_t *rect)
    if ((color & 0xff000000) == 0)
       return;
 
+#ifdef HAVE_COMPOSITION
+   uint32_t sa, sr, sg, sb, da, dr, dg, db, s, d;
+   do
+   {
+      for (x = drect.x; x < xend; ++x)
+      {
+         s = color;
+         d = row[x];
+         sa = s >> 24;
+         da = d >> 24;
+         DISASSEMBLE_RGB(s, sr, sg, sb);
+         DISASSEMBLE_RGB(d, dr, dg, db);
+         row[x] = ((sa + da * (255 - sa)) << 24) | (COMPOSE_FAST(sr, dr, sa) << 16) | (COMPOSE_FAST(sg, dg, sa) << 8) | (COMPOSE_FAST(sb, db, sa));
+      }
+
+      row += row_size;
+   } while (row < end);
+#else
    do
    {
       for (x = drect.x; x < xend; ++x)
@@ -130,6 +148,7 @@ void pntr_fill_rect(painter_t *p, const rect_t *rect)
 
       row += row_size;
    } while (row < end);
+#endif
 }
 
 

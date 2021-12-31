@@ -14,6 +14,11 @@ function lutro.filesystem.getRequirePathTest()
     unit.assertEquals(paths, package.path)
 end
 
+function lutro.filesystem.getAppdataDirectoryTest()
+    local appdataDir = lutro.filesystem.getAppdataDirectory()
+    unit.assertIsString(appdataDir)
+end
+
 function lutro.filesystem.getUserDirectoryTest()
     local homeDir = lutro.filesystem.getUserDirectory()
     -- @todo Find out how to make os.getenv('HOME') work on Windows?
@@ -49,6 +54,7 @@ return {
     lutro.filesystem.setRequirePathTest,
     lutro.filesystem.getRequirePathTest,
     lutro.filesystem.getUserDirectoryTest,
+    lutro.filesystem.getAppdataDirectoryTest,
     lutro.filesystem.getDirectoryItemsTest,
     lutro.filesystem.isFileTest,
     lutro.filesystem.isDirectoryTest

@@ -17,7 +17,7 @@ jobs:
         with:
           submodules: true
 
-      - run: make HAVE_COMPOSITION=1 WANT_LUASOCKET=1 -j4
+      - run: make HAVE_COMPOSITION=1 WANT_LUASOCKET=1 -j4 && strip -s lutro_libretro.so
 
       - name: ZIP Release
         uses: papeloto/action-zip@v1

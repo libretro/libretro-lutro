@@ -20,7 +20,7 @@ jobs:
       - run: make HAVE_COMPOSITION=1 WANT_LUASOCKET=1 -j4 && strip -s lutro_libretro.so
 
       - name: ZIP Release
-        uses: papeloto/action-zip@v1
+        uses: vimtor/action-zip@v1
         with:
           files: lutro_libretro.so
           dest: lutro_libretro.so.zip
@@ -53,7 +53,7 @@ jobs:
       - run: make platform=unix-armv7-neon-hardfloat HAVE_COMPOSITION=1 WANT_LUASOCKET=1 -j4
 
       - name: ZIP Release
-        uses: papeloto/action-zip@v1
+        uses: vimtor/action-zip@v1
         with:
           files: lutro_libretro.so
           dest: lutro_libretro.so.zip
@@ -85,7 +85,7 @@ jobs:
       - run: make platform=osx HAVE_COMPOSITION=1 WANT_LUASOCKET=1 -j4
 
       - name: ZIP Release
-        uses: papeloto/action-zip@v1
+        uses: vimtor/action-zip@v1
         with:
           files: lutro_libretro.dylib
           dest: lutro_libretro.dylib.zip
@@ -117,7 +117,7 @@ jobs:
       - run: CC=gcc make platform=win HAVE_COMPOSITION=1 WANT_LUASOCKET=1 -j4
 
       - name: ZIP Release
-        uses: papeloto/action-zip@v1
+        uses: vimtor/action-zip@v1
         with:
           files: lutro_libretro.dll
           dest: lutro_libretro.dll.zip

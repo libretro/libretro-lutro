@@ -1,6 +1,7 @@
 #include "audio.h"
 #include "lutro.h"
 #include "compat/strl.h"
+#include "lutro_assert.h"
 
 #include <ctype.h>
 #include <stdlib.h>
@@ -699,7 +700,7 @@ int audio_play(lua_State *L)
       slot = num_sources++;
       audioSourceByRef *new_sources_playing = (audioSourceByRef*)realloc(sources_playing, num_sources * sizeof(audioSourceByRef));
       if (new_sources_playing == NULL)
-         printf("Not enough memory reallocating sources_playing\n");
+         lutro_alertf("Not enough memory reallocating sources_playing");
       else
          sources_playing = new_sources_playing;
 

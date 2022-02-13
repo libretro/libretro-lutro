@@ -130,7 +130,7 @@ int _lutro_assertf_internal(int ignorable, const char *fmt, ...)
    //   FILE(LINE): assertion `cond` failed.
    // example:
    //   lutro.cpp(444): assertion `x > 0` failed.
-   // 
+   //
    // We can use this knowledge to parse the file and line positions and perform additional clever filtering
    // or log prep/routing.
 

@@ -1,6 +1,7 @@
 #include "audio.h"
 #include "lutro.h"
 #include "compat/strl.h"
+#include "lutro_assert.h"
 
 #include <ctype.h>
 #include <stdlib.h>
@@ -111,7 +112,7 @@ void mixer_render(lua_State* L, int16_t *buffer)
    static mixer_presaturate_t_guarded localbuffer;
 
    memset(localbuffer.presaturated, 0, sizeof(localbuffer.presaturated));
- 
+
 #if mixer_buffer_guardband
    memset(localbuffer.guard_f, 0xcd, sizeof(localbuffer.guard_f));
    memset(localbuffer.guard_b, 0xcd, sizeof(localbuffer.guard_f));
@@ -192,7 +193,7 @@ void mixer_render(lua_State* L, int16_t *buffer)
                {
                   localbuffer.presaturated[(total_mixed*2) + 0] += sndta->data[source->sndpos] * srcvol;
                   localbuffer.presaturated[(total_mixed*2) + 1] += sndta->data[source->sndpos] * srcvol;
-               }  
+               }
             }
 
             if (sndta->numChannels == 2)
@@ -201,7 +202,7 @@ void mixer_render(lua_State* L, int16_t *buffer)
                {
                   localbuffer.presaturated[(total_mixed*2) + 0] += sndta->data[(source->sndpos*2) + 0] * srcvol;
                   localbuffer.presaturated[(total_mixed*2) + 1] += sndta->data[(source->sndpos*2) + 1] * srcvol;
-               }  
+               }
             }
 
             dbg_assume(source->sndpos <= sndta->numSamples);
@@ -531,7 +532,7 @@ int source_tell(lua_State *L)
       }
       else
       {
-         return luaL_error(L, "Source:tell '%s' given for second argument. Expected either 'seconds' or 'samples'", type);      
+         return luaL_error(L, "Source:tell '%s' given for second argument. Expected either 'seconds' or 'samples'", type);
       }
    }
    else
@@ -567,10 +568,10 @@ int source_seek(lua_State *L)
       }
       else
       {
-         return luaL_error(L, "Source:seek '%s' given for third argument. Expected either 'seconds' or 'samples'", type);      
+         return luaL_error(L, "Source:seek '%s' given for third argument. Expected either 'seconds' or 'samples'", type);
       }
    }
-   else 
+   else
    {
       // assume samples if third paramter is unspecified
       npSamples = luaL_checkinteger(L, 2);
@@ -697,7 +698,12 @@ int audio_play(lua_State *L)
       // TODO: This should be converted into a pooled allocator (a linked list of reusable blocks)
 
       slot = num_sources++;
-      sources_playing = (audioSourceByRef*)realloc(sources_playing, num_sources * sizeof(audioSourceByRef));
+      audioSourceByRef *new_sources_playing = (audioSourceByRef*)realloc(sources_playing, num_sources * sizeof(audioSourceByRef));
+      if (new_sources_playing == NULL)
+         lutro_alertf("Not enough memory reallocating sources_playing");
+      else
+         sources_playing = new_sources_playing;
+
       sources_playing[slot].lua_ref = LUA_REFNIL;
    }
 
@@ -734,7 +740,7 @@ int audio_stop(lua_State *L)
 
    self->sndpos = 0;
    self->state  = AUDIO_STOPPED;
-   
+
    // unref will be handled via periodic invocation of mixer_unref_stopped_sounds()
    //lua_getglobal(L, "refs_audio_playing");
    //luaL_unref(L, -1, self->lua_ref);
@@ -819,7 +825,7 @@ static void pause_sources_in_table(lua_State* L, int idx)
 }
 
 // returns list of sources paused by this call.
-// love2D docs indicate that it only returns a value when called with no arguments. This hardly 
+// love2D docs indicate that it only returns a value when called with no arguments. This hardly
 // makes sense - might as well return a list of sources which were paused regardless. The user
 // may optionally pass in a list of sources and this will filter them and return just the ones
 // that were not already paused.
@@ -893,7 +899,7 @@ int audio_pause(lua_State *L)
 
    self->sndpos = 0;
    self->state  = AUDIO_STOPPED;
-   
+
 #endif
 
    return 0;

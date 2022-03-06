@@ -607,8 +607,9 @@ void lutro_run(double delta)
    settings.delta = delta;
    settings.deltaCounter += delta;
    settings.frameCounter += 1;
+   settings.fps = 1 / delta;
+
    if (settings.deltaCounter >= 1.0) {
-      settings.fps = settings.frameCounter;
       settings.frameCounter = 0;
       settings.deltaCounter = 0;
    }

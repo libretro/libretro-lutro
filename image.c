@@ -149,10 +149,10 @@ static int l_getPixel(lua_State *L)
 
    uint32_t color = data[y * (self->pitch >> 2) + x];
 
-   int a = ((color & 0xff000000)>>24);
-   int r = ((color & 0xff0000)>>16);
-   int g = ((color & 0xff00)>>8);
-   int b = (color & 0xff);
+   int a = ((color & ALPHA_MASK) >> ALPHA_SHIFT);
+   int r = ((color & RED_MASK) >> RED_SHIFT);
+   int g = ((color & GREEN_MASK) >> GREEN_SHIFT);
+   int b = ((color & BLUE_MASK) >> BLUE_SHIFT);
 
    lua_pushnumber(L, r);
    lua_pushnumber(L, g);

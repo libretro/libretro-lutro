@@ -49,6 +49,7 @@
 
 static lua_State *L;
 static int16_t input_cache[16];
+int g_lua_stack = 0;
 
 lutro_settings_t settings = {
    .width = 320,
@@ -129,7 +130,7 @@ int _lutro_assertf_internal(int ignorable, const char *fmt, ...)
    //   FILE(LINE): assertion `cond` failed.
    // example:
    //   lutro.cpp(444): assertion `x > 0` failed.
-   // 
+   //
    // We can use this knowledge to parse the file and line positions and perform additional clever filtering
    // or log prep/routing.
 
@@ -569,7 +570,7 @@ int lutro_load(const char *path)
 
 void lutro_gamepadevent(lua_State* L)
 {
-   int oldtop = lua_gettop(L);
+   ENTER_LUA_STACK
    unsigned i;
 
    for (i = 0; i < 16; i++)
@@ -597,7 +598,7 @@ void lutro_gamepadevent(lua_State* L)
          lua_pop(L, 1); // pop getglobal lutro
       }
    }
-   lua_settop(L, oldtop);
+   EXIT_LUA_STACK
 }
 
 void lutro_run(double delta)
@@ -766,6 +767,51 @@ bool lutro_unserialize(const void *data_, size_t size)
    lua_gc(L, LUA_GCSTEP, 0);
 
    return true;
+}
+
+void lutro_cheat_set(unsigned index, bool enabled, const char *code)
+{
+   int oldtop = lua_gettop(L);
+   lua_pushcfunction(L, traceback);
+
+   lua_getglobal(L, "lutro");
+   lua_getfield(L, -1, "cheat_set");
+
+   if (lua_isfunction(L, -1))
+   {
+      lua_pushnumber(L, index);
+      lua_pushboolean(L, enabled);
+      lua_pushstring(L, code);
+      if (lutro_pcall(L, 3, 0))
+      {
+         fprintf(stderr, "%s\n", lua_tostring(L, -1));
+         lua_pop(L, 1);
+      }
+   }
+
+   lua_settop(L, oldtop);
+   lua_gc(L, LUA_GCSTEP, 0);
+}
+
+void lutro_cheat_reset()
+{
+   int oldtop = lua_gettop(L);
+   lua_pushcfunction(L, traceback);
+
+   lua_getglobal(L, "lutro");
+   lua_getfield(L, -1, "cheat_reset");
+
+   if (lua_isfunction(L, -1))
+   {
+      if (lutro_pcall(L, 0, 0))
+      {
+         fprintf(stderr, "%s\n", lua_tostring(L, -1));
+         lua_pop(L, 1);
+      }
+   }
+
+   lua_settop(L, oldtop);
+   lua_gc(L, LUA_GCSTEP, 0);
 }
 
 void lutro_assetPath_init(AssetPathInfo* dest, const char* path)

@@ -24,6 +24,7 @@ int lutro_filesystem_preload(lua_State *L)
       { "load",        fs_load },
       { "setIdentity", fs_setIdentity },
       { "getUserDirectory", fs_getUserDirectory },
+      { "getAppdataDirectory", fs_getAppdataDirectory },
       { "isDirectory", fs_isDirectory },
       { "isFile",      fs_isFile },
       { "createDirectory", fs_createDirectory },
@@ -228,6 +229,26 @@ int fs_getUserDirectory(lua_State *L)
 
    lua_pushstring(L, homedir);
 
+   return 1;
+}
+
+/**
+ * lutro.filesystem.getAppdataDirectory
+ *
+ * Retrieves libretro's SYSTEM directory.
+ *
+ * @see https://love2d.org/wiki/love.filesystem.getAppdataDirectory
+ * @see RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY
+ */
+int fs_getAppdataDirectory(lua_State *L)
+{
+   char* appdataDir;
+   if ((*settings.environ_cb)(RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY, &appdataDir)) {
+      lua_pushstring(L, appdataDir);
+   }
+   else {
+      lua_pushstring(L, "");
+   }
    return 1;
 }
 

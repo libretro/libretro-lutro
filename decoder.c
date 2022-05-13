@@ -49,8 +49,8 @@ bool decOgg_init(dec_OggData *data, const char *filename)
       return false;
    }
 
-   printf("vorbis info:\n");
-   printf("\tnum streams: %d\n",  ov_streams(&data->vf));
+   // printf("vorbis info:\n");
+   // printf("\tnum streams: %d\n",  ov_streams(&data->vf));
 
    data->info = (vorbis_info*)ov_info(&data->vf, 0);
    if (!data->info)
@@ -59,22 +59,22 @@ bool decOgg_init(dec_OggData *data, const char *filename)
       return false;
    }
 
-   printf("\tnum channels: %d\n", data->info->channels);
-   printf("\tsample rate: %d\n", data->info->rate);
+   // printf("\tnum channels: %d\n", data->info->channels);
+   // printf("\tsample rate: %d\n", data->info->rate);
 
    if (data->info->channels != 1 && data->info->channels != 2)
    {
       lutro_errorf("vorbis: unsupported number of channels");
       return false;
    }
-   
+
    if (data->info->rate != 44100)
    {
       lutro_errorf("vorbis: unsupported sample rate");
       return false;
    }
 
-   printf("vorbis init success\n");
+   // printf("vorbis init success\n");
    return true;
 }
 
@@ -105,8 +105,6 @@ intmax_t decOgg_sampleLength(dec_OggData *data)
 // the buffer must be manually cleared to zero for non-mixing (raw) use cases.
 bool decOgg_decode(dec_OggData *data, presaturate_buffer_desc *buffer, float volume, bool loop)
 {
-   //printf("decOgg_decode\n");
-
    bool finished = false;
 
    size_t rendered = 0;
@@ -117,7 +115,7 @@ bool decOgg_decode(dec_OggData *data, presaturate_buffer_desc *buffer, float vol
    {
       float **pcm;
       int bitstream;
-      //printf("pcmoffs: %d\n", data->vf.pcm_offset);
+      // printf("pcmoffs: %d\n", data->vf.pcm_offset);
       intmax_t ret = ov_read_float(&data->vf, &pcm, bufsz, &bitstream);
 
       if (ret < 0)
@@ -131,7 +129,7 @@ bool decOgg_decode(dec_OggData *data, presaturate_buffer_desc *buffer, float vol
          if (loop)
          {
             if (ov_time_seek(&data->vf, 0.0) == 0)
-               continue;               
+               continue;
             else
                finished = true;
          }
@@ -187,7 +185,7 @@ bool decOgg_decode(dec_OggData *data, presaturate_buffer_desc *buffer, float vol
       bufsz -= ret;
       rendered += ret;
    }
-   
+
    return finished;
 }
 
@@ -232,14 +230,14 @@ bool decWav_init(dec_WavData *data, const char *filename)
       || memcmp(data->headc1.Subchunk1ID,  "fmt ", 4)
    ) {
       lutro_errorf("%s is not a valid wav file or is truncated.", filename);
-      fclose(fp);      
+      fclose(fp);
       return 0;
    }
 
    if (data->headc1.Subchunk1Size < 16)
    {
       lutro_errorf("%s has invalid subchunk size=%u. Expected size >= 16.", filename, data->headc1.Subchunk1Size);
-      fclose(fp);      
+      fclose(fp);
       return 0;
    }
 
@@ -320,14 +318,14 @@ bool decWav_seek(dec_WavData *data, intmax_t samplepos)
 intmax_t decWav_sampleTell(dec_WavData *data)
 {
    int bps = ((data->headc1.BitsPerSample + 7) / 8) * data->headc1.NumChannels;
-   
+
    intmax_t ret = ftell(data->fp) - decWav_CalcOffsetDataStart(data);
    if (ret >= 0)
    {
       if ((ret % bps) != 0)
       {
          // print size, it helps identify the offender.
-         fprintf(stderr, "Unaligned read position in wav decoder stream. size=%d bps=%d channels=%d pos=%jd\n",
+         fprintf(stderr, "Unaligned read position in wav decoder stream. size=%u bps=%u channels=%d pos=%jd\n",
             data->headc2.Subchunk2Size,
             data->headc1.BitsPerSample,
             data->headc1.NumChannels,
@@ -364,7 +362,7 @@ static __always_inline bool _inl_decode_wav(dec_WavData *data, intmax_t bufsz, m
    int numSamples = data->headc2.Subchunk2Size / bytesPerMultiSample;
 
    for (int j = 0; j < bufsz; j++, data->pos += bytesPerMultiSample)
-   {  
+   {
       uint8_t sample_raw[8];
       int readResult = 0;
 
@@ -377,7 +375,7 @@ static __always_inline bool _inl_decode_wav(dec_WavData *data, intmax_t bufsz, m
          dbg_assertf(data->pos == ftell(data->fp) - decWav_CalcOffsetDataStart(data), "numSamples=%jd byteLen=%jd dataPos=%jd and ftell=%jd",
             (intmax_t)numSamples, (intmax_t)byteLen, (intmax_t)data->pos, (intmax_t)ftell(data->fp)
          );
- 
+
          if (!loop)
          {
             // love2D does not specify if seek/tell position should reset to zero or
@@ -390,7 +388,7 @@ static __always_inline bool _inl_decode_wav(dec_WavData *data, intmax_t bufsz, m
          fseek(data->fp, decWav_CalcOffsetDataStart(data), SEEK_SET);
          --j; goto reloadSample;    // attempt to re-read sample.
       }
-      
+
       if (chan_src == 2)
       {
          if (chan_dst == 1)
@@ -440,14 +438,14 @@ bool decWav_decode(dec_WavData *data, presaturate_buffer_desc *buffer, float vol
    // to avoid "hiss" that plagues 8-bit at low volumes. Therefore, as a rule of thumb, 8-bit samples
    // mixed at half volume will "match" better with 16-bit samples mixed at full volume. --jstine
 
-   if (data->headc1.BitsPerSample == 8  && data->headc1.NumChannels == 2 && buffer->channels == 2) return _inl_decode_wav(data, bufsz, dst, 1, 2, 2, volume, loop); 
+   if (data->headc1.BitsPerSample == 8  && data->headc1.NumChannels == 2 && buffer->channels == 2) return _inl_decode_wav(data, bufsz, dst, 1, 2, 2, volume, loop);
    if (data->headc1.BitsPerSample == 8  && data->headc1.NumChannels == 2 && buffer->channels == 1) return _inl_decode_wav(data, bufsz, dst, 1, 2, 1, volume, loop);
-   if (data->headc1.BitsPerSample == 8  && data->headc1.NumChannels == 1 && buffer->channels == 2) return _inl_decode_wav(data, bufsz, dst, 1, 1, 2, volume, loop); 
+   if (data->headc1.BitsPerSample == 8  && data->headc1.NumChannels == 1 && buffer->channels == 2) return _inl_decode_wav(data, bufsz, dst, 1, 1, 2, volume, loop);
    if (data->headc1.BitsPerSample == 8  && data->headc1.NumChannels == 1 && buffer->channels == 1) return _inl_decode_wav(data, bufsz, dst, 1, 1, 1, volume, loop);
 
-   if (data->headc1.BitsPerSample == 16 && data->headc1.NumChannels == 2 && buffer->channels == 2) return _inl_decode_wav(data, bufsz, dst, 2, 2, 2, volume, loop); 
+   if (data->headc1.BitsPerSample == 16 && data->headc1.NumChannels == 2 && buffer->channels == 2) return _inl_decode_wav(data, bufsz, dst, 2, 2, 2, volume, loop);
    if (data->headc1.BitsPerSample == 16 && data->headc1.NumChannels == 2 && buffer->channels == 1) return _inl_decode_wav(data, bufsz, dst, 2, 2, 1, volume, loop);
-   if (data->headc1.BitsPerSample == 16 && data->headc1.NumChannels == 1 && buffer->channels == 2) return _inl_decode_wav(data, bufsz, dst, 2, 1, 2, volume, loop); 
+   if (data->headc1.BitsPerSample == 16 && data->headc1.NumChannels == 1 && buffer->channels == 2) return _inl_decode_wav(data, bufsz, dst, 2, 1, 2, volume, loop);
    if (data->headc1.BitsPerSample == 16 && data->headc1.NumChannels == 1 && buffer->channels == 1) return _inl_decode_wav(data, bufsz, dst, 2, 1, 1, volume, loop);
 
    // TODO: some unsupported format (32-bit float?)

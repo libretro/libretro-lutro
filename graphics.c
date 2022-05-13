@@ -544,10 +544,10 @@ static int gfx_getColor(lua_State *L)
       return luaL_error(L, "lutro.graphics.getColor requires 0 arguments, %d given.", n);
 
    canvas = get_canvas_ref(L, cur_canv);
-   c.a = (canvas->foreground >> 24) & 0xff;
-   c.r = (canvas->foreground >> 16) & 0xff;
-   c.g = (canvas->foreground >>  8) & 0xff;
-   c.b = (canvas->foreground >>  0) & 0xff;
+   c.a = (canvas->foreground >> ALPHA_SHIFT) & 0xff;
+   c.r = (canvas->foreground >> RED_SHIFT) & 0xff;
+   c.g = (canvas->foreground >> GREEN_SHIFT) & 0xff;
+   c.b = (canvas->foreground >> BLUE_SHIFT) & 0xff;
 
    lua_pushnumber(L, c.r);
    lua_pushnumber(L, c.g);
@@ -604,10 +604,10 @@ static int gfx_getBackgroundColor(lua_State *L)
       return luaL_error(L, "lutro.graphics.getBackgroundColor requires 0 arguments, %d given.", n);
 
    canvas = get_canvas_ref(L, cur_canv);
-   c.a = (canvas->background >> 24) & 0xff;
-   c.r = (canvas->background >> 16) & 0xff;
-   c.g = (canvas->background >>  8) & 0xff;
-   c.b = (canvas->background >>  0) & 0xff;
+   c.a = (canvas->background >> ALPHA_SHIFT) & 0xff;
+   c.r = (canvas->background >> RED_SHIFT) & 0xff;
+   c.g = (canvas->background >> GREEN_SHIFT) & 0xff;
+   c.b = (canvas->background >> BLUE_SHIFT) & 0xff;
 
    lua_pushnumber(L, c.r);
    lua_pushnumber(L, c.g);

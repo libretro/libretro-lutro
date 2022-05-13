@@ -769,6 +769,51 @@ bool lutro_unserialize(const void *data_, size_t size)
    return true;
 }
 
+void lutro_cheat_set(unsigned index, bool enabled, const char *code)
+{
+   int oldtop = lua_gettop(L);
+   lua_pushcfunction(L, traceback);
+
+   lua_getglobal(L, "lutro");
+   lua_getfield(L, -1, "cheat_set");
+
+   if (lua_isfunction(L, -1))
+   {
+      lua_pushnumber(L, index);
+      lua_pushboolean(L, enabled);
+      lua_pushstring(L, code);
+      if (lutro_pcall(L, 3, 0))
+      {
+         fprintf(stderr, "%s\n", lua_tostring(L, -1));
+         lua_pop(L, 1);
+      }
+   }
+
+   lua_settop(L, oldtop);
+   lua_gc(L, LUA_GCSTEP, 0);
+}
+
+void lutro_cheat_reset()
+{
+   int oldtop = lua_gettop(L);
+   lua_pushcfunction(L, traceback);
+
+   lua_getglobal(L, "lutro");
+   lua_getfield(L, -1, "cheat_reset");
+
+   if (lua_isfunction(L, -1))
+   {
+      if (lutro_pcall(L, 0, 0))
+      {
+         fprintf(stderr, "%s\n", lua_tostring(L, -1));
+         lua_pop(L, 1);
+      }
+   }
+
+   lua_settop(L, oldtop);
+   lua_gc(L, LUA_GCSTEP, 0);
+}
+
 void lutro_assetPath_init(AssetPathInfo* dest, const char* path)
 {
    assert (dest);

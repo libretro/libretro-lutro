@@ -8,6 +8,7 @@
 #include <retro_miscellaneous.h>
 
 #include "painter.h"
+#include "image.h"
 #include "lutro_stb_image.h"
 
 #define _USE_MATH_DEFINES
@@ -17,9 +18,9 @@
 /* from http://www.codeguru.com/cpp/cpp/algorithms/general/article.php/c15989/Tip-An-Optimized-Formula-for-Alpha-Blending-Pixels.htm */
 #define COMPOSE_FAST(S, D, A) (((S * A) + (D * (256U - A))) >> 8U)
 #define DISASSEMBLE_RGB(COLOR, R, G, B) \
-   R = ((COLOR & 0xff0000)>>16);\
-   G = ((COLOR & 0xff00)>>8);\
-   B = (COLOR & 0xff);
+   R = ((COLOR & RED_MASK) >> RED_SHIFT);\
+   G = ((COLOR & GREEN_MASK) >> GREEN_SHIFT);\
+   B = ((COLOR & BLUE_MASK) >> BLUE_SHIFT);
 #endif
 
 static int strpos(const char *haystack, char needle)
@@ -122,6 +123,24 @@ void pntr_fill_rect(painter_t *p, const rect_t *rect)
    if ((color & 0xff000000) == 0)
       return;
 
+#ifdef HAVE_COMPOSITION
+   uint32_t sa, sr, sg, sb, da, dr, dg, db, s, d;
+   do
+   {
+      for (x = drect.x; x < xend; ++x)
+      {
+         s = color;
+         d = row[x];
+         sa = s >> 24;
+         da = d >> 24;
+         DISASSEMBLE_RGB(s, sr, sg, sb);
+         DISASSEMBLE_RGB(d, dr, dg, db);
+         row[x] = ((sa + da * (255 - sa)) << 24) | (COMPOSE_FAST(sr, dr, sa) << 16) | (COMPOSE_FAST(sg, dg, sa) << 8) | (COMPOSE_FAST(sb, db, sa));
+      }
+
+      row += row_size;
+   } while (row < end);
+#else
    do
    {
       for (x = drect.x; x < xend; ++x)
@@ -129,6 +148,7 @@ void pntr_fill_rect(painter_t *p, const rect_t *rect)
 
       row += row_size;
    } while (row < end);
+#endif
 }
 
 

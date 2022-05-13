@@ -196,10 +196,12 @@ else ifeq ($(platform),ps2)
 	CC = mips64r5900el-ps2-elf-gcc$(EXE_EXT)
 	CXX = mips64r5900el-ps2-elf-g++$(EXE_EXT)
 	AR = mips64r5900el-ps2-elf-ar$(EXE_EXT)
-	FLAGS += -G0 -DPS2 -DABGR1555 -DHAVE_NO_LANGEXTRA
-	INCFLAGS_PLATFORM += -O3
-	STATIC_LINKING := 1
-	LIBS :=
+	TARGET := $(TARGET_NAME)_libretro_$(platform).a
+	fpic := -fno-PIC
+	DEFINES := -G0 -DPS2 -DABGR -DHAVE_NO_LANGEXTRA -O3
+	LUA_MYCFLAGS := $(DEFINES) $(CFLAGS)
+	STATIC_LINKING = 1
+	WANT_PHYSFS=0
 
 # PSP
 else ifeq ($(platform), psp1)
@@ -344,6 +346,54 @@ else ifeq ($(platform), sncps3)
 	LUA_MYCFLAGS := $(DEFINES) $(CFLAGS)
 	STATIC_LINKING = 1
 	MMD :=
+# RS90
+else ifeq ($(platform), rs90)
+   TARGET := $(TARGET_NAME)_libretro.so
+   CC = /opt/rs90-toolchain/usr/bin/mipsel-linux-gcc
+   CXX = /opt/rs90-toolchain/usr/bin/mipsel-linux-g++
+   AR = /opt/rs90-toolchain/usr/bin/mipsel-linux-ar
+   fpic := -fPIC
+   SHARED := -shared -Wl,-version-script=link.T
+   PLATFORM_DEFINES := -DCC_RESAMPLER -DCC_RESAMPLER_NO_HIGHPASS
+   CFLAGS += -fomit-frame-pointer -ffast-math -march=mips32 -mtune=mips32
+   LUA_MYCFLAGS += -fomit-frame-pointer -ffast-math -march=mips32 -mtune=mips32
+   CXXFLAGS += $(CFLAGS)
+
+# GCW0
+else ifeq ($(platform), gcw0)
+	TARGET := $(TARGET_NAME)_libretro.so
+	CC = /opt/gcw0-toolchain/usr/bin/mipsel-linux-gcc
+	AR = /opt/gcw0-toolchain/usr/bin/mipsel-linux-ar
+	fpic := -fPIC
+	SHARED := -shared -Wl,--version-script=link.T -Wl,-no-undefined
+
+	DISABLE_ERROR_LOGGING := 1
+	CFLAGS += -march=mips32 -mtune=mips32r2 -mhard-float
+	LUA_MYCFLAGS += -march=mips32 -mtune=mips32r2 -mhard-float
+	LIBS = -lm
+# RETROFW
+else ifeq ($(platform), retrofw)
+	EXT ?= so
+	TARGET := $(TARGET_NAME)_libretro.$(EXT)
+	CC = /opt/retrofw-toolchain/usr/bin/mipsel-linux-gcc
+	AR = /opt/retrofw-toolchain/usr/bin/mipsel-linux-ar
+	fpic := -fPIC
+	SHARED := -shared -Wl,--version-script=link.T -Wl,--no-undefined
+	CFLAGS += -ffast-math -march=mips32 -mtune=mips32 -mhard-float
+	LUA_MYCFLAGS += -ffast-math -march=mips32 -mtune=mips32 -mhard-float
+	LIBS = -lm
+# MIYOO
+else ifeq ($(platform), miyoo)
+	TARGET := $(TARGET_NAME)_libretro.so
+	fpic := -fPIC
+	SHARED := -shared -Wl,-version-script=link.T
+	CC = /opt/miyoo/usr/bin/arm-linux-gcc
+	AR = /opt/miyoo/usr/bin/arm-linux-ar
+	PLATFORM_DEFINES += -D_GNU_SOURCE
+	CFLAGS += -fomit-frame-pointer -ffast-math -march=armv5te -mtune=arm926ej-s
+	CFLAGS += -fno-common -ftree-vectorize -funswitch-loops
+	LUA_MYCFLAGS += -fomit-frame-pointer -ffast-math -march=armv5te -mtune=arm926ej-s
+	LUA_MYCFLAGS += -fno-common -ftree-vectorize -funswitch-loops
 else
 	TARGET := $(TARGET_NAME)_libretro.dll
 	SHARED := -shared -static-libgcc -static-libstdc++ -s -Wl,--no-undefined

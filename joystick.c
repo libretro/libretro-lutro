@@ -51,6 +51,7 @@ void lutro_joystick_init()
 
 void lutro_joystickevent(lua_State* L)
 {
+   ENTER_LUA_STACK
    int i, u;
    int16_t state;
 
@@ -77,6 +78,7 @@ void lutro_joystickevent(lua_State* L)
       }
    }
    lua_pop(L, 1);      // pop traceback
+   EXIT_LUA_STACK
 }
 
 /**
@@ -102,6 +104,11 @@ void lutro_joystickInvokeJoystickEvent(lua_State* L, char* eventName, int joysti
          lua_pop(L, 1);
       }
    }
+   else
+   {
+      lua_pop(L, 1); // pop eventName
+   }
+   lua_pop(L, 1); // pop lutro
 }
 
 /**

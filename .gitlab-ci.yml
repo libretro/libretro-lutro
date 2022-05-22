@@ -247,7 +247,7 @@ libretro-build-dingux-odbeta-mips32:
     - .core-defs
 
 # OpenDingux
-libretro-build-dingux-arm32:
+libretro-build-miyoo-arm32:
   extends:
     - .libretro-miyoo-arm32-make-default
     - .core-defs

@@ -6,7 +6,7 @@
 #include "joystick.h"
 #include "lutro.h"
 
-static int16_t joystick_cache[6][14];
+static int16_t joystick_cache[6][14+4];
 
 const struct joystick_int_const_map joystick_key_enum[17] = {
    {RETRO_DEVICE_ID_JOYPAD_B, "b"},
@@ -33,6 +33,7 @@ int lutro_joystick_preload(lua_State *L)
    static luaL_Reg joystick_funcs[] =  {
       { "getJoystickCount", joystick_getJoystickCount },
       { "isDown", joystick_isDown },
+      { "getAxis", joystick_getAxis },
       {NULL, NULL}
    };
 
@@ -76,8 +77,13 @@ void lutro_joystickevent(lua_State* L)
             }
          }
       }
+
+      joystick_cache[i][14] = settings.input_cb(i, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_LEFT, RETRO_DEVICE_ID_ANALOG_X);
+      joystick_cache[i][15] = settings.input_cb(i, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_LEFT, RETRO_DEVICE_ID_ANALOG_Y);
+      joystick_cache[i][16] = settings.input_cb(i, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_RIGHT, RETRO_DEVICE_ID_ANALOG_X);
+      joystick_cache[i][17] = settings.input_cb(i, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_RIGHT, RETRO_DEVICE_ID_ANALOG_Y);
    }
-   lua_pop(L, 1);      // pop traceback
+   lua_pop(L, 1); // pop traceback
    EXIT_LUA_STACK
 }
 
@@ -151,6 +157,30 @@ int joystick_isDown(lua_State *L)
    lua_pushboolean(L, output);
 
    return 1;
+}
+
+/**
+ * lutro.joystick.getAxis() from LOVE 0.9.0.
+ *
+ * https://love2d.org/wiki/love.joystick.getAxis
+ */
+int joystick_getAxis(lua_State *L)
+{
+   ENTER_LUA_STACK
+   int n = lua_gettop(L);
+   if (n != 2) {
+      return luaL_error(L, "lutro.joystick.getAxis requires two arguments, %d given.", n);
+   }
+
+   int joystick = luaL_checknumber(L, 1);
+   int axis = luaL_checknumber(L, 2);
+   int val = joystick_cache[joystick - 1][14 + axis - 1];
+   float output = val / 32767.0f;
+
+   lua_pushnumber(L, output);
+
+   return 1;
+   EXIT_LUA_STACK
 }
 
 /**

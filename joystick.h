@@ -16,6 +16,7 @@ void lutro_joystick_init(void);
 void lutro_joystickevent(lua_State* L);
 int joystick_getJoystickCount(lua_State *L);
 int joystick_isDown(lua_State *L);
+int joystick_getAxis(lua_State *L);
 const char* joystick_retroToJoystick(unsigned joystickKey);
 int joystick_joystickToRetro(const char* retroKey);
 void lutro_joystickInvokeJoystickEvent(lua_State* L, char* eventName, int joystick, int button);

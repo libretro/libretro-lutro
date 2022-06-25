@@ -160,7 +160,7 @@ int joystick_isDown(lua_State *L)
  */
 const char* joystick_retroToJoystick(unsigned joystickKey)
 {
-  return joystick_find_name(joystick_key_enum, joystickKey);
+   return joystick_find_name(joystick_key_enum, joystickKey);
 }
 
 /**

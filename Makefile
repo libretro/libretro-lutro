@@ -31,7 +31,7 @@ WANT_PHYSFS      ?= 0
 #### END CLI OPTIONS
 
 # setup some things that will be reassigned per-platform
-HAVE_COMPOSITION ?= 0
+HAVE_COMPOSITION ?= 1
 HAVE_INOTIFY ?= 0
 MMD := -MMD
 

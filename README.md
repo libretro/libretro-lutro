@@ -36,7 +36,7 @@ Compile Lutro by [installing the RetroArch dependencies](https://github.com/libr
 There are a few optional defines you can use to change how Lutro behaves.
 
 - `make HAVE_COMPOSITION=1` Enables alpha-blending.
-
+- `make HAVE_TRANSFORM=1` Enables scaling
 
 ## Test
 

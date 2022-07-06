@@ -152,6 +152,10 @@ ifeq ($(HAVE_COMPOSITION),1)
     CFLAGS += -DHAVE_COMPOSITION
 endif
 
+ifeq ($(HAVE_TRANSFORM),1)
+    CFLAGS += -DHAVE_TRANSFORM
+endif
+
 # PhysFS
 ifeq ($(WANT_PHYSFS), 1)
    DEFINES += -DWANT_PHYSFS

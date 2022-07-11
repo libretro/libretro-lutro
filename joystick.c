@@ -6,7 +6,9 @@
 #include "joystick.h"
 #include "lutro.h"
 
-static int16_t joystick_cache[6][14];
+#define NB_JOYSTICKS 8
+#define NB_BUTTONS 14
+static int16_t joystick_cache[NB_JOYSTICKS][NB_BUTTONS];
 
 const struct joystick_int_const_map joystick_key_enum[17] = {
    {RETRO_DEVICE_ID_JOYPAD_B, "b"},
@@ -58,9 +60,9 @@ void lutro_joystickevent(lua_State* L)
    lua_pushcfunction(L, traceback);
 
    // Loop through each joystick.
-   for (i = 0; i < 6; i++) {
+   for (i = 0; i < NB_JOYSTICKS; i++) {
       // Loop through each button.
-      for (u = 0; u < 14; u++) {
+      for (u = 0; u < NB_BUTTONS; u++) {
          // Retrieve the state of the button.
          state = settings.input_cb(i, RETRO_DEVICE_JOYPAD, 0, u);
 
@@ -145,6 +147,13 @@ int joystick_isDown(lua_State *L)
 
    int joystick = luaL_checknumber(L, 1);
    int button = luaL_checknumber(L, 2);
+
+   if (joystick > NB_JOYSTICKS || joystick == 0) {
+      return luaL_error(L, "lutro.joystick.isDown invalid joystick number %d must be between 1 and %d included.", joystick, NB_JOYSTICKS);
+   }
+   if (button > NB_BUTTONS || button == 0) {
+      return luaL_error(L, "lutro.joystick.isDown invalid joystick button %d must be between 1 and %d included.", button, NB_BUTTONS);
+   }
 
    output = (bool) joystick_cache[joystick - 1][button - 1];
 

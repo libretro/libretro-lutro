@@ -69,4 +69,16 @@ typedef struct _AssetPathInfo
 
 void lutro_assetPath_init(AssetPathInfo* dest, const char* path);
 
+// Use wrapper to handle C allocation rather than direct call
+// the goal is to easy allow to trace/check memory leak
+// Note: use a debug string to easily identify the allocation. __FILE__
+// + __LINE__ could be used too but it might be too verbose
+#ifndef TRACE_ALLOCATION
+#define TRACE_ALLOCATION 0 // Enable a printf trace of C allocation
+#endif
+void *lutro_malloc(size_t size, const char* debug);
+void lutro_free(void *ptr, const char* debug);
+void *lutro_calloc(size_t nmemb, size_t size, const char* debug);
+void *lutro_realloc(void *ptr, size_t size, const char* debug);
+
 #endif // LUTRO_H

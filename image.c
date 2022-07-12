@@ -87,7 +87,7 @@ void *image_data_create_from_dimensions(lua_State *L, int width, int height)
    self->width = width;
    self->height = height;
    self->pitch = self->width << 2;
-   self->data = (uint32_t*)calloc(1, sizeof(uint32_t)*self->width*self->height);
+   self->data = (uint32_t*)lutro_calloc(1, sizeof(uint32_t)*self->width*self->height, "create image");
 
    return image_data_create(L, self);
 }

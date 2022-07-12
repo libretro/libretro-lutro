@@ -49,7 +49,7 @@ int snd_newSoundData(lua_State *L)
       decOgg_init(&oggData, asset.fullpath);
       self->numSamples  = decOgg_sampleLength(&oggData);
       self->numChannels = oggData.info->channels;
-      self->data = calloc(1, sizeof(mixer_presaturate_t) * self->numSamples * self->numChannels);
+      self->data = lutro_calloc(1, sizeof(mixer_presaturate_t) * self->numSamples * self->numChannels, "new ogg");
 
       bufdesc.data      = self->data;
       bufdesc.channels  = self->numChannels;
@@ -65,7 +65,7 @@ int snd_newSoundData(lua_State *L)
       decWav_init(&wavData, asset.fullpath);
       self->numSamples  = wavData.headc2.Subchunk2Size / ((wavData.headc1.BitsPerSample/8) * wavData.headc1.NumChannels);
       self->numChannels = wavData.headc1.NumChannels;
-      self->data = calloc(1, sizeof(mixer_presaturate_t) * self->numSamples * self->numChannels);   
+      self->data = lutro_calloc(1, sizeof(mixer_presaturate_t) * self->numSamples * self->numChannels, "new wav");
 
       bufdesc.data      = self->data;
       bufdesc.channels  = self->numChannels;
@@ -109,7 +109,7 @@ int sndta_type(lua_State *L)
 int sndta_gc(lua_State *L)
 {
    snd_SoundData* self = (snd_SoundData*)luaL_checkudata(L, 1, "SoundData");
-   free(self->data);
+   lutro_free(self->data, "sndta_gc");
    self->data = NULL;
 
    // audio makes deep copies of this object when it preps it as a mixer source, so no mixer cleanup needed here.

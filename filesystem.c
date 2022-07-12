@@ -76,7 +76,7 @@ int fs_read(lua_State *L)
    long fsize = ftell(fp);
    fseek(fp, 0, SEEK_SET);
 
-   char *string      = malloc(fsize + 1);
+   char *string      = lutro_malloc(fsize + 1, "fs_read");
    size_t bytes_read = fread(string, 1, fsize, fp);
    fclose(fp);
 
@@ -85,7 +85,7 @@ int fs_read(lua_State *L)
    lua_pushstring(L, string);
    lua_pushnumber(L, bytes_read);
 
-   free(string);
+   lutro_free(string, "fs_read");
 
    return 2;
 }
@@ -161,7 +161,7 @@ int fs_load(lua_State *L)
    long fsize = ftell(fp);
    fseek(fp, 0, SEEK_SET);
 
-   char *string = malloc(fsize + 1);
+   char *string = lutro_malloc(fsize + 1, "fs_load");
    fread(string, fsize, 1, fp);
    fclose(fp);
 

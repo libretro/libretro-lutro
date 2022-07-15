@@ -62,11 +62,6 @@ void retro_init(void)
 void retro_deinit(void)
 {
    lutro_deinit();
-
-   if (settings.framebuffer) {
-      lutro_free(settings.framebuffer, "deinit framebuffer");
-      settings.framebuffer = NULL;
-   }
 }
 
 unsigned retro_api_version(void)

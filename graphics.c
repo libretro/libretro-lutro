@@ -313,6 +313,14 @@ static int canvas_type(lua_State *L)
 static int canvas_gc(lua_State *L)
 {
    gfx_Canvas* self = get_canvas_ndx(L, 1);
+   if (self->target) {
+       if (self->target->data) {
+           lutro_free(self->target->data, "canvas fb");
+           self->target->data = NULL;
+       }
+       lutro_free(self->target, "canvas bmp");
+       self->target = NULL;
+   }
    (void)self;
    return 0;
 }

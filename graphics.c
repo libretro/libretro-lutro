@@ -410,7 +410,9 @@ static int font_setFilter(lua_State *L)
 static int font_gc(lua_State *L)
 {
    font_t* self = (font_t*)luaL_checkudata(L, 1, "Font");
-   (void)self;
+   if (self && self->atlas.data) {
+       free(self->atlas.data); // Allocation is done in stb lib, don't trace it in lutro
+   }
    return 0;
 }
 
@@ -473,6 +475,9 @@ static int gfx_newImageFont(lua_State *L)
 
    push_font(L, font);
 
+   // The C font object was shallow-copied in a lua object. C font object must be
+   // freed here but pointer inside the object (like font->atlas) must be freed
+   // in lua garbage collector (aka font_gc)
    lutro_free(font, "new font");
 
    return 1;

@@ -411,7 +411,7 @@ static int font_gc(lua_State *L)
 {
    font_t* self = (font_t*)luaL_checkudata(L, 1, "Font");
    if (self && self->atlas.data) {
-       free(self->atlas.data); // Allocation is done in stb lib, don't trace it in lutro
+       lutro_free(self->atlas.data, "font atlas");
    }
    return 0;
 }

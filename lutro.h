@@ -80,5 +80,12 @@ void *lutro_malloc(size_t size, const char* debug);
 void lutro_free(void *ptr, const char* debug);
 void *lutro_calloc(size_t nmemb, size_t size, const char* debug);
 void *lutro_realloc(void *ptr, size_t size, const char* debug);
+#if TRACE_ALLOCATION // Allow to trace allocation done in stb (and freed in ludo)
+#ifndef STBI_MALLOC
+#define STBI_MALLOC(sz)           lutro_malloc(sz, __FILE__)
+#define STBI_REALLOC(p,newsz)     lutro_realloc(p, newsz, __FILE__)
+#define STBI_FREE(p)              lutro_free(p, __FILE__)
+#endif
+#endif
 
 #endif // LUTRO_H

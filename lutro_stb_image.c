@@ -8,6 +8,7 @@
 #define STBI_NO_LINEAR
 #define STBI_NO_HDR
 #define STBI_NO_THREAD_LOCALS
+#include "lutro.h"
 #include "stb/stb_image.h"
 
 /**
@@ -30,7 +31,7 @@ int lutro_stb_image_load(const char* filename, uint32_t** data, unsigned int* wi
    stbi_uc* output = stbi_load_from_memory((stbi_uc const*)buf, (int)len, &x, &y, &channels_in_file, channels);
    *width = x;
    *height = y;
-   free(buf); // Allocated inside libretro so don't use lutro_free
+   free(buf); // Allocated in libretro:filestream_read_file, don't trace it on ludo
 
    // Ensure the image loaded successfully.
    if (output == NULL) {

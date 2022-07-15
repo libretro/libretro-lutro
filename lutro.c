@@ -318,6 +318,7 @@ void lutro_deinit()
 #endif
 
    lutro_audio_stop_all(L);
+   mixer_unref_stopped_sounds(L);
    lua_gc(L, LUA_GCSTEP, 0);
    lua_close(L);
 

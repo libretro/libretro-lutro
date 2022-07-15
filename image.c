@@ -194,6 +194,9 @@ static int l_getDimensions(lua_State *L)
 static int l_gc(lua_State *L)
 {
    bitmap_t* self = (bitmap_t*)luaL_checkudata(L, 1, "ImageData");
-   (void)self;
+   if (self->data) {
+       lutro_free(self->data, "free image");
+       self->data = NULL;
+   }
    return 0;
 }

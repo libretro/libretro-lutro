@@ -828,39 +828,39 @@ void lutro_assetPath_init(AssetPathInfo* dest, const char* path)
       dest->ext[i] = tolower((uint8_t)dest->ext[i]);
 }
 
-void *lutro_malloc(size_t size, const char* debug)
+void *lutro_malloc_internal(size_t size, const char* debug, int line)
 {
     void *a = malloc(size);
 #if TRACE_ALLOCATION
-    fprintf(stderr,"TRACE ALLOC:%p malloc:%s\n", a, debug);
+    fprintf(stderr,"TRACE ALLOC:%p malloc:%s:%d\n", a, debug, line);
 #endif
     return a;
 }
 
-void lutro_free(void *ptr, const char* debug)
+void lutro_free_internal(void *ptr, const char* debug, int line)
 {
 #if TRACE_ALLOCATION
     // Don't trace nop
     if (ptr)
-        fprintf(stderr,"TRACE ALLOC:%p free:%s\n", ptr, debug);
+        fprintf(stderr,"TRACE ALLOC:%p free:%s:%d\n", ptr, debug, line);
 #endif
     free(ptr);
 }
 
-void *lutro_calloc(size_t nmemb, size_t size, const char* debug)
+void *lutro_calloc_internal(size_t nmemb, size_t size, const char* debug, int line)
 {
     void *a = calloc(nmemb, size);
 #if TRACE_ALLOCATION
-    fprintf(stderr,"TRACE ALLOC:%p calloc:%s\n", a, debug);
+    fprintf(stderr,"TRACE ALLOC:%p calloc:%s:%d\n", a, debug, line);
 #endif
     return a;
 }
 
-void *lutro_realloc(void *ptr, size_t size, const char* debug)
+void *lutro_realloc_internal(void *ptr, size_t size, const char* debug, int line)
 {
     void *a = realloc(ptr, size);
 #if TRACE_ALLOCATION
-    fprintf(stderr,"TRACE ALLOC:%p realloc from %p:%s\n", a, ptr, debug);
+    fprintf(stderr,"TRACE ALLOC:%p realloc from %p:%s:%d\n", a, ptr, debug, line);
 #endif
     return a;
 }

@@ -76,15 +76,19 @@ void lutro_assetPath_init(AssetPathInfo* dest, const char* path);
 #ifndef TRACE_ALLOCATION
 #define TRACE_ALLOCATION 0 // Enable a printf trace of C allocation
 #endif
-void *lutro_malloc(size_t size, const char* debug);
-void lutro_free(void *ptr, const char* debug);
-void *lutro_calloc(size_t nmemb, size_t size, const char* debug);
-void *lutro_realloc(void *ptr, size_t size, const char* debug);
+void *lutro_malloc_internal(size_t size, const char* debug, int line);
+void *lutro_calloc_internal(size_t nmemb, size_t size, const char* debug, int line);
+void *lutro_realloc_internal(void *ptr, size_t size, const char* debug, int line);
+void lutro_free_internal(void *ptr, const char* debug, int line);
+#define lutro_malloc(size, debug) lutro_malloc_internal(size, debug, __LINE__)
+#define lutro_calloc(nmemb, size, debug) lutro_calloc_internal(nmemb, size, debug, __LINE__)
+#define lutro_realloc(ptr, size, debug) lutro_realloc_internal(ptr, size, debug, __LINE__)
+#define lutro_free(ptr, debug) lutro_free_internal(ptr, debug, __LINE__)
 #if TRACE_ALLOCATION // Allow to trace allocation done in stb (and freed in ludo)
 #ifndef STBI_MALLOC
-#define STBI_MALLOC(sz)           lutro_malloc(sz, __FILE__)
-#define STBI_REALLOC(p,newsz)     lutro_realloc(p, newsz, __FILE__)
-#define STBI_FREE(p)              lutro_free(p, __FILE__)
+#define STBI_MALLOC(sz)           lutro_malloc_internal(sz, __FILE__, __LINE__)
+#define STBI_REALLOC(p,newsz)     lutro_realloc_internal(p, newsz, __FILE__, __LINE__)
+#define STBI_FREE(p)              lutro_free_internal(p, __FILE__, __LINE__)
 #endif
 #endif
 

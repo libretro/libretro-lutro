@@ -300,7 +300,7 @@ void lutro_audio_deinit()
       return;
    }
 
-   free(sources_playing);
+   lutro_free(sources_playing);
    sources_playing = NULL;
    num_sources = 0;
 }
@@ -383,20 +383,20 @@ int audio_newSource(lua_State *L)
 
       if (strstr(asset.ext, "ogg"))
       {
-         self->oggData = malloc(sizeof(dec_OggData));
+         self->oggData = lutro_malloc(sizeof(dec_OggData));
          if (!decOgg_init(self->oggData, asset.fullpath))
          {
-            free(self->oggData);
+            lutro_free(self->oggData);
             self->oggData = NULL;
          }
       }
 
       if (strstr(asset.ext, "wav"))
       {
-         self->wavData = malloc(sizeof(dec_WavData));
+         self->wavData = lutro_malloc(sizeof(dec_WavData));
          if (!decWav_init(self->wavData, asset.fullpath))
          {
-            free(self->wavData);
+            lutro_free(self->wavData);
             self->wavData = NULL;
          }
       }
@@ -643,13 +643,13 @@ int source_gc(lua_State *L)
       if (self->wavData->fp)
          fclose(self->wavData->fp);
 
-      free(self->wavData);
+      lutro_free(self->wavData);
    }
 
    if (self->oggData)
    {
       ov_clear(&self->oggData->vf);
-      free(self->oggData);
+      lutro_free(self->oggData);
    }
 
    (void)self;
@@ -698,7 +698,7 @@ int audio_play(lua_State *L)
       // TODO: This should be converted into a pooled allocator (a linked list of reusable blocks)
 
       slot = num_sources++;
-      audioSourceByRef *new_sources_playing = (audioSourceByRef*)realloc(sources_playing, num_sources * sizeof(audioSourceByRef));
+      audioSourceByRef *new_sources_playing = (audioSourceByRef*)lutro_realloc(sources_playing, num_sources * sizeof(audioSourceByRef));
       if (new_sources_playing == NULL)
          lutro_alertf("Not enough memory reallocating sources_playing");
       else

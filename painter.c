@@ -7,6 +7,7 @@
 #include <assert.h>
 #include <retro_miscellaneous.h>
 
+#include "lutro.h"
 #include "painter.h"
 #include "image.h"
 #include "lutro_stb_image.h"
@@ -467,7 +468,7 @@ void pntr_printf(painter_t *p, int x, int y, const char *format, ...)
    vasprintf(&buf,  format, v);
    va_end(v);
    pntr_print(p, x, y, buf, 0);
-   free(buf);
+   lutro_free(buf);
 }
 
 
@@ -526,10 +527,12 @@ void pntr_translate(painter_t *p, int x, int y)
 
 font_t *font_load_filename(const char *filename, const char *characters, unsigned flags)
 {
-   font_t *font = calloc(1, sizeof(font_t));
+   font_t *font = lutro_calloc(1, sizeof(font_t));
 
    flags &= ~FONT_FREETYPE;
 
+   // This code is a nop, font was 0 init-ed in the calloc above
+   // Side note: free of NULL is legal
    if (font->atlas.data)
       free(font->atlas.data);
 
@@ -558,10 +561,12 @@ font_t *font_load_filename(const char *filename, const char *characters, unsigne
 
 font_t *font_load_bitmap(const bitmap_t *atlas, const char *characters, unsigned flags)
 {
-   font_t *font = calloc(1, sizeof(font_t));
+   font_t *font = lutro_calloc(1, sizeof(font_t));
 
    flags &= ~FONT_FREETYPE;
 
+   // This code is a nop, font was 0 init-ed in the calloc above
+   // Side note: free of NULL is legal
    if (font->atlas.data)
       free(font->atlas.data);
 

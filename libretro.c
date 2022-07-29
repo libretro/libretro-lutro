@@ -62,11 +62,6 @@ void retro_init(void)
 void retro_deinit(void)
 {
    lutro_deinit();
-
-   if (settings.framebuffer) {
-      free(settings.framebuffer);
-      settings.framebuffer = NULL;
-   }
 }
 
 unsigned retro_api_version(void)
@@ -298,11 +293,11 @@ int vasprintf(char **strp, const char *fmt, va_list ap)
    /* measure the string */
    int len = vsnprintf(NULL,0,fmt,ap);
    /* try allocating some memory */
-   if((len < 0) || ((*strp = malloc(++len)) == NULL)) return -1;
+   if((len < 0) || ((*strp = lutro_malloc(++len)) == NULL)) return -1;
    /* print the string */
    len = vsnprintf(*strp,len,fmt,ap);
    /* handle failure */
-   if(len < 0) free(*strp);
+   if(len < 0) lutro_free(*strp);
    return len;
 }
 #endif

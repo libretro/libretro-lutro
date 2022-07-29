@@ -87,7 +87,7 @@ void *image_data_create_from_dimensions(lua_State *L, int width, int height)
    self->width = width;
    self->height = height;
    self->pitch = self->width << 2;
-   self->data = (uint32_t*)calloc(1, sizeof(uint32_t)*self->width*self->height);
+   self->data = (uint32_t*)lutro_calloc(1, sizeof(uint32_t)*self->width*self->height);
 
    return image_data_create(L, self);
 }
@@ -194,6 +194,9 @@ static int l_getDimensions(lua_State *L)
 static int l_gc(lua_State *L)
 {
    bitmap_t* self = (bitmap_t*)luaL_checkudata(L, 1, "ImageData");
-   (void)self;
+   if (self->data) {
+       lutro_free(self->data);
+       self->data = NULL;
+   }
    return 0;
 }

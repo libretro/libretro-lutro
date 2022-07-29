@@ -69,4 +69,26 @@ typedef struct _AssetPathInfo
 
 void lutro_assetPath_init(AssetPathInfo* dest, const char* path);
 
+// Use wrapper to handle C allocation rather than direct call
+// the goal is to easy allow to trace/check memory leak
+#ifndef TRACE_ALLOCATION
+#define TRACE_ALLOCATION 0 // Enable a printf trace of C allocation
+#endif
+void *lutro_malloc_internal(size_t size, const char* debug, int line);
+void *lutro_calloc_internal(size_t nmemb, size_t size, const char* debug, int line);
+void *lutro_realloc_internal(void *ptr, size_t size, const char* debug, int line);
+void lutro_free_internal(void *ptr, const char* debug, int line);
+void lutro_print_allocation();
+#define lutro_malloc(size) lutro_malloc_internal(size, __FILE__, __LINE__)
+#define lutro_calloc(nmemb, size) lutro_calloc_internal(nmemb, size, __FILE__, __LINE__)
+#define lutro_realloc(ptr, size) lutro_realloc_internal(ptr, size, __FILE__, __LINE__)
+#define lutro_free(ptr) lutro_free_internal(ptr, __FILE__, __LINE__)
+#if TRACE_ALLOCATION // Allow to trace allocation done in stb (and freed in ludo)
+#ifndef STBI_MALLOC
+#define STBI_MALLOC(sz)           lutro_malloc_internal(sz, __FILE__, __LINE__)
+#define STBI_REALLOC(p,newsz)     lutro_realloc_internal(p, newsz, __FILE__, __LINE__)
+#define STBI_FREE(p)              lutro_free_internal(p, __FILE__, __LINE__)
+#endif
+#endif
+
 #endif // LUTRO_H

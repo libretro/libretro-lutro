@@ -33,6 +33,7 @@ WANT_PHYSFS      ?= 0
 # setup some things that will be reassigned per-platform
 HAVE_COMPOSITION ?= 1
 HAVE_INOTIFY ?= 0
+TRACE_ALLOCATION ?= 0
 MMD := -MMD
 
 ifeq ($(platform),)

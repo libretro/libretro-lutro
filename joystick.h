@@ -6,10 +6,13 @@
 
 #include "runtime.h"
 
+#define NB_JOYSTICKS 8
+#define NB_BUTTONS 16
+
 extern const struct joystick_int_const_map {
    long value;
    const char *name;
-} joystick_key_enum[17];
+} joystick_key_enum[NB_BUTTONS+1];
 
 int lutro_joystick_preload(lua_State *L);
 void lutro_joystick_init(void);

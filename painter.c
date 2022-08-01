@@ -12,6 +12,8 @@
 #include "image.h"
 #include "lutro_stb_image.h"
 
+#include "encodings/utf.h"
+
 #define _USE_MATH_DEFINES
 #include <math.h>
 
@@ -24,11 +26,15 @@
    B = ((COLOR & BLUE_MASK) >> BLUE_SHIFT);
 #endif
 
-static int strpos(const char *haystack, char needle)
+static int strpos(const uint32_t *haystack, uint32_t needle)
 {
-   char *p = strchr(haystack, needle);
-   if (p)
-      return p - haystack;
+   // Note on performance a hash table would be much faster here
+   for (int i = 0; i < MAX_FONT_CHAR; i++) {
+       if (haystack[i] == 0)
+           break;
+       if (haystack[i] == needle)
+           return i;
+   }
    return -1;
 }
 
@@ -401,10 +407,16 @@ void pntr_print(painter_t *p, int x, int y, const char *text, int limit)
          0, 0, 0, atlas->height
       };
 
-      while (*text)
+      size_t char_nb = utf8len(text);
+      uint32_t* utf32 = lutro_malloc(char_nb * 4);
+      utf8_conv_utf32(utf32, char_nb, text, strlen(text));
+
+      for(int i = 0; i < char_nb; i++)
       {
-         int c = *text++;
+         uint32_t c = utf32[i];
          int pos = strpos(font->characters, c);
+         if (pos < 0)
+             continue;
 
          srect.x = font->separators[pos] + 1;
          drect.width = srect.width = font->separators[pos+1] - srect.x;
@@ -425,6 +437,8 @@ void pntr_print(painter_t *p, int x, int y, const char *text, int limit)
 	        drect.y += atlas->height;
 		 }
       }
+
+      lutro_free(utf32);
    }
 }
 
@@ -444,16 +458,24 @@ int pntr_text_width(painter_t *p, const char *text)
 
       int glyph_x, glyph_width;
 
-      while (*text)
+      size_t char_nb = utf8len(text);
+      uint32_t* utf32 = lutro_malloc(char_nb * 4);
+      utf8_conv_utf32(utf32, char_nb, text, strlen(text));
+
+      for(int i = 0; i < char_nb; i++)
       {
-         int c = *text++;
+         uint32_t c = utf32[i];
          int pos = strpos(font->characters, c);
+         if (pos < 0)
+             continue;
 
          glyph_x = font->separators[pos] + 1;
          glyph_width = font->separators[pos+1] - glyph_x;
 
          width += glyph_width + 1;
       }
+
+      lutro_free(utf32);
    }
 
    return width;
@@ -527,14 +549,14 @@ void pntr_translate(painter_t *p, int x, int y)
 
 font_t *font_load_filename(const char *filename, const char *characters, unsigned flags)
 {
+   // FIXME: note it would be better to refactor/rewrite this function as
+   // However special care must be taken for allocation/free outside of those functions
+   // 1/ create a bitmap from filename
+   // 2/ return font_load_bitmap(bitmap, characters, flags)
+
    font_t *font = lutro_calloc(1, sizeof(font_t));
 
    flags &= ~FONT_FREETYPE;
-
-   // This code is a nop, font was 0 init-ed in the calloc above
-   // Side note: free of NULL is legal
-   if (font->atlas.data)
-      free(font->atlas.data);
 
    font->pxsize = 0;
    font->flags  = flags;
@@ -545,7 +567,7 @@ font_t *font_load_filename(const char *filename, const char *characters, unsigne
    atlas->pitch = atlas->width << 2;
 
    uint32_t separator = atlas->data[0];
-   int max_separators = 256;
+   int max_separators = MAX_FONT_CHAR;
 
    int i, char_counter = 0;
    for (i = 0; i < atlas->width && char_counter < max_separators; i++)
@@ -554,7 +576,13 @@ font_t *font_load_filename(const char *filename, const char *characters, unsigne
          font->separators[char_counter++] = i;
    }
 
-   strcpy(font->characters, characters);
+   // Note: later 'len' could be used to dynamically alloc the font->characters and
+   // font->separators buffers
+   size_t len = utf8len(characters);
+   if (len > MAX_FONT_CHAR) {
+       fprintf(stderr, "Font atlas is too big. It will be truncated !\n");
+   }
+   utf8_conv_utf32(font->characters, MAX_FONT_CHAR, characters, strlen(characters));
 
    return font;
 }
@@ -565,18 +593,13 @@ font_t *font_load_bitmap(const bitmap_t *atlas, const char *characters, unsigned
 
    flags &= ~FONT_FREETYPE;
 
-   // This code is a nop, font was 0 init-ed in the calloc above
-   // Side note: free of NULL is legal
-   if (font->atlas.data)
-      free(font->atlas.data);
-
    font->pxsize = 0;
    font->flags  = flags;
 
    font->atlas = *atlas;
 
    uint32_t separator = font->atlas.data[0];
-   int max_separators = 256;
+   int max_separators = MAX_FONT_CHAR;
 
    int i, char_counter = 0;
    for (i = 0; i < font->atlas.width && char_counter < max_separators; i++)
@@ -585,7 +608,13 @@ font_t *font_load_bitmap(const bitmap_t *atlas, const char *characters, unsigned
          font->separators[char_counter++] = i;
    }
 
-   strcpy(font->characters, characters);
+   // Note: later 'len' could be used to dynamically alloc the font->characters and
+   // font->separators buffers
+   size_t len = utf8len(characters);
+   if (len > MAX_FONT_CHAR) {
+       fprintf(stderr, "Font atlas is too big. It will be truncated !\n");
+   }
+   utf8_conv_utf32(font->characters, MAX_FONT_CHAR, characters, strlen(characters));
 
    return font;
 }

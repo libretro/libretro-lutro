@@ -5,6 +5,8 @@
 #include <stdint.h>
 #include <boolean.h>
 
+#define MAX_FONT_CHAR 256
+
 enum {
    FONT_FREETYPE = 1 << 1,
    FONT_BOLD     = 1 << 2,
@@ -25,8 +27,8 @@ typedef struct
    unsigned flags;
    unsigned pxsize;
 
-   int  separators[256];
-   char characters[256];
+   int  separators[MAX_FONT_CHAR];
+   uint32_t characters[MAX_FONT_CHAR];
 } font_t;
 
 typedef struct

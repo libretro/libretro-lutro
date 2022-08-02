@@ -54,6 +54,9 @@ void pntr_reset(painter_t *p)
 
 void pntr_clear(painter_t *p)
 {
+   if (!p->target->data)
+      return;
+
    uint32_t *begin = p->target->data;
    uint32_t *end   = p->target->data + p->target->height * (p->target->pitch >> 2);
    uint32_t color  = p->background;
@@ -75,6 +78,9 @@ void pntr_sanitize_clip(painter_t *p)
 
 void pntr_strike_line(painter_t *p, int x1, int y1, int x2, int y2)
 {
+   if (!p->target->data)
+      return;
+
    uint32_t color = p->foreground;
    if ((color & 0xff000000) == 0)
       return;
@@ -110,6 +116,9 @@ void pntr_strike_rect(painter_t *p, const rect_t *rect)
 
 void pntr_fill_rect(painter_t *p, const rect_t *rect)
 {
+   if (!p->target->data)
+      return;
+
    size_t row_size = p->target->pitch >> 2;
    uint32_t color = p->foreground;
    rect_t drect = {
@@ -209,6 +218,9 @@ void pntr_strike_poly(painter_t *p, const int *points, int nb_points)
 
 void pntr_fill_poly(painter_t *p, const int *points, int nb_points)
 {
+   if (!p->target->data)
+      return;
+
    if ((nb_points % 2) != 0)
       return;
 
@@ -278,6 +290,9 @@ void pntr_strike_ellipse(painter_t *p, int x, int y, int radius_x, int radius_y,
 
 void pntr_fill_ellipse(painter_t *p, int x, int y, int radius_x, int radius_y, int nb_segments)
 {
+   if (!p->target->data)
+      return;
+
    uint32_t color = p->foreground;
    if ((color & 0xff000000) == 0)
       return;
@@ -312,6 +327,9 @@ void pntr_fill_ellipse(painter_t *p, int x, int y, int radius_x, int radius_y, i
 
 void pntr_draw(painter_t *p, const bitmap_t *bmp, const rect_t *src_rect, const rect_t *dst_rect)
 {
+   if (!p->target->data)
+      return;
+
    rect_t srect = *src_rect, drect = *dst_rect;
 
    drect.x += p->trans->tx;
@@ -408,7 +426,14 @@ void pntr_print(painter_t *p, int x, int y, const char *text, int limit)
       };
 
       size_t char_nb = utf8len(text);
-      uint32_t* utf32 = lutro_malloc(char_nb * 4);
+      uint32_t *utf32 = NULL;
+      // Avoid to call malloc for small string rendering
+      uint32_t buf[256];
+      if (char_nb < 256) {
+          utf32 = buf;
+      } else {
+          utf32 = lutro_malloc(char_nb * 4);
+      }
       utf8_conv_utf32(utf32, char_nb, text, strlen(text));
 
       for(int i = 0; i < char_nb; i++)
@@ -438,7 +463,8 @@ void pntr_print(painter_t *p, int x, int y, const char *text, int limit)
 		 }
       }
 
-      lutro_free(utf32);
+      if (utf32 != buf)
+          lutro_free(utf32);
    }
 }
 
@@ -459,7 +485,14 @@ int pntr_text_width(painter_t *p, const char *text)
       int glyph_x, glyph_width;
 
       size_t char_nb = utf8len(text);
-      uint32_t* utf32 = lutro_malloc(char_nb * 4);
+      uint32_t *utf32 = NULL;
+      // Avoid to call malloc for small string rendering
+      uint32_t buf[256];
+      if (char_nb < 256) {
+          utf32 = buf;
+      } else {
+          utf32 = lutro_malloc(char_nb * 4);
+      }
       utf8_conv_utf32(utf32, char_nb, text, strlen(text));
 
       for(int i = 0; i < char_nb; i++)
@@ -475,7 +508,8 @@ int pntr_text_width(painter_t *p, const char *text)
          width += glyph_width + 1;
       }
 
-      lutro_free(utf32);
+      if (utf32 != buf)
+          lutro_free(utf32);
    }
 
    return width;
@@ -555,6 +589,7 @@ font_t *font_load_filename(const char *filename, const char *characters, unsigne
    // 2/ return font_load_bitmap(bitmap, characters, flags)
 
    font_t *font = lutro_calloc(1, sizeof(font_t));
+   font->owner = lutro_calloc(1, sizeof(uint32_t));
 
    flags &= ~FONT_FREETYPE;
 
@@ -590,13 +625,18 @@ font_t *font_load_filename(const char *filename, const char *characters, unsigne
 font_t *font_load_bitmap(const bitmap_t *atlas, const char *characters, unsigned flags)
 {
    font_t *font = lutro_calloc(1, sizeof(font_t));
+   font->owner = lutro_calloc(1, sizeof(uint32_t));
+
+   // Deep copy data from atlas to give ownership. It also matches the behavior
+   // of font_load_filename that allocate a buffer for the atlas
+   font->atlas = *atlas;
+   font->atlas.data = lutro_malloc(atlas->pitch * atlas->height);
+   memcpy(font->atlas.data, atlas->data, atlas->pitch * atlas->height);
 
    flags &= ~FONT_FREETYPE;
 
    font->pxsize = 0;
    font->flags  = flags;
-
-   font->atlas = *atlas;
 
    uint32_t separator = font->atlas.data[0];
    int max_separators = MAX_FONT_CHAR;

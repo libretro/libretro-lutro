@@ -145,14 +145,21 @@ static int l_getPixel(lua_State *L)
 
    lua_pop(L, n);
 
-   uint32_t* data = self->data;
+   int a = 0;
+   int r = 0;
+   int g = 0;
+   int b = 0;
 
-   uint32_t color = data[y * (self->pitch >> 2) + x];
+   if (self->data) {
+       uint32_t* data = self->data;
 
-   int a = ((color & ALPHA_MASK) >> ALPHA_SHIFT);
-   int r = ((color & RED_MASK) >> RED_SHIFT);
-   int g = ((color & GREEN_MASK) >> GREEN_SHIFT);
-   int b = ((color & BLUE_MASK) >> BLUE_SHIFT);
+       uint32_t color = data[y * (self->pitch >> 2) + x];
+
+       a = ((color & ALPHA_MASK) >> ALPHA_SHIFT);
+       r = ((color & RED_MASK) >> RED_SHIFT);
+       g = ((color & GREEN_MASK) >> GREEN_SHIFT);
+       b = ((color & BLUE_MASK) >> BLUE_SHIFT);
+   }
 
    lua_pushnumber(L, r);
    lua_pushnumber(L, g);
@@ -178,7 +185,8 @@ static int l_setPixel(lua_State *L)
 
    lua_pop(L, n);
 
-   self->data[y * (self->pitch >> 2) + x] = (c.a<<24) | (c.r<<16) | (c.g<<8) | c.b;
+   if (self->data)
+       self->data[y * (self->pitch >> 2) + x] = (c.a<<24) | (c.r<<16) | (c.g<<8) | c.b;
 
    return 0;
 }

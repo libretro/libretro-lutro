@@ -78,22 +78,21 @@ void lutro_graphics_reinit(lua_State *L)
 {
    gfx_Canvas *canvas;
 
-   if (fbbmp && fbbmp->width == settings.width && fbbmp->height == settings.height)
-      return;
+   if (!(fbbmp && fbbmp->width == settings.width && fbbmp->height == settings.height)) {
+       if (fbbmp)
+           lutro_free(fbbmp->data);
+       else
+           fbbmp = (bitmap_t*)lutro_calloc(1, sizeof(bitmap_t));
 
-   if (fbbmp)
-      lutro_free(fbbmp->data);
-   else
-      fbbmp = (bitmap_t*)lutro_calloc(1, sizeof(bitmap_t));
+       settings.pitch_pixels = settings.width;
+       settings.pitch        = settings.pitch_pixels * sizeof(uint32_t);
+       settings.framebuffer  = (uint32_t*)lutro_calloc(1, settings.pitch * settings.height);
 
-   settings.pitch_pixels = settings.width;
-   settings.pitch        = settings.pitch_pixels * sizeof(uint32_t);
-   settings.framebuffer  = (uint32_t*)lutro_calloc(1, settings.pitch * settings.height);
-
-   fbbmp->data   = settings.framebuffer;
-   fbbmp->height = settings.height;
-   fbbmp->width  = settings.width;
-   fbbmp->pitch  = settings.pitch;
+       fbbmp->data   = settings.framebuffer;
+       fbbmp->height = settings.height;
+       fbbmp->width  = settings.width;
+       fbbmp->pitch  = settings.pitch;
+   }
 
    canvas = (gfx_Canvas*)get_canvas_ref(L, cur_canv);
    canvas->target = fbbmp;
@@ -409,8 +408,19 @@ static int font_setFilter(lua_State *L)
 static int font_gc(lua_State *L)
 {
    font_t* self = (font_t*)luaL_checkudata(L, 1, "Font");
-   if (self && self->atlas.data) {
-       lutro_free(self->atlas.data);
+   // Release both atlas/owner data when owner reaches 0
+   if (self) {
+       if (self->owner) {
+           *self->owner = *self->owner - 1;
+           if (*self->owner == 0) {
+               if (self->atlas.data) {
+                   lutro_free(self->atlas.data);
+                   self->atlas.data = NULL;
+               }
+               lutro_free(self->owner);
+               self->owner = NULL;
+           }
+       }
    }
    return 0;
 }
@@ -419,6 +429,8 @@ static void push_font(lua_State *L, font_t *font)
 {
    font_t* self = (font_t*)lua_newuserdata(L, sizeof(font_t));
    memcpy(self, font, sizeof(font_t));
+   if (self->owner) // Increment the number of owner
+       *self->owner = *self->owner + 1;
 
    if (luaL_newmetatable(L, "Font") != 0)
    {
@@ -505,7 +517,14 @@ static int gfx_getFont(lua_State *L)
    if (n != 0)
       return luaL_error(L, "lutro.graphics.getFont requires 0 arguments, %d given.", n);
 
+
    canvas = get_canvas_ref(L, cur_canv);
+   if (canvas->font == NULL) {
+      // In theory, it must automatically create a default font for love 0.9.0
+      // Let's just return an error as not supported
+      return luaL_error(L, "lutro.graphics.getFont without user defined font isn't supported.");
+   }
+
    push_font(L, canvas->font);
 
    return 1;

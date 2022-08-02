@@ -24,6 +24,8 @@ int lutro_stb_image_load(const char* filename, uint32_t** data, unsigned int* wi
 
    // Load the file data.
    if (filestream_read_file(filename, &buf, &len) <= 0) {
+      fprintf(stderr, "failed to read file %s\n", filename);
+      *data = NULL; // Put a null pointer, in case caller doesn't check the return value
       return 0;
    }
 
@@ -35,6 +37,8 @@ int lutro_stb_image_load(const char* filename, uint32_t** data, unsigned int* wi
 
    // Ensure the image loaded successfully.
    if (output == NULL) {
+      fprintf(stderr, "failed to load data from %s\n", filename);
+      *data = NULL; // Put a null pointer, in case caller doesn't check the return value
       return 0;
    }
 

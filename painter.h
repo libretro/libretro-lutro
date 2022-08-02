@@ -23,6 +23,8 @@ typedef struct
 
 typedef struct
 {
+   uint32_t *owner; /* Count the number of owner of the atlas object
+                       Atlas must be freed when value reach 0 */
    bitmap_t atlas; /* atlas.data is owned by the font */
    unsigned flags;
    unsigned pxsize;

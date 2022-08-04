@@ -448,7 +448,7 @@ void pntr_print(painter_t *p, int x, int y, const char *text, int limit)
 
          pntr_draw(p, atlas, &srect, &drect);
 
-         drect.x += srect.width + 1;
+         drect.x += srect.width + font->extraspacing;
 
          if (limit > 0 && drect.x - x > limit)
          {
@@ -505,7 +505,7 @@ int pntr_text_width(painter_t *p, const char *text)
          glyph_x = font->separators[pos] + 1;
          glyph_width = font->separators[pos+1] - glyph_x;
 
-         width += glyph_width + 1;
+         width += glyph_width + font->extraspacing;
       }
 
       if (utf32 != buf)

@@ -31,6 +31,7 @@ typedef struct
 
    int  separators[MAX_FONT_CHAR];
    uint32_t characters[MAX_FONT_CHAR];
+   int extraspacing;
 } font_t;
 
 typedef struct

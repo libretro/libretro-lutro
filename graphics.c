@@ -484,6 +484,13 @@ static int gfx_newImageFont(lua_State *L)
       font = font_load_bitmap(img->data, characters, 0);
    }
 
+   if (n >= 3) {
+       font->extraspacing = luaL_checkint(L, 3);
+   } else {
+       // FIXME: it should be 0 here, but 1 keep lutro compatibility
+       font->extraspacing = 1;
+   }
+
    push_font(L, font);
 
    // The C font object was shallow-copied in a lua object. C font object must be

@@ -19,6 +19,7 @@
 #include "joystick.h"
 
 #include <file/file_path.h>
+#include <streams/file_stream.h>
 #include <compat/strl.h>
 #include <ctype.h>
 
@@ -466,9 +467,11 @@ int lutro_load(const char *path)
 
    if (path_is_directory(mainfile)) {
       fill_pathname_join(mainfile, gamedir, "main.lua", sizeof(mainfile));
-      fill_pathname_join(mainfile, gamedir, "main.luac", sizeof(mainfile));
+	  if (!filestream_exists(mainfile))
+         fill_pathname_join(mainfile, gamedir, "main.luac", sizeof(mainfile));
       fill_pathname_join(conffile, gamedir, "conf.lua", sizeof(conffile));
-      fill_pathname_join(conffile, gamedir, "conf.luac", sizeof(conffile));
+	  if (!filestream_exists(conffile))
+         fill_pathname_join(conffile, gamedir, "conf.luac", sizeof(conffile));
    }
    else {
       path_basedir(gamedir);
@@ -481,13 +484,17 @@ int lutro_load(const char *path)
       fill_pathname(gamedir, conffile, "/", sizeof(gamedir));
       lutro_unzip(mainfile, gamedir);
       fill_pathname_join(mainfile, gamedir, "main.lua", sizeof(mainfile));
-      fill_pathname_join(mainfile, gamedir, "main.luac", sizeof(mainfile));
+	  if (!filestream_exists(mainfile))
+         fill_pathname_join(mainfile, gamedir, "main.luac", sizeof(mainfile));
       fill_pathname_join(conffile, gamedir, "conf.lua", sizeof(conffile));
-      fill_pathname_join(conffile, gamedir, "conf.luac", sizeof(conffile));
+	  if (!filestream_exists(conffile))
+         fill_pathname_join(conffile, gamedir, "conf.luac", sizeof(conffile));
    }
    else {
       // Loading a main.lua file, so construct the config file.
       fill_pathname_join(conffile, gamedir, "conf.lua", sizeof(conffile));
+	  if (!filestream_exists(conffile))
+         fill_pathname_join(conffile, gamedir, "conf.luac", sizeof(conffile));
    }
 
    fill_pathname_slash(gamedir, sizeof(gamedir));

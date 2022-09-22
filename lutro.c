@@ -467,10 +467,10 @@ int lutro_load(const char *path)
 
    if (path_is_directory(mainfile)) {
       fill_pathname_join(mainfile, gamedir, "main.lua", sizeof(mainfile));
-	  if (!filestream_exists(mainfile))
+      if (!filestream_exists(mainfile))
          fill_pathname_join(mainfile, gamedir, "main.luac", sizeof(mainfile));
       fill_pathname_join(conffile, gamedir, "conf.lua", sizeof(conffile));
-	  if (!filestream_exists(conffile))
+      if (!filestream_exists(conffile))
          fill_pathname_join(conffile, gamedir, "conf.luac", sizeof(conffile));
    }
    else {
@@ -484,16 +484,16 @@ int lutro_load(const char *path)
       fill_pathname(gamedir, conffile, "/", sizeof(gamedir));
       lutro_unzip(mainfile, gamedir);
       fill_pathname_join(mainfile, gamedir, "main.lua", sizeof(mainfile));
-	  if (!filestream_exists(mainfile))
+      if (!filestream_exists(mainfile))
          fill_pathname_join(mainfile, gamedir, "main.luac", sizeof(mainfile));
       fill_pathname_join(conffile, gamedir, "conf.lua", sizeof(conffile));
-	  if (!filestream_exists(conffile))
+      if (!filestream_exists(conffile))
          fill_pathname_join(conffile, gamedir, "conf.luac", sizeof(conffile));
    }
    else {
       // Loading a main.lua file, so construct the config file.
       fill_pathname_join(conffile, gamedir, "conf.lua", sizeof(conffile));
-	  if (!filestream_exists(conffile))
+      if (!filestream_exists(conffile))
          fill_pathname_join(conffile, gamedir, "conf.luac", sizeof(conffile));
    }
 

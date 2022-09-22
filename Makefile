@@ -36,6 +36,7 @@ HAVE_INOTIFY ?= 0
 TRACE_ALLOCATION ?= 0
 MMD := -MMD
 
+
 ifeq ($(platform),)
 	platform = unix
 	ifeq ($(shell uname -a),)
@@ -95,7 +96,6 @@ else ifeq ($(platform), osx)
 	LUA_SYSCFLAGS := -DLUA_USE_MACOSX
 	CFLAGS += -DHAVE_STRL -DDONT_WANT_ARM_OPTIMIZATIONS
 	WANT_PHYSFS=0
-	MACOSX_DEPLOYMENT_TARGET=12.6
 	MMD :=
 	ifeq ($(UNIVERSAL),1)
 		ifeq ($(ARCHFLAGS),)

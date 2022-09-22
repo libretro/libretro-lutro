@@ -60,7 +60,7 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v2
-      - run:                 make -j4 platform=osx config=player WANT_JIT=1 
+      - run:                 make -j4 platform=osx config=player WANT_JIT=1 MACOSX_DEPLOYMENT_TARGET=12.6
 
   build_osx_luasocket:
     runs-on: macos-latest

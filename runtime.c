@@ -134,6 +134,7 @@ int lutro_getVersion(lua_State *L) {
 #endif
 #define api_check2(l,e,msg)	luai_apicheck(l,(e) && msg)
 
+#ifndef HAVE_JIT
 LUA_API const lua_Number *lua_version (lua_State *L)
 {
    static const lua_Number version = LUA_VERSION_NUM;
@@ -142,6 +143,7 @@ LUA_API const lua_Number *lua_version (lua_State *L)
 //   else return G(L)->version;
    return &version;
 }
+#endif
 
 #define luaL_checkversion(L)	luaL_checkversion_(L, LUA_VERSION_NUM)
 LUALIB_API void luaL_checkversion_ (lua_State *L, lua_Number ver)
@@ -160,6 +162,7 @@ LUALIB_API void luaL_checkversion_ (lua_State *L, lua_Number ver)
    lua_pop(L, 1);
 }
 
+#ifndef HAVE_JIT
 LUALIB_API void luaL_setfuncs (lua_State *L, const luaL_Reg *l, int nup)
 {
    luaL_checkversion(L);
@@ -174,6 +177,7 @@ LUALIB_API void luaL_setfuncs (lua_State *L, const luaL_Reg *l, int nup)
    }
    lua_pop(L, nup);
 }
+#endif
 
 LUA_API int lua_absindex (lua_State *L, int idx) {
    return (idx > 0 || idx <= LUA_REGISTRYINDEX)? idx : lua_gettop(L) + idx + 1;

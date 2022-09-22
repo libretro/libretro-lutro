@@ -491,7 +491,7 @@ int lutro_load(const char *path)
    fill_pathname_slash(gamedir, sizeof(gamedir));
 
    char package_path[PATH_MAX_LENGTH];
-   snprintf(package_path, PATH_MAX_LENGTH, ";%s?.lua;%s?.luac;%s?/init.lua", gamedir, gamedir);
+   snprintf(package_path, PATH_MAX_LENGTH, ";%s?.lua;%s?.luac;%s?/init.lua", gamedir, gamedir, gamedir);
    lutro_set_package_path(L, package_path);
 
    // Load the configuration file, ignoring any errors.

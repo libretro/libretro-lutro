@@ -36,6 +36,7 @@ HAVE_INOTIFY ?= 0
 TRACE_ALLOCATION ?= 0
 MMD := -MMD
 
+
 ifeq ($(platform),)
 	platform = unix
 	ifeq ($(shell uname -a),)

@@ -1,94 +1,94 @@
 LUALIB_DIR := $(CORE_DIR)/deps/lua/src
 
 INCFLAGS := -I$(CORE_DIR) \
-				-I$(CORE_DIR)/libretro-common/include \
-				-I$(CORE_DIR)/deps/zlib \
-				-I$(CORE_DIR)/deps/vorbis \
-				-I$(CORE_DIR)/deps/ogg \
-				-I$(CORE_DIR)/deps
+	-I$(CORE_DIR)/libretro-common/include \
+	-I$(CORE_DIR)/deps/zlib \
+	-I$(CORE_DIR)/deps/vorbis \
+	-I$(CORE_DIR)/deps/ogg \
+	-I$(CORE_DIR)/deps
 
 SOURCES_C := $(CORE_DIR)/libretro.c \
-                 $(CORE_DIR)/lutro.c \
-                 $(CORE_DIR)/runtime.c \
-                 $(CORE_DIR)/image.c \
-                 $(CORE_DIR)/graphics.c \
-                 $(CORE_DIR)/input.c \
-                 $(CORE_DIR)/audio.c \
-                 $(CORE_DIR)/decoder.c \
-                 $(CORE_DIR)/event.c \
-                 $(CORE_DIR)/keyboard.c \
-                 $(CORE_DIR)/sound.c \
-                 $(CORE_DIR)/filesystem.c \
-                 $(CORE_DIR)/system.c \
-                 $(CORE_DIR)/timer.c \
-                 $(CORE_DIR)/lutro_math.c \
-                 $(CORE_DIR)/joystick.c \
-                 $(CORE_DIR)/mouse.c \
-                 $(CORE_DIR)/lutro_stb_image.c \
-                 $(CORE_DIR)/lutro_window.c \
-                 $(CORE_DIR)/painter.c
+	$(CORE_DIR)/lutro.c \
+	$(CORE_DIR)/runtime.c \
+	$(CORE_DIR)/image.c \
+	$(CORE_DIR)/graphics.c \
+	$(CORE_DIR)/input.c \
+	$(CORE_DIR)/audio.c \
+	$(CORE_DIR)/decoder.c \
+	$(CORE_DIR)/event.c \
+	$(CORE_DIR)/keyboard.c \
+	$(CORE_DIR)/sound.c \
+	$(CORE_DIR)/filesystem.c \
+	$(CORE_DIR)/system.c \
+	$(CORE_DIR)/timer.c \
+	$(CORE_DIR)/lutro_math.c \
+	$(CORE_DIR)/joystick.c \
+	$(CORE_DIR)/mouse.c \
+	$(CORE_DIR)/lutro_stb_image.c \
+	$(CORE_DIR)/lutro_window.c \
+	$(CORE_DIR)/painter.c
 
 ifeq ($(WANT_LUALIB),1)
 INCFLAGS += -I$(LUALIB_DIR)
 SOURCES_C += $(LUALIB_DIR)/lapi.c \
-                 $(LUALIB_DIR)/lauxlib.c \
-                 $(LUALIB_DIR)/lbaselib.c \
-                 $(LUALIB_DIR)/lcode.c \
-                 $(LUALIB_DIR)/ldblib.c \
-                 $(LUALIB_DIR)/ldo.c \
-                 $(LUALIB_DIR)/lfunc.c \
-                 $(LUALIB_DIR)/lgc.c \
-                 $(LUALIB_DIR)/linit.c \
-                 $(LUALIB_DIR)/liolib.c \
-                 $(LUALIB_DIR)/llex.c \
-                 $(LUALIB_DIR)/lmathlib.c \
-                 $(LUALIB_DIR)/lmem.c \
-                 $(LUALIB_DIR)/loadlib.c \
-                 $(LUALIB_DIR)/lobject.c \
-                 $(LUALIB_DIR)/lopcodes.c \
-                 $(LUALIB_DIR)/loslib.c \
-                 $(LUALIB_DIR)/lparser.c \
-                 $(LUALIB_DIR)/lstate.c \
-                 $(LUALIB_DIR)/lstring.c \
-                 $(LUALIB_DIR)/lstrlib.c \
-                 $(LUALIB_DIR)/ltable.c \
-                 $(LUALIB_DIR)/ltablib.c \
-                 $(LUALIB_DIR)/ltm.c \
-                 $(LUALIB_DIR)/lvm.c \
-                 $(LUALIB_DIR)/lzio.c \
-                 $(LUALIB_DIR)/ldebug.c \
-                 $(LUALIB_DIR)/lundump.c \
-                 $(LUALIB_DIR)/ldump.c
+	$(LUALIB_DIR)/lauxlib.c \
+	$(LUALIB_DIR)/lbaselib.c \
+	$(LUALIB_DIR)/lcode.c \
+	$(LUALIB_DIR)/ldblib.c \
+	$(LUALIB_DIR)/ldo.c \
+	$(LUALIB_DIR)/lfunc.c \
+	$(LUALIB_DIR)/lgc.c \
+	$(LUALIB_DIR)/linit.c \
+	$(LUALIB_DIR)/liolib.c \
+	$(LUALIB_DIR)/llex.c \
+	$(LUALIB_DIR)/lmathlib.c \
+	$(LUALIB_DIR)/lmem.c \
+	$(LUALIB_DIR)/loadlib.c \
+	$(LUALIB_DIR)/lobject.c \
+	$(LUALIB_DIR)/lopcodes.c \
+	$(LUALIB_DIR)/loslib.c \
+	$(LUALIB_DIR)/lparser.c \
+	$(LUALIB_DIR)/lstate.c \
+	$(LUALIB_DIR)/lstring.c \
+	$(LUALIB_DIR)/lstrlib.c \
+	$(LUALIB_DIR)/ltable.c \
+	$(LUALIB_DIR)/ltablib.c \
+	$(LUALIB_DIR)/ltm.c \
+	$(LUALIB_DIR)/lvm.c \
+	$(LUALIB_DIR)/lzio.c \
+	$(LUALIB_DIR)/ldebug.c \
+	$(LUALIB_DIR)/lundump.c \
+	$(LUALIB_DIR)/ldump.c
 endif
 
 ifneq ($(STATIC_LINKING), 1)
 SOURCES_C += \
-				 $(CORE_DIR)/libretro-common/file/file_path.c \
-				 $(CORE_DIR)/libretro-common/file/file_path_io.c \
-				 $(CORE_DIR)/libretro-common/features/features_cpu.c \
-				 $(CORE_DIR)/libretro-common/audio/conversion/float_to_s16.c \
-				 $(CORE_DIR)/libretro-common/audio/conversion/s16_to_float.c \
-				 $(CORE_DIR)/libretro-common/audio/audio_mix.c \
-				 $(CORE_DIR)/libretro-common/compat/compat_posix_string.c \
-				 $(CORE_DIR)/libretro-common/memmap/memalign.c \
-				 $(CORE_DIR)/libretro-common/memmap/memmap.c \
-				 $(CORE_DIR)/libretro-common/compat/compat_strcasestr.c \
-				 $(CORE_DIR)/libretro-common/compat/compat_strl.c \
-				 $(CORE_DIR)/libretro-common/encodings/encoding_crc32.c \
-				 $(CORE_DIR)/libretro-common/encodings/encoding_utf.c \
-				 $(CORE_DIR)/libretro-common/time/rtime.c \
-				 $(CORE_DIR)/libretro-common/streams/file_stream.c \
-             $(CORE_DIR)/libretro-common/streams/trans_stream.c \
-				 $(CORE_DIR)/libretro-common/streams/trans_stream_pipe.c \
-             $(CORE_DIR)/libretro-common/streams/interface_stream.c \
-             $(CORE_DIR)/libretro-common/streams/memory_stream.c \
-             $(CORE_DIR)/libretro-common/string/stdstring.c \
-				 $(CORE_DIR)/libretro-common/vfs/vfs_implementation.c \
-				 $(CORE_DIR)/libretro-common/compat/fopen_utf8.c
+	$(CORE_DIR)/libretro-common/file/file_path.c \
+	$(CORE_DIR)/libretro-common/file/file_path_io.c \
+	$(CORE_DIR)/libretro-common/features/features_cpu.c \
+	$(CORE_DIR)/libretro-common/audio/conversion/float_to_s16.c \
+	$(CORE_DIR)/libretro-common/audio/conversion/s16_to_float.c \
+	$(CORE_DIR)/libretro-common/audio/audio_mix.c \
+	$(CORE_DIR)/libretro-common/compat/compat_posix_string.c \
+	$(CORE_DIR)/libretro-common/memmap/memalign.c \
+	$(CORE_DIR)/libretro-common/memmap/memmap.c \
+	$(CORE_DIR)/libretro-common/compat/compat_strcasestr.c \
+	$(CORE_DIR)/libretro-common/compat/compat_strl.c \
+	$(CORE_DIR)/libretro-common/encodings/encoding_crc32.c \
+	$(CORE_DIR)/libretro-common/encodings/encoding_utf.c \
+	$(CORE_DIR)/libretro-common/time/rtime.c \
+	$(CORE_DIR)/libretro-common/streams/file_stream.c \
+	$(CORE_DIR)/libretro-common/streams/trans_stream.c \
+	$(CORE_DIR)/libretro-common/streams/trans_stream_pipe.c \
+	$(CORE_DIR)/libretro-common/streams/interface_stream.c \
+	$(CORE_DIR)/libretro-common/streams/memory_stream.c \
+	$(CORE_DIR)/libretro-common/string/stdstring.c \
+	$(CORE_DIR)/libretro-common/vfs/vfs_implementation.c \
+	$(CORE_DIR)/libretro-common/compat/fopen_utf8.c
 ifeq ($(HAVE_NEON),1)
-   SOURCES_ASM += \
-            $(CORE_DIR)/libretro-common/audio/conversion/float_to_s16_neon.S \
-            $(CORE_DIR)/libretro-common/audio/conversion/s16_to_float_neon.S
+SOURCES_ASM += \
+	$(CORE_DIR)/libretro-common/audio/conversion/float_to_s16_neon.S \
+	$(CORE_DIR)/libretro-common/audio/conversion/s16_to_float_neon.S
 endif
 endif
 
@@ -98,104 +98,104 @@ SOURCES_C += $(CORE_DIR)/deps/luautf8/lutf8lib.c
 # LuaSocket
 ifeq ($(WANT_LUASOCKET),1)
 SOURCES_C += $(CORE_DIR)/deps/luasocket/libluasocket/auxiliar.c \
-    $(CORE_DIR)/deps/luasocket/libluasocket/buffer.c \
-    $(CORE_DIR)/deps/luasocket/libluasocket/except.c \
-    $(CORE_DIR)/deps/luasocket/libluasocket/inet.c \
-    $(CORE_DIR)/deps/luasocket/libluasocket/io.c \
-    $(CORE_DIR)/deps/luasocket/libluasocket/luasocket.c \
-    $(CORE_DIR)/deps/luasocket/libluasocket/mime.c \
-    $(CORE_DIR)/deps/luasocket/libluasocket/options.c \
-    $(CORE_DIR)/deps/luasocket/libluasocket/select.c \
-    $(CORE_DIR)/deps/luasocket/libluasocket/tcp.c \
-    $(CORE_DIR)/deps/luasocket/libluasocket/timeout.c \
-    $(CORE_DIR)/deps/luasocket/libluasocket/udp.c \
-    $(CORE_DIR)/deps/luasocket/luasocket.c
+	$(CORE_DIR)/deps/luasocket/libluasocket/buffer.c \
+	$(CORE_DIR)/deps/luasocket/libluasocket/except.c \
+	$(CORE_DIR)/deps/luasocket/libluasocket/inet.c \
+	$(CORE_DIR)/deps/luasocket/libluasocket/io.c \
+	$(CORE_DIR)/deps/luasocket/libluasocket/luasocket.c \
+	$(CORE_DIR)/deps/luasocket/libluasocket/mime.c \
+	$(CORE_DIR)/deps/luasocket/libluasocket/options.c \
+	$(CORE_DIR)/deps/luasocket/libluasocket/select.c \
+	$(CORE_DIR)/deps/luasocket/libluasocket/tcp.c \
+	$(CORE_DIR)/deps/luasocket/libluasocket/timeout.c \
+	$(CORE_DIR)/deps/luasocket/libluasocket/udp.c \
+	$(CORE_DIR)/deps/luasocket/luasocket.c
 ifeq ($(system_platform), unix)
-    SOURCES_C += $(CORE_DIR)/deps/luasocket/libluasocket/usocket.c \
-    $(CORE_DIR)/deps/luasocket/libluasocket/unix.c
+	SOURCES_C += $(CORE_DIR)/deps/luasocket/libluasocket/usocket.c \
+	$(CORE_DIR)/deps/luasocket/libluasocket/unix.c
 else ifeq ($(system_platform), osx)
-    SOURCES_C += $(CORE_DIR)/deps/luasocket/libluasocket/usocket.c \
-    $(CORE_DIR)/deps/luasocket/libluasocket/unix.c
+	SOURCES_C += $(CORE_DIR)/deps/luasocket/libluasocket/usocket.c \
+	$(CORE_DIR)/deps/luasocket/libluasocket/unix.c
 else
-    SOURCES_C += $(CORE_DIR)/deps/luasocket/libluasocket/wsocket.c
+	SOURCES_C += $(CORE_DIR)/deps/luasocket/libluasocket/wsocket.c
 endif
 endif
 
 ifeq ($(WANT_UNZIP),1)
 SOURCES_C += $(CORE_DIR)/deps/zlib/ioapi.c \
-        $(CORE_DIR)/deps/zlib/unzip.c
+	$(CORE_DIR)/deps/zlib/unzip.c
 endif
 
 ifeq ($(WANT_ZLIB),1)
 SOURCES_C += $(CORE_DIR)/deps/zlib/adler32.c \
-                 $(CORE_DIR)/deps/zlib/compress.c \
-                 $(CORE_DIR)/deps/zlib/crc32.c \
-                 $(CORE_DIR)/deps/zlib/deflate.c \
-                 $(CORE_DIR)/deps/zlib/gzclose.c \
-                 $(CORE_DIR)/deps/zlib/gzlib.c \
-                 $(CORE_DIR)/deps/zlib/gzread.c \
-                 $(CORE_DIR)/deps/zlib/gzwrite.c \
-                 $(CORE_DIR)/deps/zlib/inffast.c \
-                 $(CORE_DIR)/deps/zlib/inflate.c \
-                 $(CORE_DIR)/deps/zlib/inftrees.c \
-                 $(CORE_DIR)/deps/zlib/trees.c \
-                 $(CORE_DIR)/deps/zlib/uncompr.c \
-                 $(CORE_DIR)/deps/zlib/zutil.c
+	$(CORE_DIR)/deps/zlib/compress.c \
+	$(CORE_DIR)/deps/zlib/crc32.c \
+	$(CORE_DIR)/deps/zlib/deflate.c \
+	$(CORE_DIR)/deps/zlib/gzclose.c \
+	$(CORE_DIR)/deps/zlib/gzlib.c \
+	$(CORE_DIR)/deps/zlib/gzread.c \
+	$(CORE_DIR)/deps/zlib/gzwrite.c \
+	$(CORE_DIR)/deps/zlib/inffast.c \
+	$(CORE_DIR)/deps/zlib/inflate.c \
+	$(CORE_DIR)/deps/zlib/inftrees.c \
+	$(CORE_DIR)/deps/zlib/trees.c \
+	$(CORE_DIR)/deps/zlib/uncompr.c \
+	$(CORE_DIR)/deps/zlib/zutil.c
 endif
 
 ifeq ($(HAVE_INOTIFY),1)
-   CFLAGS += -DHAVE_INOTIFY
-   SOURCES_C += $(CORE_DIR)/live.c
+	CFLAGS += -DHAVE_INOTIFY
+	SOURCES_C += $(CORE_DIR)/live.c
 endif
 
 ifeq ($(HAVE_COMPOSITION),1)
-    CFLAGS += -DHAVE_COMPOSITION
+	CFLAGS += -DHAVE_COMPOSITION
 endif
 
 ifeq ($(TRACE_ALLOCATION),1)
-    CFLAGS += -DTRACE_ALLOCATION
+	CFLAGS += -DTRACE_ALLOCATION
 endif
 
 # PhysFS
 ifeq ($(WANT_PHYSFS), 1)
-   DEFINES += -DWANT_PHYSFS
-   DEPS_DIR_PHYSFS := $(CORE_DIR)/deps/physfs
-   CFLAGS += -I$(DEPS_DIR_PHYSFS)
-   SOURCES_C_PHYSFS = $(DEPS_DIR_PHYSFS)/physfs.c \
-                 $(DEPS_DIR_PHYSFS)/physfs_byteorder.c \
-                 $(DEPS_DIR_PHYSFS)/physfs_unicode.c \
-                 $(DEPS_DIR_PHYSFS)/physfs_archiver_7z.c \
-                 $(DEPS_DIR_PHYSFS)/physfs_archiver_dir.c \
-                 $(DEPS_DIR_PHYSFS)/physfs_archiver_grp.c \
-                 $(DEPS_DIR_PHYSFS)/physfs_archiver_hog.c \
-                 $(DEPS_DIR_PHYSFS)/physfs_archiver_iso9660.c \
-                 $(DEPS_DIR_PHYSFS)/physfs_archiver_mvl.c \
-                 $(DEPS_DIR_PHYSFS)/physfs_archiver_qpak.c \
-                 $(DEPS_DIR_PHYSFS)/physfs_archiver_slb.c \
-                 $(DEPS_DIR_PHYSFS)/physfs_archiver_unpacked.c \
-                 $(DEPS_DIR_PHYSFS)/physfs_archiver_vdf.c \
-                 $(DEPS_DIR_PHYSFS)/physfs_archiver_wad.c \
-                 $(DEPS_DIR_PHYSFS)/physfs_archiver_zip.c \
-                 $(DEPS_DIR_PHYSFS)/physfs_platform_os2.c \
-                 $(DEPS_DIR_PHYSFS)/physfs_platform_posix.c \
-                 $(DEPS_DIR_PHYSFS)/physfs_platform_qnx.c \
-                 $(DEPS_DIR_PHYSFS)/physfs_platform_unix.c \
-                 $(DEPS_DIR_PHYSFS)/physfs_platform_windows.c
-   SOURCES_C += $(SOURCES_C_PHYSFS)
-   ifeq ($(WANT_ZLIB),1)
-      DEFINES += -DPHYSFS_SUPPORTS_ZIP
-   endif
+	DEFINES += -DWANT_PHYSFS
+	DEPS_DIR_PHYSFS := $(CORE_DIR)/deps/physfs
+	CFLAGS += -I$(DEPS_DIR_PHYSFS)
+	SOURCES_C_PHYSFS = $(DEPS_DIR_PHYSFS)/physfs.c \
+		$(DEPS_DIR_PHYSFS)/physfs_byteorder.c \
+		$(DEPS_DIR_PHYSFS)/physfs_unicode.c \
+		$(DEPS_DIR_PHYSFS)/physfs_archiver_7z.c \
+		$(DEPS_DIR_PHYSFS)/physfs_archiver_dir.c \
+		$(DEPS_DIR_PHYSFS)/physfs_archiver_grp.c \
+		$(DEPS_DIR_PHYSFS)/physfs_archiver_hog.c \
+		$(DEPS_DIR_PHYSFS)/physfs_archiver_iso9660.c \
+		$(DEPS_DIR_PHYSFS)/physfs_archiver_mvl.c \
+		$(DEPS_DIR_PHYSFS)/physfs_archiver_qpak.c \
+		$(DEPS_DIR_PHYSFS)/physfs_archiver_slb.c \
+		$(DEPS_DIR_PHYSFS)/physfs_archiver_unpacked.c \
+		$(DEPS_DIR_PHYSFS)/physfs_archiver_vdf.c \
+		$(DEPS_DIR_PHYSFS)/physfs_archiver_wad.c \
+		$(DEPS_DIR_PHYSFS)/physfs_archiver_zip.c \
+		$(DEPS_DIR_PHYSFS)/physfs_platform_os2.c \
+		$(DEPS_DIR_PHYSFS)/physfs_platform_posix.c \
+		$(DEPS_DIR_PHYSFS)/physfs_platform_qnx.c \
+		$(DEPS_DIR_PHYSFS)/physfs_platform_unix.c \
+		$(DEPS_DIR_PHYSFS)/physfs_platform_windows.c
+	SOURCES_C += $(SOURCES_C_PHYSFS)
+	ifeq ($(WANT_ZLIB),1)
+		DEFINES += -DPHYSFS_SUPPORTS_ZIP
+	endif
 
-   ifeq ($(platform),unix)
-      DEFINES += -DPHYSFS_PLATFORM_UNIX
-      DEFINES += -DPHYSFS_PLATFORM_LINUX
-   endif
+	ifeq ($(platform),unix)
+		DEFINES += -DPHYSFS_PLATFORM_UNIX
+		DEFINES += -DPHYSFS_PLATFORM_LINUX
+	endif
 endif
 
 # Ogg Vorbis
 # These sources are added to their own list so that they can be handled differently when generating
 # windows msbuild scripts. Notably, msbuild doesn't like window.c because it conflicts with window.c
-# in lutro -- such things can only be resolved in msbuld by using project encapsulation.
+# in lutro -- such things can only be resolved in msbuild by using project encapsulation.
 
 VORBIS_SOURCES_C := \
 	$(CORE_DIR)/deps/ogg/bitwise.c \

@@ -350,16 +350,16 @@ else ifeq ($(platform), sncps3)
 	MMD :=
 # RS90
 else ifeq ($(platform), rs90)
-   TARGET := $(TARGET_NAME)_libretro.so
-   CC = /opt/rs90-toolchain/usr/bin/mipsel-linux-gcc
-   CXX = /opt/rs90-toolchain/usr/bin/mipsel-linux-g++
-   AR = /opt/rs90-toolchain/usr/bin/mipsel-linux-ar
-   fpic := -fPIC
-   SHARED := -shared -Wl,-version-script=link.T
-   PLATFORM_DEFINES := -DCC_RESAMPLER -DCC_RESAMPLER_NO_HIGHPASS
-   CFLAGS += -fomit-frame-pointer -ffast-math -march=mips32 -mtune=mips32
-   LUA_MYCFLAGS += -fomit-frame-pointer -ffast-math -march=mips32 -mtune=mips32
-   CXXFLAGS += $(CFLAGS)
+	TARGET := $(TARGET_NAME)_libretro.so
+	CC = /opt/rs90-toolchain/usr/bin/mipsel-linux-gcc
+	CXX = /opt/rs90-toolchain/usr/bin/mipsel-linux-g++
+	AR = /opt/rs90-toolchain/usr/bin/mipsel-linux-ar
+	fpic := -fPIC
+	SHARED := -shared -Wl,-version-script=link.T
+	PLATFORM_DEFINES := -DCC_RESAMPLER -DCC_RESAMPLER_NO_HIGHPASS
+	CFLAGS += -fomit-frame-pointer -ffast-math -march=mips32 -mtune=mips32
+	LUA_MYCFLAGS += -fomit-frame-pointer -ffast-math -march=mips32 -mtune=mips32
+	CXXFLAGS += $(CFLAGS)
 
 # GCW0
 else ifeq ($(platform), gcw0)
@@ -535,7 +535,7 @@ $(lutro_sources_file): FORCE   # Makefile Makefile.common
 	@>> $(lutro_sources_file) echo   '  </ItemGroup>'
 	@[[ -z "$(MSVC_SOURCES_H)" ]] || \
 	 >> $(lutro_sources_file) echo   '  <ItemGroup>' && \
-     >> $(lutro_sources_file) printf "    <ClInclude Include=\"../%s\" />\n" $(MSVC_SOURCES_H) && \
+	 >> $(lutro_sources_file) printf "    <ClInclude Include=\"../%s\" />\n" $(MSVC_SOURCES_H) && \
 	 >> $(lutro_sources_file) echo   '  </ItemGroup>'
 	@>> $(lutro_sources_file) echo   '  <ItemDefinitionGroup>'
 	@>> $(lutro_sources_file) echo   '    <ClCompile>'

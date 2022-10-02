@@ -53,38 +53,38 @@ void lutro_mouseevent(lua_State* L)
  */
 int mouse_isDown(lua_State *L)
 {
-    int n = lua_gettop(L);
-    if (n < 1) {
-        return luaL_error(L, "lutro.mouse.isDown requires 1 or more arguments, %d given.", n);
-    }
+   int n = lua_gettop(L);
+   if (n < 1) {
+      return luaL_error(L, "lutro.mouse.isDown requires 1 or more arguments, %d given.", n);
+   }
 
-    int buttonToCheck = 0;
-    bool output = false;
-    unsigned i;
-    for (i = 0; i < n; i++) {
-        buttonToCheck = (int) luaL_checknumber(L, i + 1);
-        if (buttonToCheck == 1) {
-            buttonToCheck = RETRO_DEVICE_ID_MOUSE_LEFT;
-        }
-        else if (buttonToCheck == 2) {
-            buttonToCheck = RETRO_DEVICE_ID_MOUSE_RIGHT;
-        }
-        else if (buttonToCheck == 3) {
-            buttonToCheck = RETRO_DEVICE_ID_MOUSE_MIDDLE;
-        }
-        else {
-            buttonToCheck = 0;
-        }
-        if (buttonToCheck > 0) {
-            if (mouse_cache[buttonToCheck]) {
-                output = true;
-                break;
-            }
-        }
-    }
-    lua_pushboolean(L, output);
+   int buttonToCheck = 0;
+   bool output = false;
+   unsigned i;
+   for (i = 0; i < n; i++) {
+      buttonToCheck = (int) luaL_checknumber(L, i + 1);
+      if (buttonToCheck == 1) {
+         buttonToCheck = RETRO_DEVICE_ID_MOUSE_LEFT;
+      }
+      else if (buttonToCheck == 2) {
+         buttonToCheck = RETRO_DEVICE_ID_MOUSE_RIGHT;
+      }
+      else if (buttonToCheck == 3) {
+         buttonToCheck = RETRO_DEVICE_ID_MOUSE_MIDDLE;
+      }
+      else {
+         buttonToCheck = 0;
+      }
+      if (buttonToCheck > 0) {
+         if (mouse_cache[buttonToCheck]) {
+            output = true;
+            break;
+         }
+      }
+   }
+   lua_pushboolean(L, output);
 
-    return 1;
+   return 1;
 }
 
 /**
@@ -94,15 +94,15 @@ int mouse_isDown(lua_State *L)
  */
 int mouse_getX(lua_State *L)
 {
-    int n = lua_gettop(L);
-    if (n > 0) {
-        return luaL_error(L, "lutro.mouse.getX takes no arguments, %d given.", n);
-    }
+   int n = lua_gettop(L);
+   if (n > 0) {
+      return luaL_error(L, "lutro.mouse.getX takes no arguments, %d given.", n);
+   }
 
-    unsigned x = (unsigned) mouse_cache[RETRO_DEVICE_ID_MOUSE_X];
-    lua_pushnumber(L, x);
+   unsigned x = (unsigned) mouse_cache[RETRO_DEVICE_ID_MOUSE_X];
+   lua_pushnumber(L, x);
 
-    return 1;
+   return 1;
 }
 
 /**
@@ -112,15 +112,15 @@ int mouse_getX(lua_State *L)
  */
 int mouse_getY(lua_State *L)
 {
-    int n = lua_gettop(L);
-    if (n > 0) {
-        return luaL_error(L, "lutro.mouse.getX takes no arguments, %d given.", n);
-    }
+   int n = lua_gettop(L);
+   if (n > 0) {
+      return luaL_error(L, "lutro.mouse.getX takes no arguments, %d given.", n);
+   }
 
-    unsigned y = (unsigned) mouse_cache[RETRO_DEVICE_ID_MOUSE_Y];
-    lua_pushnumber(L, y);
+   unsigned y = (unsigned) mouse_cache[RETRO_DEVICE_ID_MOUSE_Y];
+   lua_pushnumber(L, y);
 
-    return 1;
+   return 1;
 }
 
 /**
@@ -130,16 +130,16 @@ int mouse_getY(lua_State *L)
  */
 int mouse_getPosition(lua_State *L)
 {
-    int n = lua_gettop(L);
-    if (n > 0) {
-        return luaL_error(L, "lutro.mouse.getX takes no arguments, %d given.", n);
-    }
+   int n = lua_gettop(L);
+   if (n > 0) {
+      return luaL_error(L, "lutro.mouse.getX takes no arguments, %d given.", n);
+   }
 
-    unsigned x = (unsigned) mouse_cache[RETRO_DEVICE_ID_MOUSE_X];
-    unsigned y = (unsigned) mouse_cache[RETRO_DEVICE_ID_MOUSE_Y];
-    lua_pushnumber(L, x);
-    lua_pushnumber(L, y);
+   unsigned x = (unsigned) mouse_cache[RETRO_DEVICE_ID_MOUSE_X];
+   unsigned y = (unsigned) mouse_cache[RETRO_DEVICE_ID_MOUSE_Y];
+   lua_pushnumber(L, x);
+   lua_pushnumber(L, y);
 
-    return 2;
+   return 2;
 }
 

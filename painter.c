@@ -453,14 +453,14 @@ void pntr_print(painter_t *p, int x, int y, const char *text, int limit)
          if (limit > 0 && drect.x - x > limit)
          {
             drect.x = x;
-	        drect.y += atlas->height;
-		 }
+            drect.y += atlas->height;
+         }
 
-		 if (c == '\n')
-		 {
+         if (c == '\n')
+         {
             drect.x = x;
-	        drect.y += atlas->height;
-		 }
+            drect.y += atlas->height;
+         }
       }
 
       if (utf32 != buf)

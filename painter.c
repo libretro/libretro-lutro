@@ -577,8 +577,8 @@ void pntr_rotate(painter_t *p, float rad)
 
 void pntr_translate(painter_t *p, int x, int y)
 {
-   p->trans->tx = x;
-   p->trans->ty = y;
+   p->trans->tx += x;
+   p->trans->ty += y;
 }
 
 font_t *font_load_filename(const char *filename, const char *characters, unsigned flags)

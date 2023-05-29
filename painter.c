@@ -122,7 +122,7 @@ void pntr_fill_rect(painter_t *p, const rect_t *rect)
    size_t row_size = p->target->pitch >> 2;
    uint32_t color = p->foreground;
    rect_t drect = {
-      rect->x + p->trans->tx, rect->y + p->trans->tx,
+      rect->x + p->trans->tx, rect->y + p->trans->ty,
       rect->width, rect->height
    };
 

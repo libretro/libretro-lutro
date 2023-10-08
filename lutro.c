@@ -17,6 +17,7 @@
 #include "live.h"
 #include "mouse.h"
 #include "joystick.h"
+#include "data.h"
 
 #include <file/file_path.h>
 #include <streams/file_stream.h>
@@ -269,6 +270,7 @@ void lutro_init()
    lutro_preload(L, lutro_window_preload, "lutro.window");
    lutro_preload(L, lutro_mouse_preload, "lutro.mouse");
    lutro_preload(L, lutro_joystick_preload, "lutro.joystick");
+   lutro_preload(L, lutro_data_preload, "lutro.data");
 
    // UTF8
    lutro_preload(L, luaopen_luautf8, "utf8");
@@ -299,6 +301,7 @@ void lutro_init()
    lutro_require(L, "lutro.window", 1);
    lutro_require(L, "lutro.mouse", 1);
    lutro_require(L, "lutro.joystick", 1);
+   lutro_require(L, "lutro.data", 1);
 #ifdef HAVE_INOTIFY
    lutro_require(L, "lutro.live", 1);
 #endif

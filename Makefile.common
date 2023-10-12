@@ -26,7 +26,8 @@ SOURCES_C := $(CORE_DIR)/libretro.c \
 	$(CORE_DIR)/mouse.c \
 	$(CORE_DIR)/lutro_stb_image.c \
 	$(CORE_DIR)/lutro_window.c \
-	$(CORE_DIR)/painter.c
+	$(CORE_DIR)/painter.c \
+	$(CORE_DIR)/data.c
 
 ifeq ($(WANT_LUALIB),1)
 INCFLAGS += -I$(LUALIB_DIR)

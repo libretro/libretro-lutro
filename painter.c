@@ -122,7 +122,7 @@ void pntr_fill_rect(painter_t *p, const rect_t *rect)
    size_t row_size = p->target->pitch >> 2;
    uint32_t color = p->foreground;
    rect_t drect = {
-      rect->x + p->trans->tx, rect->y + p->trans->tx,
+      rect->x + p->trans->tx, rect->y + p->trans->ty,
       rect->width, rect->height
    };
 
@@ -577,8 +577,8 @@ void pntr_rotate(painter_t *p, float rad)
 
 void pntr_translate(painter_t *p, int x, int y)
 {
-   p->trans->tx = x;
-   p->trans->ty = y;
+   p->trans->tx += x;
+   p->trans->ty += y;
 }
 
 font_t *font_load_filename(const char *filename, const char *characters, unsigned flags)

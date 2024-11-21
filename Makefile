@@ -267,6 +267,7 @@ else ifeq ($(platform), wiiu)
 	CXX = $(DEVKITPPC)/bin/powerpc-eabi-g++$(EXE_EXT)
 	AR = $(DEVKITPPC)/bin/powerpc-eabi-ar$(EXE_EXT)
 	DEFINES += -DGEKKO -DWIIU -DHW_RVL -mrvl -mcpu=750 -meabi -mhard-float
+	DEFINES += -ffunction-sections -fdata-sections -D__wiiu__ -D__wut__
 	LUA_MYCFLAGS := $(DEFINES) $(CFLAGS)
 	STATIC_LINKING = 1
 	WANT_PHYSFS=0

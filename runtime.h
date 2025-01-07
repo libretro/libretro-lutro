@@ -92,5 +92,6 @@ void luax_setfuncs(lua_State *L, const luaL_Reg *l);
 
 int traceback(lua_State *L);
 int lutro_pcall(lua_State *L, int narg, int nret);
+int lutro_pcall_isfunction(lua_State* L, int idx);
 
 #endif // RUNTIME_H

@@ -119,6 +119,20 @@ static void dumpstack( lua_State* L )
 }
 #endif
 
+// Like lua_isfunction, but this one pops the item off the stack if it's not a function.
+// Intended for use when wrapping lutro_pcall() only. This function should not be used in
+// situations where a polymorphic argument is being tested for multiple possible valid types.
+// returns a boolean result, TRUE (non-zero) if the index on the stack is a function.
+int lutro_pcall_isfunction(lua_State* L, int idx) {
+   if (!lua_isfunction(L, -1))
+   {
+      lua_pop(L, 1);
+      return 0;
+   }
+
+   return 1;
+}
+
 int _lutro_assertf_internal(int ignorable, const char *fmt, ...)
 {
    fflush(NULL);
@@ -505,8 +519,7 @@ int lutro_load(const char *path)
 
    int oldtop = lua_gettop(L);
    lua_pushcfunction(L, traceback);
-   lua_getglobal(L, "lutro");
-
+   lutro_ensure_global_table(L, "lutro");
    int tbl_top_lutro = lua_gettop(L);
 
    strlcpy(settings.gamedir, gamedir, PATH_MAX_LENGTH);
@@ -514,7 +527,7 @@ int lutro_load(const char *path)
    lua_getfield(L, -1, "conf");
 
    // Process the custom configuration, if it exists.
-   if (lua_isfunction(L, -1))
+   if (lutro_pcall_isfunction(L, -1))
    {
       lua_getfield(L, -2, "settings");
 
@@ -556,7 +569,7 @@ int lutro_load(const char *path)
 
    int result = 1;
    // Check if lutro.load() exists.
-   if (lua_isfunction(L, -1))
+   if (lutro_pcall_isfunction(L, -1))
    {
       // It exists, so call lutro.load().
       if(lutro_pcall(L, 0, 0))
@@ -581,9 +594,9 @@ void lutro_gamepadevent(lua_State* L)
       int16_t is_down = settings.input_cb(0, RETRO_DEVICE_JOYPAD, 0, i);
       if (is_down != input_cache[i])
       {
-         lua_getglobal(L, "lutro");
+         lutro_ensure_global_table(L, "lutro");
          lua_getfield(L, -1, is_down ? "gamepadpressed" : "gamepadreleased");
-         if (lua_isfunction(L, -1))
+         if (lutro_pcall_isfunction(L, -1))
          {
             lua_pushnumber(L, i);
             lua_pushstring(L, input_find_name(joystick_enum, i));
@@ -593,10 +606,6 @@ void lutro_gamepadevent(lua_State* L)
                lua_pop(L, 1);
             }
             input_cache[i] = is_down;
-         }
-         else
-         {
-            lua_pop(L, 1); // pop getfield gamepadpressed or gamepadreleased
          }
          lua_pop(L, 1); // pop getglobal lutro
       }
@@ -625,9 +634,10 @@ void lutro_run(double delta)
    int oldtop = lua_gettop(L);
    lua_pushcfunction(L, traceback);
 
-   lua_getglobal(L, "lutro");
-   lua_getfield(L, -1, "update");
-   if (lua_isfunction(L, -1))
+   lutro_ensure_global_table(L, "lutro");
+
+   lua_getfield(L, -1, "update");   // lutro["update"]
+   if (lutro_pcall_isfunction(L, -1))
    {
       lua_pushnumber(L, delta);
 
@@ -638,8 +648,8 @@ void lutro_run(double delta)
       }
    }
 
-   lua_getfield(L, -1, "draw");
-   if (lua_isfunction(L, -1))
+   lua_getfield(L, -1, "draw");     // lutro["draw"]
+   if (lutro_pcall_isfunction(L, -1))
    {
       lutro_graphics_begin_frame(L);
 
@@ -668,10 +678,10 @@ void lutro_reset()
 
    lua_pushcfunction(L, traceback);
 
-   lua_getglobal(L, "lutro");
+   lutro_ensure_global_table(L, "lutro");
    lua_getfield(L, -1, "reset");
 
-   if (lua_isfunction(L, -1))
+   if (lutro_pcall_isfunction(L, -1))
    {
       lutro_audio_stop_all(L);
       if(lutro_pcall(L, 0, 0))
@@ -692,10 +702,10 @@ size_t lutro_serialize_size()
 
    lua_pushcfunction(L, traceback);
 
-   lua_getglobal(L, "lutro");
+   lutro_ensure_global_table(L, "lutro");
    lua_getfield(L, -1, "serializeSize");
 
-   if (lua_isfunction(L, -1))
+   if (lutro_pcall_isfunction(L, -1))
    {
       if (lutro_pcall(L, 0, 1))
       {
@@ -720,10 +730,10 @@ bool lutro_serialize(void *data_, size_t size)
    int oldtop = lua_gettop(L);
    lua_pushcfunction(L, traceback);
 
-   lua_getglobal(L, "lutro");
+   lutro_ensure_global_table(L, "lutro");
    lua_getfield(L, -1, "serialize");
 
-   if (lua_isfunction(L, -1))
+   if (lutro_pcall_isfunction(L, -1))
    {
       lua_pushnumber(L, size);
       if (lutro_pcall(L, 1, 1))
@@ -752,10 +762,10 @@ bool lutro_unserialize(const void *data_, size_t size)
    int oldtop = lua_gettop(L);
    lua_pushcfunction(L, traceback);
 
-   lua_getglobal(L, "lutro");
+   lutro_ensure_global_table(L, "lutro");
    lua_getfield(L, -1, "unserialize");
 
-   if (lua_isfunction(L, -1))
+   if (lutro_pcall_isfunction(L, -1))
    {
       lua_pushstring(L, data_);
       lua_pushnumber(L, size);
@@ -777,10 +787,10 @@ void lutro_cheat_set(unsigned index, bool enabled, const char *code)
    int oldtop = lua_gettop(L);
    lua_pushcfunction(L, traceback);
 
-   lua_getglobal(L, "lutro");
+   lutro_ensure_global_table(L, "lutro");
    lua_getfield(L, -1, "cheat_set");
 
-   if (lua_isfunction(L, -1))
+   if (lutro_pcall_isfunction(L, -1))
    {
       lua_pushnumber(L, index);
       lua_pushboolean(L, enabled);
@@ -801,10 +811,10 @@ void lutro_cheat_reset()
    int oldtop = lua_gettop(L);
    lua_pushcfunction(L, traceback);
 
-   lua_getglobal(L, "lutro");
+   lutro_ensure_global_table(L, "lutro");
    lua_getfield(L, -1, "cheat_reset");
 
-   if (lua_isfunction(L, -1))
+   if (lutro_pcall_isfunction(L, -1))
    {
       if (lutro_pcall(L, 0, 0))
       {

@@ -8,14 +8,12 @@
 
 int lutro_event_preload(lua_State *L)
 {
-   static luaL_Reg event_funcs[] =  {
+   static const luaL_Reg event_funcs[] =  {
       { "quit", event_quit },
       {NULL, NULL}
    };
 
-   lutro_ensure_global_table(L, "lutro");
-   luaL_newlib(L, event_funcs);
-   lua_setfield(L, -2, "event");
+   lutro_newlib(L, event_funcs, "event");
 
    return 1;
 }

@@ -15,7 +15,7 @@
 
 int lutro_filesystem_preload(lua_State *L)
 {
-   static luaL_Reg gfx_funcs[] =  {
+   static const luaL_Reg fs_funcs[] =  {
       { "exists",      fs_exists },
       { "read",        fs_read },
       { "write",       fs_write },
@@ -32,11 +32,7 @@ int lutro_filesystem_preload(lua_State *L)
       {NULL, NULL}
    };
 
-   lutro_ensure_global_table(L, "lutro");
-
-   luaL_newlib(L, gfx_funcs);
-
-   lua_setfield(L, -2, "filesystem");
+   lutro_newlib(L, fs_funcs, "filesystem");
 
    return 1;
 }

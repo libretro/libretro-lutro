@@ -9,7 +9,7 @@
 
 int lutro_window_preload(lua_State *L)
 {
-   static luaL_Reg win_funcs[] =  {
+   static const luaL_Reg win_funcs[] =  {
       { "close", win_close },
       { "setTitle", win_setTitle },
       { "setMode",  win_setMode },
@@ -28,11 +28,7 @@ int lutro_window_preload(lua_State *L)
       {NULL, NULL}
    };
 
-   lutro_ensure_global_table(L, "lutro");
-
-   luaL_newlib(L, win_funcs);
-
-   lua_setfield(L, -2, "window");
+   lutro_newlib(L, win_funcs, "window");
 
    return 1;
 }

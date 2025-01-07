@@ -19,14 +19,13 @@ static int l_gc(lua_State *L);
 
 int lutro_image_preload(lua_State *L)
 {
-   static luaL_Reg img_funcs[] =  {
+   static const luaL_Reg img_funcs[] =  {
       { "newImageData", l_newImageData },
       {NULL, NULL}
    };
 
-   lutro_ensure_global_table(L, "lutro");
-   luaL_newlib(L, img_funcs);
-   lua_setfield(L, -2, "image");
+   fprintf(stderr, "========= Imagre\n");
+   lutro_newlib(L, img_funcs, "image");
 
    return 1;
 }

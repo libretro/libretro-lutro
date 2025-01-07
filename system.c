@@ -11,7 +11,7 @@ const char* clipboardText = "";
 
 int lutro_system_preload(lua_State *L)
 {
-   static luaL_Reg sys_funcs[] =  {
+   static const luaL_Reg sys_funcs[] =  {
       { "getOS", sys_getOS },
       { "getProcessorCount", sys_getProcessorCount },
       { "setClipboardText", sys_setClipboardText },
@@ -22,11 +22,7 @@ int lutro_system_preload(lua_State *L)
       {NULL, NULL}
    };
 
-   lutro_ensure_global_table(L, "lutro");
-
-   luaL_newlib(L, sys_funcs);
-
-   lua_setfield(L, -2, "system");
+   lutro_newlib(L, sys_funcs, "system");
 
    return 1;
 }

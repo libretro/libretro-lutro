@@ -13,17 +13,13 @@ void lutro_math_init()
 
 int lutro_math_preload(lua_State *L)
 {
-   static luaL_Reg math_funcs[] = {
+   static const luaL_Reg math_funcs[] = {
       { "random", lutro_math_random },
       { "setRandomSeed", lutro_math_setRandomSeed },
       {NULL, NULL}
    };
 
-   lutro_ensure_global_table(L, "lutro");
-
-   luaL_newlib(L, math_funcs);
-
-   lua_setfield(L, -2, "math");
+   lutro_newlib(L, math_funcs, "math");
 
    return 1;
 }

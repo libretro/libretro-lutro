@@ -22,26 +22,6 @@ int lutro_preload(lua_State *L, lua_CFunction f, const char *name)
    return 0;
 }
 
-int lutro_ensure_global_table(lua_State *L, const char *name)
-{
-   lua_getglobal(L, name);
-
-   if (!lua_istable(L, -1)) {
-      lua_pop(L, 1);
-      lua_newtable(L);
-
-      // Introduce lutro.getVersion().
-      lua_pushcfunction(L, lutro_getVersion);
-      lua_setfield(L, -2, "getVersion");
-
-      // Add the "lutro" Lua global.
-      lua_pushvalue(L, -1);
-      lua_setglobal(L, name);
-   }
-
-   return 1;
-}
-
 void lutro_checked_stack_assert(lua_State* L, int expectedTop, char const* file, int line)
 {
    // TODO: report this error once per file/line, as a means of reducing spam potential

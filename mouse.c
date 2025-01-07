@@ -10,7 +10,7 @@ static int16_t mouse_cache[8];
 
 int lutro_mouse_preload(lua_State *L)
 {
-   static luaL_Reg mouse_funcs[] =  {
+   static const luaL_Reg mouse_funcs[] =  {
       { "isDown", mouse_isDown },
       { "getX", mouse_getX },
       { "getY", mouse_getY },
@@ -18,11 +18,7 @@ int lutro_mouse_preload(lua_State *L)
       {NULL, NULL}
    };
 
-   lutro_ensure_global_table(L, "lutro");
-
-   luaL_newlib(L, mouse_funcs);
-
-   lua_setfield(L, -2, "mouse");
+   lutro_newlib(L, mouse_funcs, "mouse");
 
    return 1;
 }

@@ -30,18 +30,14 @@ const struct joystick_int_const_map joystick_key_enum[NB_BUTTONS+1] = {
 
 int lutro_joystick_preload(lua_State *L)
 {
-   static luaL_Reg joystick_funcs[] =  {
+   static const luaL_Reg joystick_funcs[] =  {
       { "getJoystickCount", joystick_getJoystickCount },
       { "isDown", joystick_isDown },
       { "getAxis", joystick_getAxis },
       {NULL, NULL}
    };
 
-   lutro_ensure_global_table(L, "lutro");
-
-   luaL_newlib(L, joystick_funcs);
-
-   lua_setfield(L, -2, "joystick");
+   lutro_newlib(L, joystick_funcs, "joystick");
 
    return 1;
 }

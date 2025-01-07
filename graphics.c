@@ -1188,7 +1188,7 @@ static int gfx_present(lua_State *L)
 
 int lutro_graphics_preload(lua_State *L)
 {
-   static luaL_Reg gfx_funcs[] =  {
+   static const luaL_Reg gfx_funcs[] =  {
       { "clear",        gfx_clear },
       { "draw",         gfx_draw },
       { "getBackgroundColor", gfx_getBackgroundColor },
@@ -1231,11 +1231,7 @@ int lutro_graphics_preload(lua_State *L)
       {NULL, NULL}
    };
 
-   lutro_ensure_global_table(L, "lutro");
-
-   luaL_newlib(L, gfx_funcs);
-
-   lua_setfield(L, -2, "graphics");
+   lutro_newlib(L, gfx_funcs, "graphics"); 
 
    return 1;
 }

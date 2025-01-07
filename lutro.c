@@ -184,27 +184,55 @@ static int dofile(lua_State *L, const char *path)
    return res;
 }
 
+static void init_lutro_global_table(lua_State *L)
+{
+   lua_getglobal(L, "lutro");
+
+   if (!lua_istable(L, -1)) {
+      lua_pop(L, 1);
+      lua_newtable(L);
+
+      // Introduce lutro.getVersion().
+      lua_pushcfunction(L, lutro_getVersion);
+      lua_setfield(L, -2, "getVersion");
+
+      // Add the "lutro" Lua global.
+      lua_pushvalue(L, -1);
+      lua_setglobal(L, "lutro");
+   }
+
+   lua_pop(L, 1);
+}
+
+
 static int lutro_core_preload(lua_State *L)
 {
-   lutro_ensure_global_table(L, "lutro");
-
    return 1;
 }
 
 static void init_settings(lua_State *L)
 {
-   lutro_ensure_global_table(L, "lutro");
+   player_checked_stack_begin(L);
+   luax_reqglobal(L, "lutro");
 
    lua_newtable(L);
-
    lua_pushnumber(L, settings.width);
    lua_setfield(L, -2, "width");
 
    lua_pushnumber(L, settings.height);
    lua_setfield(L, -2, "height");
 
-   lua_setfield(L, -2, "settings");
+   lua_setfield(L, -2, "settings");    // lutro.settings
+   lua_pop(L, 1);
+   player_checked_stack_end(L, 0);
+}
 
+void lutro_newlib_x(lua_State* L, luaL_Reg const* funcs, char const* fieldname, int numfuncs)
+{
+   luax_reqglobal(L, "lutro");
+   lua_createtable(L, 0, numfuncs);
+   luaL_setfuncs(L, funcs, 0);
+   lua_setfield(L, -2, fieldname);
    lua_pop(L, 1);
 }
 
@@ -223,6 +251,7 @@ void lutro_init()
 
    player_checked_stack_begin(L);
 
+   init_lutro_global_table(L);
    init_settings(L);
 
    lutro_preload(L, lutro_core_preload, "lutro");
@@ -312,7 +341,7 @@ int lutro_set_package_path(lua_State* L, const char* path)
 {
    const char *cur_path;
    char new_path[PATH_MAX_LENGTH];
-   lua_getglobal(L, "package");
+   luax_reqglobal(L, "package");
    lua_getfield(L, -1, "path");
    cur_path = lua_tostring( L, -1);
    strlcpy(new_path, cur_path, sizeof(new_path));
@@ -476,18 +505,18 @@ int lutro_load(const char *path)
    }
 
    int oldtop = lua_gettop(L);
-   lutro_ensure_global_table(L, "lutro");
+   luax_reqglobal(L, "lutro");
    int tbl_top_lutro = lua_gettop(L);
 
    strlcpy(settings.gamedir, gamedir, PATH_MAX_LENGTH);
 
-   lua_getfield(L, -1, "conf");
+   lua_getfield(L, tbl_top_lutro, "conf");
 
    // Process the custom configuration, if it exists.
    if (lutro_pcall_isfunction(L, -1))
    {
       player_checked_stack_begin(L);
-      lua_getfield(L, -2, "settings");
+      lua_getfield(L, tbl_top_lutro, "settings");
 
       if(lutro_pcall(L, 1, 0))
       {
@@ -495,9 +524,7 @@ int lutro_load(const char *path)
          return 0;
       }
 
-      // no stack cleanup necessary inside oldtop scope.
-
-      lua_getfield(L, -1, "settings");
+      lua_getfield(L, tbl_top_lutro, "settings");
 
       lua_getfield(L, -1, "width");
       lua_getfield(L, -2, "height");
@@ -523,8 +550,8 @@ int lutro_load(const char *path)
    if (settings.live_enable)
       lutro_live_init();
 #endif
-   lua_settop(L, tbl_top_lutro);
-   lua_getfield(L, -1, "load");
+
+   lua_getfield(L, tbl_top_lutro, "load");
 
    int result = 1;
    // Check if lutro.load() exists.
@@ -546,13 +573,14 @@ void lutro_gamepadevent(lua_State* L)
 {
    tool_checked_stack_begin(L);
 
+   luax_reqglobal(L, "lutro");
+
    unsigned i;
    for (i = 0; i < 16; i++)
    {
       int16_t is_down = settings.input_cb(0, RETRO_DEVICE_JOYPAD, 0, i);
       if (is_down != input_cache[i])
       {
-         lutro_ensure_global_table(L, "lutro");
          lua_getfield(L, -1, is_down ? "gamepadpressed" : "gamepadreleased");
          if (lutro_pcall_isfunction(L, -1))
          {
@@ -564,9 +592,9 @@ void lutro_gamepadevent(lua_State* L)
             }
             input_cache[i] = is_down;
          }
-         lua_pop(L, 1); // pop getglobal lutro
       }
    }
+   lua_pop(L, 1);
    tool_checked_stack_end(L, 0);
 }
 
@@ -591,7 +619,7 @@ void lutro_run(double delta)
    player_checked_stack_begin(L);
    lua_pushcfunction(L, traceback);
    int idx_traceback = lua_gettop(L);
-   lutro_ensure_global_table(L, "lutro");
+   luax_reqglobal(L, "lutro");
 
    lua_getfield(L, -1, "update");   // lutro["update"]
    if (lutro_pcall_isfunction(L, -1))
@@ -631,9 +659,8 @@ void lutro_run(double delta)
 
 void lutro_reset()
 {
-   int oldtop = lua_gettop(L);
-
-   lutro_ensure_global_table(L, "lutro");
+   player_checked_stack_begin(L);
+   luax_reqglobal(L, "lutro");
    lua_getfield(L, -1, "reset");
 
    if (lutro_pcall_isfunction(L, -1))
@@ -645,16 +672,16 @@ void lutro_reset()
       }
    }
 
-   lua_settop(L, oldtop);
+   player_checked_stack_end(L,0);
    lua_gc(L, LUA_GCSTEP, 0);
 }
 
 size_t lutro_serialize_size()
 {
    size_t size = 0;
-   int oldtop = lua_gettop(L);
 
-   lutro_ensure_global_table(L, "lutro");
+   player_checked_stack_begin(L);
+   luax_reqglobal(L, "lutro");
    lua_getfield(L, -1, "serializeSize");
 
    if (lutro_pcall_isfunction(L, -1))
@@ -670,7 +697,7 @@ size_t lutro_serialize_size()
          tool_assertf(false, "Invalid type returned from lutro.serializeSize. An integer result is expected.\n");
    }
 
-   lua_settop(L, oldtop);
+   player_checked_stack_end(L,0);
    lua_gc(L, LUA_GCSTEP, 0);
 
    return size;
@@ -678,8 +705,8 @@ size_t lutro_serialize_size()
 
 bool lutro_serialize(void *data_, size_t size)
 {
-   int oldtop = lua_gettop(L);
-   lutro_ensure_global_table(L, "lutro");
+   player_checked_stack_begin(L);
+   luax_reqglobal(L, "lutro");
    lua_getfield(L, -1, "serialize");
 
    if (lutro_pcall_isfunction(L, -1))
@@ -699,7 +726,7 @@ bool lutro_serialize(void *data_, size_t size)
       }
    }
 
-   lua_settop(L, oldtop);
+   player_checked_stack_end(L,0);
    lua_gc(L, LUA_GCSTEP, 0);
 
    return true;
@@ -707,8 +734,8 @@ bool lutro_serialize(void *data_, size_t size)
 
 bool lutro_unserialize(const void *data_, size_t size)
 {
-   int oldtop = lua_gettop(L);
-   lutro_ensure_global_table(L, "lutro");
+   player_checked_stack_begin(L);
+   luax_reqglobal(L, "lutro");
    lua_getfield(L, -1, "unserialize");
 
    if (lutro_pcall_isfunction(L, -1))
@@ -721,7 +748,7 @@ bool lutro_unserialize(const void *data_, size_t size)
       }
    }
 
-   lua_settop(L, oldtop);
+   player_checked_stack_end(L,0);
    lua_gc(L, LUA_GCSTEP, 0);
 
    return true;
@@ -729,8 +756,8 @@ bool lutro_unserialize(const void *data_, size_t size)
 
 void lutro_cheat_set(unsigned index, bool enabled, const char *code)
 {
-   int oldtop = lua_gettop(L);
-   lutro_ensure_global_table(L, "lutro");
+   player_checked_stack_begin(L);
+   luax_reqglobal(L, "lutro");
    lua_getfield(L, -1, "cheat_set");
 
    if (lutro_pcall_isfunction(L, -1))
@@ -744,14 +771,14 @@ void lutro_cheat_set(unsigned index, bool enabled, const char *code)
       }
    }
 
-   lua_settop(L, oldtop);
+   player_checked_stack_end(L,0);
    lua_gc(L, LUA_GCSTEP, 0);
 }
 
 void lutro_cheat_reset()
 {
-   int oldtop = lua_gettop(L);
-   lutro_ensure_global_table(L, "lutro");
+   player_checked_stack_begin(L);
+   luax_reqglobal(L, "lutro");
    lua_getfield(L, -1, "cheat_reset");
 
    if (lutro_pcall_isfunction(L, -1))
@@ -762,7 +789,7 @@ void lutro_cheat_reset()
       }
    }
 
-   lua_settop(L, oldtop);
+   player_checked_stack_end(L,0);
    lua_gc(L, LUA_GCSTEP, 0);
 }
 

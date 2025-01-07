@@ -154,18 +154,14 @@ const struct key_int_const_map keyboard_enum[RETROK_LAST] = {
 
 int lutro_keyboard_preload(lua_State *L)
 {
-   static luaL_Reg keyboard_funcs[] =  {
+   static const luaL_Reg keyboard_funcs[] =  {
       { "isDown", keyboard_isDown },
       { "getKeyFromScancode", keyboard_getKeyFromScancode },
       { "getScancodeFromKey", keyboard_getScancodeFromKey },
       {NULL, NULL}
    };
 
-   lutro_ensure_global_table(L, "lutro");
-
-   luaL_newlib(L, keyboard_funcs);
-
-   lua_setfield(L, -2, "keyboard");
+   lutro_newlib(L, keyboard_funcs, "keyboard");
 
    return 1;
 }
@@ -187,7 +183,7 @@ void lutro_keyboardevent(lua_State* L)
 
    tool_checked_stack_begin(L);
 
-   lutro_ensure_global_table(L, "lutro");
+   lua_getglobal(L, "lutro");
    for (unsigned i = 0; i < RETROK_LAST; i++)
    {
       // Check if the keyboard key is pressed
@@ -217,7 +213,7 @@ void lutro_keyboardevent(lua_State* L)
          keyboard_cache[i] = is_down;
       }
    }
-   lua_pop(L, 1);    // pop lutro
+   lua_pop(L, 1);
    
    tool_checked_stack_end(L, 0);
 }

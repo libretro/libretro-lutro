@@ -50,16 +50,12 @@ const char* input_find_name(const struct int_const_map *map, unsigned value)
 
 int lutro_input_preload(lua_State *L)
 {
-   static luaL_Reg funcs[] =  {
+   static const luaL_Reg funcs[] =  {
       {"joypad", input_joypad},
       {NULL, NULL}
    };
 
-   lutro_ensure_global_table(L, "lutro");
-
-   luaL_newlib(L, funcs);
-
-   lua_setfield(L, -2, "input");
+   lutro_newlib(L, funcs, "input");
 
    return 1;
 }

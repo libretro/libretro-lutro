@@ -6,18 +6,14 @@
 
 int lutro_timer_preload(lua_State *L)
 {
-   static luaL_Reg gfx_funcs[] =  {
+   static const luaL_Reg timer_funcs[] =  {
       { "getTime", timer_getTime },
       { "getDelta", timer_getDelta },
       { "getFPS", timer_getFPS },
       {NULL, NULL}
    };
 
-   lutro_ensure_global_table(L, "lutro");
-
-   luaL_newlib(L, gfx_funcs);
-
-   lua_setfield(L, -2, "timer");
+   lutro_newlib(L, timer_funcs, "timer");
 
    return 1;
 }

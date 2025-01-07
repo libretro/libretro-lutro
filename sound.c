@@ -9,16 +9,12 @@
 
 int lutro_sound_preload(lua_State *L)
 {
-   static luaL_Reg snd_funcs[] =  {
+   static const luaL_Reg snd_funcs[] =  {
       { "newSoundData", snd_newSoundData },
       {NULL, NULL}
    };
 
-   lutro_ensure_global_table(L, "lutro");
-
-   luaL_newlib(L, snd_funcs);
-
-   lua_setfield(L, -2, "sound");
+   lutro_newlib(L, snd_funcs, "sound");
 
    return 1;
 }

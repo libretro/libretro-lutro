@@ -247,7 +247,7 @@ void mixer_render(lua_State* L, int16_t *buffer)
 
 int lutro_audio_preload(lua_State *L)
 {
-   static luaL_Reg gfx_funcs[] =  {
+   static const luaL_Reg audio_funcs[] =  {
       { "play",      audio_play },
       { "stop",      audio_stop },
       { "pause",     audio_pause },
@@ -259,11 +259,7 @@ int lutro_audio_preload(lua_State *L)
       {NULL, NULL}
    };
 
-   lutro_ensure_global_table(L, "lutro");
-
-   luaL_newlib(L, gfx_funcs);
-
-   lua_setfield(L, -2, "audio");
+   lutro_newlib(L, audio_funcs, "audio");
 
    return 1;
 }

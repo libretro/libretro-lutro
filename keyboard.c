@@ -183,8 +183,9 @@ void lutro_keyboard_init()
  */
 void lutro_keyboardevent(lua_State* L)
 {
-   ENTER_LUA_STACK
    int16_t is_down;
+
+   tool_checked_stack_begin(L);
 
    lutro_ensure_global_table(L, "lutro");
    for (unsigned i = 0; i < RETROK_LAST; i++)
@@ -217,7 +218,8 @@ void lutro_keyboardevent(lua_State* L)
       }
    }
    lua_pop(L, 1);    // pop lutro
-   EXIT_LUA_STACK
+   
+   tool_checked_stack_end(L, 0);
 }
 
 /**

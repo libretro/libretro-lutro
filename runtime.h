@@ -5,31 +5,33 @@
 #include "lauxlib.h"
 #include "lualib.h"
 
-/* functions to help check the stack size in a function call or block of code */
-#ifndef NDEBUG
-#define lutro_checked_stack_begin() int __stack = lua_gettop(L)
-#define lutro_checked_stack_return(delta) \
-   do {\
-      lutro_checked_stack_assert(delta);\
-      return delta;\
-   } while(0)
-#define lutro_checked_stack_assert(delta) \
-   do {\
-      int __stack_delta = (lua_gettop(L)-__stack);\
-      if (__stack_delta != delta) {\
-         fprintf(stderr, "Stack delta assertion failed: delta=%i expected=%i.\n", delta, __stack_delta);\
-         lutro_stack_dump(L);\
-         fflush(stdout);\
-         fflush(stderr);\
-         abort();\
-      }\
-   } while(0)
-#else
-#define lutro_checked_stack_begin()
-#define lutro_checked_stack_return(delta)
-#define lutro_checked_stack_end(delta)
-#define lutro_checked_stack_assert(delta)
+#if !defined(WANT_CHECKED_STACK)
+#  if LUTRO_BUILD_IS_TOOL
+#     define WANT_CHECKED_STACK   1
+#  else
+#     define WANT_CHECKED_STACK   0
+#  endif
 #endif
+
+#  define _impl_checked_stack_begin_(L) int _stack__ = lua_gettop(L)
+#  define _impl_checked_stack_end_(L, retvals) \
+     ( ((lua_gettop(L) - _stack__) != retvals) && (lutro_checked_stack_assert(L, _stack__ + retvals, __FILE__, __LINE__), 1), retvals )
+
+// performs stack checking in player/retail builds. Use only in situations where performance will not be impacted.
+#define player_checked_stack_begin(L)        _impl_checked_stack_begin_(L)
+#define player_checked_stack_end(L, retvals) _impl_checked_stack_end_(L, retvals)
+
+#if WANT_CHECKED_STACK
+// performs stack checking in tool/debug builds. Use liberally.
+#  define tool_checked_stack_begin(L)        _impl_checked_stack_begin_(L)
+#  define tool_checked_stack_end(L, retvals) _impl_checked_stack_end_(L, retvals)
+#else
+#  define tool_checked_stack_begin(L)         ((void)0) 
+#  define tool_checked_stack_end(L, retvals)  (retvals)
+#endif
+
+void lutro_checked_stack_assert(lua_State* L, int expectedTop, char const* file, int line);
+
 
 int lutro_preload(lua_State *L, lua_CFunction f, const char *name);
 int lutro_ensure_global_table(lua_State *L, const char *name);

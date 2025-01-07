@@ -52,9 +52,10 @@ void lutro_joystick_init()
 
 void lutro_joystickevent(lua_State* L)
 {
-   ENTER_LUA_STACK
    int i, u;
    int16_t state;
+
+   tool_checked_stack_begin(L);
 
    // Loop through each joystick.
    for (i = 0; i < NB_JOYSTICKS; i++) {
@@ -81,7 +82,8 @@ void lutro_joystickevent(lua_State* L)
       joystick_cache[i][16] = settings.input_cb(i, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_RIGHT, RETRO_DEVICE_ID_ANALOG_X);
       joystick_cache[i][17] = settings.input_cb(i, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_RIGHT, RETRO_DEVICE_ID_ANALOG_Y);
    }
-   EXIT_LUA_STACK
+
+   tool_checked_stack_end(L, 0);
 }
 
 /**
@@ -170,7 +172,7 @@ int joystick_isDown(lua_State *L)
  */
 int joystick_getAxis(lua_State *L)
 {
-   ENTER_LUA_STACK
+   tool_checked_stack_begin(L);
    int n = lua_gettop(L);
    if (n != 2) {
       return luaL_error(L, "lutro.joystick.getAxis requires two arguments, %d given.", n);
@@ -183,8 +185,7 @@ int joystick_getAxis(lua_State *L)
 
    lua_pushnumber(L, output);
 
-   return 1;
-   EXIT_LUA_STACK
+   return tool_checked_stack_end(L, 1);
 }
 
 /**

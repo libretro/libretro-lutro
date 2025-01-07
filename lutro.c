@@ -50,7 +50,6 @@
 
 static lua_State *L;
 static int16_t input_cache[16];
-int g_lua_stack = 0;
 static int32_t allocation_count = 0;
 
 lutro_settings_t settings = {
@@ -68,56 +67,6 @@ lutro_settings_t settings = {
 };
 
 struct retro_perf_callback perf_cb;
-
-#if 0
-static void dumpstack( lua_State* L )
-{
-  int top = lua_gettop( L );
-
-  for ( int i = 1; i <= top; i++ )
-  {
-    printf( "%2d %3d ", i, i - top - 1 );
-
-    lua_pushvalue( L, i );
-
-    switch ( lua_type( L, -1 ) )
-    {
-    case LUA_TNIL:
-      printf( "nil\n" );
-      break;
-    case LUA_TNUMBER:
-      printf( "%e\n", lua_tonumber( L, -1 ) );
-      break;
-    case LUA_TBOOLEAN:
-      printf( "%s\n", lua_toboolean( L, -1 ) ? "true" : "false" );
-      break;
-    case LUA_TSTRING:
-      printf( "\"%s\"\n", lua_tostring( L, -1 ) );
-      break;
-    case LUA_TTABLE:
-      printf( "table\n" );
-      break;
-    case LUA_TFUNCTION:
-      printf( "function\n" );
-      break;
-    case LUA_TUSERDATA:
-      printf( "userdata\n" );
-      break;
-    case LUA_TTHREAD:
-      printf( "thread\n" );
-      break;
-    case LUA_TLIGHTUSERDATA:
-      printf( "light userdata\n" );
-      break;
-    default:
-      printf( "?\n" );
-      break;
-    }
-  }
-
-  lua_settop( L, top );
-}
-#endif
 
 // Like lua_isfunction, but this one pops the item off the stack if it's not a function.
 // Intended for use when wrapping lutro_pcall() only. This function should not be used in
@@ -272,7 +221,7 @@ void lutro_init()
    luaJIT_setmode(L, -1, LUAJIT_MODE_WRAPCFUNC|LUAJIT_MODE_ON);
 #endif
 
-   lutro_checked_stack_begin();
+   player_checked_stack_begin(L);
 
    init_settings(L);
 
@@ -331,7 +280,7 @@ void lutro_init()
    // Initialize the filesystem.
    lutro_filesystem_init();
 
-   lutro_checked_stack_assert(0);
+   player_checked_stack_end(L, 0);
 }
 
 void lutro_deinit()
@@ -537,6 +486,7 @@ int lutro_load(const char *path)
    // Process the custom configuration, if it exists.
    if (lutro_pcall_isfunction(L, -1))
    {
+      player_checked_stack_begin(L);
       lua_getfield(L, -2, "settings");
 
       if(lutro_pcall(L, 1, 0))
@@ -558,6 +508,9 @@ int lutro_load(const char *path)
       settings.height         = lua_tointeger(L, -3);
       settings.live_enable    = lua_toboolean(L, -2);
       settings.live_call_load = lua_toboolean(L, -1);
+
+      lua_pop(L, 4);
+      player_checked_stack_end(L, 0);
    }
 
    lutro_graphics_init(L);
@@ -591,9 +544,9 @@ int lutro_load(const char *path)
 
 void lutro_gamepadevent(lua_State* L)
 {
-   ENTER_LUA_STACK
-   unsigned i;
+   tool_checked_stack_begin(L);
 
+   unsigned i;
    for (i = 0; i < 16; i++)
    {
       int16_t is_down = settings.input_cb(0, RETRO_DEVICE_JOYPAD, 0, i);
@@ -614,7 +567,7 @@ void lutro_gamepadevent(lua_State* L)
          lua_pop(L, 1); // pop getglobal lutro
       }
    }
-   EXIT_LUA_STACK
+   tool_checked_stack_end(L, 0);
 }
 
 void lutro_run(double delta)
@@ -635,7 +588,7 @@ void lutro_run(double delta)
       lutro_live_update(L);
 #endif
 
-   int oldtop = lua_gettop(L);
+   player_checked_stack_begin(L);
    lua_pushcfunction(L, traceback);
    int idx_traceback = lua_gettop(L);
    lutro_ensure_global_table(L, "lutro");
@@ -663,12 +616,14 @@ void lutro_run(double delta)
       lutro_graphics_end_frame(L);
    }
 
+   lua_pop(L,2);     // lutro table and traceback
+
    lutro_keyboardevent(L);
    lutro_gamepadevent(L);
    lutro_mouseevent(L);
    lutro_joystickevent(L);
 
-   lua_settop(L, oldtop);
+   player_checked_stack_end(L,0);
 
    mixer_unref_stopped_sounds(L);
    lua_gc(L, LUA_GCSTEP, 0);

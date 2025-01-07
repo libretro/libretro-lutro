@@ -16,16 +16,6 @@
 #define VERSION_PATCH 1
 #define VERSION_STRING "0.0.1"
 
-extern int g_lua_stack;
-#define ENTER_LUA_STACK do { g_lua_stack = lua_gettop(L); } while(0);
-#define EXIT_LUA_STACK do { \
-	int stack = lua_gettop(L); \
-	if (stack != g_lua_stack) { \
-		printf("invalid stack setup (got %d expected %d) on %s\n", stack, g_lua_stack, __func__); \
-		lua_settop(L, g_lua_stack); \
-	} \
-} while (0);
-
 typedef struct lutro_settings_t {
    int width;
    int height;

@@ -56,8 +56,6 @@ void lutro_joystickevent(lua_State* L)
    int i, u;
    int16_t state;
 
-   lua_pushcfunction(L, traceback);
-
    // Loop through each joystick.
    for (i = 0; i < NB_JOYSTICKS; i++) {
       // Loop through each button.
@@ -83,7 +81,6 @@ void lutro_joystickevent(lua_State* L)
       joystick_cache[i][16] = settings.input_cb(i, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_RIGHT, RETRO_DEVICE_ID_ANALOG_X);
       joystick_cache[i][17] = settings.input_cb(i, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_RIGHT, RETRO_DEVICE_ID_ANALOG_Y);
    }
-   lua_pop(L, 1); // pop traceback
    EXIT_LUA_STACK
 }
 

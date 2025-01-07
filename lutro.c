@@ -206,19 +206,27 @@ int traceback(lua_State *L) {
    return 1;
 }
 
+// prints error and backtrace to console if an error occurs during the call. The error is left on
+// on the stack and should be removed with lua_pop() if this function returns non-zero.
 int lutro_pcall(lua_State *L, int narg, int nret)
 {
-   int handler = lua_gettop(L) - narg - 1;
-   while (handler && (lua_tocfunction(L, handler) != traceback)) --handler;
-   dbg_assert(lua_tocfunction(L, handler) == traceback);
-   return lua_pcall(L, narg, nret, handler);
+   int base = lua_gettop(L) - narg;
+   lua_pushcfunction(L, traceback);
+   lua_insert(L, base);  // move traceback below the arguments
+   int result = lua_pcall(L, narg, nret, base);
+   lua_remove(L, base);  // remove traceback function
+   return result;
+}
+
+int lutro_pcall_cached_traceback(lua_State *L, int narg, int nret, int traceback)
+{
+   return lua_pcall(L, narg, nret, traceback);
 }
 
 static int dofile(lua_State *L, const char *path)
 {
    int res;
 
-   lua_pushcfunction(L, traceback);
    res = luaL_loadfile(L, path);
    if (res)
       return res;
@@ -255,7 +263,7 @@ void lutro_init()
 {
    L = luaL_newstate();
 
-   // handler for errors thatr occur outside pcall() scope
+   // handler for errors that occur outside pcall() scope
    lua_atpanic(L, &lutro_lua_panic);
 
    luaL_openlibs(L);
@@ -342,6 +350,7 @@ void lutro_deinit()
    lutro_filesystem_deinit();
 
    lutro_print_allocation();
+
 }
 
 void lutro_mixer_render(int16_t* buffer)
@@ -518,7 +527,6 @@ int lutro_load(const char *path)
    }
 
    int oldtop = lua_gettop(L);
-   lua_pushcfunction(L, traceback);
    lutro_ensure_global_table(L, "lutro");
    int tbl_top_lutro = lua_gettop(L);
 
@@ -533,9 +541,7 @@ int lutro_load(const char *path)
 
       if(lutro_pcall(L, 1, 0))
       {
-         fprintf(stderr, "%s\n", lua_tostring(L, -1));
          lua_pop(L, 1);
-
          return 0;
       }
 
@@ -574,7 +580,6 @@ int lutro_load(const char *path)
       // It exists, so call lutro.load().
       if(lutro_pcall(L, 0, 0))
       {
-         fprintf(stderr, "%s\n", lua_tostring(L, -1));
          lua_pop(L, 1);
          result = 0;
       }
@@ -602,7 +607,6 @@ void lutro_gamepadevent(lua_State* L)
             lua_pushstring(L, input_find_name(joystick_enum, i));
             if (lutro_pcall(L, 2, 0)) // takes care of poping the function too
             {
-               fprintf(stderr, "%s\n", lua_tostring(L, -1));
                lua_pop(L, 1);
             }
             input_cache[i] = is_down;
@@ -633,7 +637,7 @@ void lutro_run(double delta)
 
    int oldtop = lua_gettop(L);
    lua_pushcfunction(L, traceback);
-
+   int idx_traceback = lua_gettop(L);
    lutro_ensure_global_table(L, "lutro");
 
    lua_getfield(L, -1, "update");   // lutro["update"]
@@ -641,9 +645,8 @@ void lutro_run(double delta)
    {
       lua_pushnumber(L, delta);
 
-      if(lutro_pcall(L, 1, 0))
+      if(lutro_pcall_cached_traceback(L, 1, 0, idx_traceback))
       {
-         fprintf(stderr, "%s\n", lua_tostring(L, -1));
          lua_pop(L, 1);
       }
    }
@@ -653,9 +656,8 @@ void lutro_run(double delta)
    {
       lutro_graphics_begin_frame(L);
 
-      if(lutro_pcall(L, 0, 0))
+      if(lutro_pcall_cached_traceback(L, 0, 0, idx_traceback))
       {
-         fprintf(stderr, "%s\n", lua_tostring(L, -1));
          lua_pop(L, 1);
       }
       lutro_graphics_end_frame(L);
@@ -676,8 +678,6 @@ void lutro_reset()
 {
    int oldtop = lua_gettop(L);
 
-   lua_pushcfunction(L, traceback);
-
    lutro_ensure_global_table(L, "lutro");
    lua_getfield(L, -1, "reset");
 
@@ -686,7 +686,6 @@ void lutro_reset()
       lutro_audio_stop_all(L);
       if(lutro_pcall(L, 0, 0))
       {
-         fprintf(stderr, "%s\n", lua_tostring(L, -1));
          lua_pop(L, 1);
       }
    }
@@ -700,8 +699,6 @@ size_t lutro_serialize_size()
    size_t size = 0;
    int oldtop = lua_gettop(L);
 
-   lua_pushcfunction(L, traceback);
-
    lutro_ensure_global_table(L, "lutro");
    lua_getfield(L, -1, "serializeSize");
 
@@ -709,7 +706,6 @@ size_t lutro_serialize_size()
    {
       if (lutro_pcall(L, 0, 1))
       {
-         fprintf(stderr, "%s\n", lua_tostring(L, -1));
          lua_pop(L, 1);
       }
 
@@ -728,8 +724,6 @@ size_t lutro_serialize_size()
 bool lutro_serialize(void *data_, size_t size)
 {
    int oldtop = lua_gettop(L);
-   lua_pushcfunction(L, traceback);
-
    lutro_ensure_global_table(L, "lutro");
    lua_getfield(L, -1, "serialize");
 
@@ -738,7 +732,6 @@ bool lutro_serialize(void *data_, size_t size)
       lua_pushnumber(L, size);
       if (lutro_pcall(L, 1, 1))
       {
-         fprintf(stderr, "%s\n", lua_tostring(L, -1));
          lua_pop(L, 1);
       }
       else
@@ -760,8 +753,6 @@ bool lutro_serialize(void *data_, size_t size)
 bool lutro_unserialize(const void *data_, size_t size)
 {
    int oldtop = lua_gettop(L);
-   lua_pushcfunction(L, traceback);
-
    lutro_ensure_global_table(L, "lutro");
    lua_getfield(L, -1, "unserialize");
 
@@ -771,7 +762,6 @@ bool lutro_unserialize(const void *data_, size_t size)
       lua_pushnumber(L, size);
       if (lutro_pcall(L, 2, 0))
       {
-         fprintf(stderr, "%s\n", lua_tostring(L, -1));
          lua_pop(L, 1);
       }
    }
@@ -785,8 +775,6 @@ bool lutro_unserialize(const void *data_, size_t size)
 void lutro_cheat_set(unsigned index, bool enabled, const char *code)
 {
    int oldtop = lua_gettop(L);
-   lua_pushcfunction(L, traceback);
-
    lutro_ensure_global_table(L, "lutro");
    lua_getfield(L, -1, "cheat_set");
 
@@ -797,7 +785,6 @@ void lutro_cheat_set(unsigned index, bool enabled, const char *code)
       lua_pushstring(L, code);
       if (lutro_pcall(L, 3, 0))
       {
-         fprintf(stderr, "%s\n", lua_tostring(L, -1));
          lua_pop(L, 1);
       }
    }
@@ -809,8 +796,6 @@ void lutro_cheat_set(unsigned index, bool enabled, const char *code)
 void lutro_cheat_reset()
 {
    int oldtop = lua_gettop(L);
-   lua_pushcfunction(L, traceback);
-
    lutro_ensure_global_table(L, "lutro");
    lua_getfield(L, -1, "cheat_reset");
 
@@ -818,7 +803,6 @@ void lutro_cheat_reset()
    {
       if (lutro_pcall(L, 0, 0))
       {
-         fprintf(stderr, "%s\n", lua_tostring(L, -1));
          lua_pop(L, 1);
       }
    }

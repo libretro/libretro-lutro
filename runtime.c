@@ -85,7 +85,7 @@ int lutro_require(lua_State *L, const char *modname, int pop_result)
    lua_getglobal(L, "require");
    lua_pushstring(L, modname);
 
-   int success = lua_pcall(L, 1, 1, 0) == 0;
+   int success = lutro_pcall(L, 1, 1) == 0;
 
    if (success && pop_result)
       lua_pop(L, 1);

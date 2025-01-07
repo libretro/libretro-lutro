@@ -7,6 +7,8 @@ audio_test_name = nil
 audio_test_phase_id = 1
 last_test_phase_id = 0
 
+# disable stdout buffering so that prints are in sync with video output.
+io.stdout:setvbuf("no")
 
 local s_soundfiles = {
 	"test_s16_mono.wav",
@@ -116,7 +118,7 @@ function test_looping()
 		src:setLooping(true)
 		-- looping behavior here is that the sound will "play forever" and GC will be blocked because
 		-- the looping flag cannot be removed, since we do not retain a lua reference to the sound.
-		-- However, an all-stop of all audio sources should stop the sound. This is what we check for in veirfy.
+		-- However, an all-stop of all audio sources should stop the sound. This is what we check for in verify.
 	end
 end
 

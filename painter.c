@@ -515,6 +515,10 @@ int pntr_text_width(painter_t *p, const char *text)
    return width;
 }
 
+#if defined(__QNX__) || defined(_MSC_VER)
+// declared in libretro.c for QNX and MSC but not exposed via header file. prototype is missing.
+extern int vasprintf(char **strp, const char *fmt, va_list ap);
+#endif
 
 void pntr_printf(painter_t *p, int x, int y, const char *format, ...)
 {

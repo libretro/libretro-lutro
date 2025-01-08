@@ -38,6 +38,7 @@
 
 #pragma warning(disable:4100)	// unreferenced formal parameter
 #pragma warning(disable:4127)	// conditional expression is constant
+#pragma warning(disable:4244)		// conversion from 'intmax_t' to 'lua_Number', possible loss of data
 
 // Next section: Turn on Useful Warnings/Errors in MSC:
 

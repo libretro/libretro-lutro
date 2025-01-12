@@ -7,7 +7,7 @@ audio_test_name = nil
 audio_test_phase_id = 1
 last_test_phase_id = 0
 
-# disable stdout buffering so that prints are in sync with video output.
+-- disable stdout buffering so that prints are in sync with video output.
 io.stdout:setvbuf("no")
 
 local s_soundfiles = {

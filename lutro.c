@@ -245,6 +245,10 @@ void lutro_init()
 
    luaL_openlibs(L);
 
+   // impose default behavior that ensures stdout prints in realtime and is in correct
+   // chronological sequence with stderr.
+   luaL_dostring(L, "io.stdout:setvbuf('no')");
+
 #ifdef HAVE_JIT
    luaJIT_setmode(L, -1, LUAJIT_MODE_WRAPCFUNC|LUAJIT_MODE_ON);
 #endif

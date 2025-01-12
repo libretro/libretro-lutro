@@ -1,14 +1,8 @@
 return {
 	load = function()
-		font = lutro.graphics.newImageFont("graphics/font.png", " abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.,!?-+/")
-		lutro.graphics.setFont(font)
 	end,
 
 	draw = function()
-		-- Display test instructions.
-		text = "Tests switch every 3 seconds."
-		lutro.graphics.print(text, 30, 100)
-
 		-- Show mouse information.
 		if lutro.mouse.isDown(1, 2) then
 			local x, y = lutro.mouse.getPosition()

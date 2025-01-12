@@ -17,6 +17,8 @@ local joystickButton = 0
 local keypressed = ""
 
 function lutro.load()
+	font = lutro.graphics.newImageFont("graphics/font.png", " abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.,!?-+/")
+	lutro.graphics.setFont(font)
 	lutro.graphics.setBackgroundColor(0, 0, 0)
 
 	-- Initiate all available test states.
@@ -68,6 +70,10 @@ function lutro.draw()
 	-- Display the FPS
 	local fps = lutro.timer.getFPS()
 	lutro.graphics.print('FPS ' .. fps, 10, 350)
+
+	-- Display test instructions.
+	text = "Tests switch every 3 seconds. Counting: %.1f"
+	lutro.graphics.print(text:format(currentTime), 10,365)
 end
 
 function lutro.joystickpressed(joystick, button)

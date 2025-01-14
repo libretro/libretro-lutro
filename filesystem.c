@@ -1,10 +1,19 @@
 #include "filesystem.h"
 #include "lutro.h"
+#include "lutro_assert.h"
+
 #include <compat/strl.h>
 #include <file/file_path.h>
 #include <streams/file_stream.h>
 #include <vfs/vfs_implementation.h>
 #include <string/stdstring.h>
+
+// for getcwd...
+#if defined(_WIN32)
+#  include <direct.h>
+#else
+#  include <unistd.h>
+#endif
 
 #if WANT_PHYSFS
 #include "physfs.h"
@@ -36,6 +45,7 @@ int lutro_filesystem_preload(lua_State *L)
       { "load",        fs_load },
       { "setIdentity", fs_setIdentity },
       { "getAppdataDirectory", fs_getAppdataDirectory },
+      { "getWorkingDirectory", fs_getWorkingDirectory },
       { "isDirectory", fs_isDirectory },
       { "isFile",      fs_isFile },
       { "createDirectory", fs_createDirectory },
@@ -289,6 +299,24 @@ int fs_getAppdataDirectory(lua_State *L)
    else {
       lua_pushstring(L, "");
    }
+   return 1;
+}
+
+
+/**
+ * lutro.filesystem.getWorkingDirectory
+ *
+ * Retrieves the process current working directory (cwd or pwd). Lutro always returns the 
+ * relative directory prefix "./" which is generally interpreted by filesystem APIs as the
+ * cwd when used as the prefix to a function. LOVE returns the CWD as an absolute path.
+ * Note that the concept of cwd is inherently non-portable and leads to unexpected or surprising
+ * behavior for users, and should only be used for local development or debug purposes.
+ *
+ * @see https://love2d.org/wiki/love.filesystem.getWorkingDirectory
+ */
+int fs_getWorkingDirectory(lua_State *L)
+{
+   lua_pushstring(L, "./");
    return 1;
 }
 

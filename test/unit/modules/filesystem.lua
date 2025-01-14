@@ -19,6 +19,15 @@ function lutro.filesystem.getAppdataDirectoryTest()
     unit.assertIsString(appdataDir)
 end
 
+function lutro.filesystem.getWorkingDirectoryTest()
+    local getWorkingDir = lutro.filesystem.getWorkingDirectory()
+    local getWorkingDirFixed = getWorkingDir
+    if getWorkingDirFixed:sub(-1) ~= '/' then
+        getWorkingDirFixed = getWorkingDirFixed .. '/'
+    end
+    unit.assertEquals(getWorkingDir, getWorkingDirFixed)
+end
+
 function lutro.filesystem.getUserDirectoryTest()
     -- UserDirectory should always have a trailing slash. This is easy to verify.
     -- Other aspects of UserDirectory are platform specific and non-trivial to calculate and there
@@ -58,6 +67,7 @@ end
 return {
     lutro.filesystem.setRequirePathTest,
     lutro.filesystem.getRequirePathTest,
+    lutro.filesystem.getWorkingDirectoryTest,
     lutro.filesystem.getUserDirectoryTest,
     lutro.filesystem.getAppdataDirectoryTest,
     lutro.filesystem.getDirectoryItemsTest,

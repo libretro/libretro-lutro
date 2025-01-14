@@ -24,7 +24,6 @@ int lutro_image_preload(lua_State *L)
       {NULL, NULL}
    };
 
-   fprintf(stderr, "========= Imagre\n");
    lutro_newlib(L, img_funcs, "image");
 
    return 1;

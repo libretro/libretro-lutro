@@ -404,6 +404,25 @@ else
 	endif
 endif
 
+compiler_brand := $(shell $(CC) --version | grep -o -m1 clang || echo gcc)
+cc_version := $(shell $(CC) -dumpversion)
+
+WARN_FLAGS = 
+
+# Clang compiler can pedantically generate compiler errors for printf formatting.
+# Printf formatting errors often result in undefined program behavior (crashes).
+# This feature is not available on GCC.
+ifeq ($(compiler_brand),clang)
+    WARN_FLAGS += -Wno-gnu-zero-variadic-macro-arguments
+    ifeq ($(shell expr $(cc_version) \> 12), 1)
+        WARN_FLAGS += -Werror=format
+        WARN_FLAGS += -Werror=format-extra-args
+        WARN_FLAGS += -Werror=format-insufficient-args
+        WARN_FLAGS += -Werror=format-invalid-specifier
+        WARN_FLAGS += -Werror=inconsistent-missing-override
+    endif
+endif
+
 # platform agnostic defines/flags setup #
 # include syms unconditionally. if a platform is size-sensitive or needs syms stripped for other reasons, 
 # then it is better to use the strip util (binutils) as a separate step explicitly. A typical process is 
@@ -459,7 +478,7 @@ include Makefile.common
 
 OBJS += $(SOURCES_C:.c=.o) $(VORBIS_SOURCES_C:.c=.o) $(SOURCES_CXX:.cpp=.o) $(SOURCES_ASM:.S=.o)
 
-CFLAGS += -Wall -pedantic $(fpic) $(INCFLAGS)
+CFLAGS += -Wall -pedantic $(fpic) $(INCFLAGS) $(WARN_FLAGS)
 
 LUADIR := deps/lua/src
 LUALIB := $(LUADIR)/liblua.a

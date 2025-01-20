@@ -35,6 +35,12 @@
 #  endif
 #endif
 
+#if defined(__clang__)
+#   define VERIFY_FORMAT(cmd,fmt,valist) __attribute__((format(cmd,fmt,valist)))
+#else
+#   define VERIFY_FORMAT(cmd,fmt,valist)
+#endif
+
 typedef enum
 {
    AssertUnrecoverable,
@@ -46,7 +52,7 @@ typedef enum
 //  - the disabled versions of assertions still include the cond, gated behind `0 &&` which makes the cond unreachable.
 //    this is done to enforce syntax checking of the contents of the assertion conditional even in release builds.
 
-extern int _lutro_assertf_internal(int ignorable, const char *fmt, ...);
+extern int _lutro_assertf_internal(int ignorable, const char *fmt, ...) VERIFY_FORMAT(printf, 2, 3);
 
 #define _base_hard_error()                            ((void)(          ((_lutro_assertf_internal(AssertUnrecoverable, __FILE__ "(%d): unrecoverable error "        "\n", __LINE__                        ),1) && (abort(), 0))))
 #define _base_hard_errorf(msg, ...)                   ((void)(          ((_lutro_assertf_internal(AssertUnrecoverable, __FILE__ "(%d): unrecoverable error "    msg "\n", __LINE__,         ## __VA_ARGS__),1) && (abort(), 0))))

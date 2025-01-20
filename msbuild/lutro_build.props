@@ -8,9 +8,16 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <AdditionalIncludeDirectories>$(SolutionDir)/msbuild;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ForcedIncludeFiles>fi-msw-buildconf.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
-      <ForcedIncludeFiles>%(ForcedIncludeFiles);$(SolutionDir)/fi-warnings.h</ForcedIncludeFiles>
-      <ForcedIncludeFiles>%(ForcedIncludeFiles);fi-verify-printf-msvc.h</ForcedIncludeFiles>
       <ForcedIncludeFiles>%(ForcedIncludeFiles);fi-printf-redirect.h</ForcedIncludeFiles>
+      <DisableSpecificWarnings>4100;4127;4244;4996</DisableSpecificWarnings>
+
+      <!-- Enable printf formatting warnings as errors. These are often precursors to undefined program behavior (crashes) -->
+      <AdditionalOptions Condition="'$(PlatformToolset)' == 'ClangCL'">%(AdditionalOptions) -Werror=format</AdditionalOptions>
+      <AdditionalOptions Condition="'$(PlatformToolset)' == 'ClangCL'">%(AdditionalOptions) -Werror=format-extra-args</AdditionalOptions>
+      <AdditionalOptions Condition="'$(PlatformToolset)' == 'ClangCL'">%(AdditionalOptions) -Werror=format-insufficient-args</AdditionalOptions>
+      <AdditionalOptions Condition="'$(PlatformToolset)' == 'ClangCL'">%(AdditionalOptions) -Werror=format-invalid-specifier</AdditionalOptions>
+      <AdditionalOptions Condition="'$(PlatformToolset)' == 'ClangCL'">%(AdditionalOptions) -Werror=inconsistent-missing-override</AdditionalOptions>
+
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -21,7 +28,6 @@
     <ClCompile>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <DisableSpecificWarnings>4996</DisableSpecificWarnings>
       <OmitFramePointers>false</OmitFramePointers>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>

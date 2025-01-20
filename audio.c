@@ -667,7 +667,7 @@ int audio_play(lua_State *L)
 
    if (!sourceIsPlayable(self))
    {
-      lutro_errorf("Audio source is not playable.", self->state);
+      lutro_errorf("Audio source is not playable.");
       self->state = AUDIO_STOPPED;
       return 0;
    }

@@ -29,7 +29,7 @@ int lutro_image_preload(lua_State *L)
    return 1;
 }
 
-void lutro_image_init()
+void lutro_image_init(void)
 {
 }
 

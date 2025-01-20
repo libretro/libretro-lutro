@@ -23,7 +23,7 @@ int lutro_mouse_preload(lua_State *L)
    return 1;
 }
 
-void lutro_mouse_init()
+void lutro_mouse_init(void)
 {
 }
 

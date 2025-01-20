@@ -236,7 +236,7 @@ void lutro_newlib_x(lua_State* L, luaL_Reg const* funcs, char const* fieldname, 
    lua_pop(L, 1);
 }
 
-void lutro_init()
+void lutro_init(void)
 {
    L = luaL_newstate();
 
@@ -316,7 +316,7 @@ void lutro_init()
    player_checked_stack_end(L, 0);
 }
 
-void lutro_deinit()
+void lutro_deinit(void)
 {
 #ifdef HAVE_INOTIFY
    if (settings.live_enable)
@@ -661,7 +661,7 @@ void lutro_run(double delta)
    lua_gc(L, LUA_GCSTEP, 0);
 }
 
-void lutro_reset()
+void lutro_reset(void)
 {
    player_checked_stack_begin(L);
    luax_reqglobal(L, "lutro");
@@ -680,7 +680,7 @@ void lutro_reset()
    lua_gc(L, LUA_GCSTEP, 0);
 }
 
-size_t lutro_serialize_size()
+size_t lutro_serialize_size(void)
 {
    size_t size = 0;
 
@@ -779,7 +779,7 @@ void lutro_cheat_set(unsigned index, bool enabled, const char *code)
    lua_gc(L, LUA_GCSTEP, 0);
 }
 
-void lutro_cheat_reset()
+void lutro_cheat_reset(void)
 {
    player_checked_stack_begin(L);
    luax_reqglobal(L, "lutro");
@@ -878,7 +878,7 @@ void *lutro_realloc_internal(void *ptr, size_t size, const char* debug, int line
     return a;
 }
 
-void lutro_print_allocation() {
+void lutro_print_allocation(void) {
 #if TRACE_ALLOCATION
     fprintf(stderr,"TRACE ALLOC:total pending allocations:%d\n", allocation_count);
 #endif

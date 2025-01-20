@@ -7,8 +7,8 @@
 #include <stdbool.h>
 #include "runtime.h"
 
-void lutro_filesystem_init();
-void lutro_filesystem_deinit();
+void lutro_filesystem_init(void);
+void lutro_filesystem_deinit(void);
 int lutro_filesystem_preload(lua_State *L);
 
 int fs_read(lua_State *L);

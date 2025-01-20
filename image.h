@@ -29,7 +29,7 @@
 #define BLUE_MASK 0x000000FF
 #endif
 
-void lutro_image_init();
+void lutro_image_init(void);
 int lutro_image_preload(lua_State *L);
 
 void *image_data_create_from_path(lua_State *L, const char *path);

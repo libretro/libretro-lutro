@@ -16,9 +16,8 @@
 # it's better to keep these vars in slightly strong named vars for use through-out Makefile tho.
 
 LUTRO_CONFIG ?= $(config)
-LUTRO_CONFIG ?= player
 
-# WANTS use ?= syntax to allow things to be provided on command line
+# WANTS use ?= syntax to allow things to be provided via environment as well as via CLI
 # NOTE: if you change these on the CLI then you MUST manually run clean!
 # (this could be fixed with some clever make scripting, maybe later...)
 
@@ -36,6 +35,9 @@ HAVE_INOTIFY ?= 0
 TRACE_ALLOCATION ?= 0
 MMD := -MMD
 
+ifeq ($(LUTRO_CONFIG),)
+	LUTRO_CONFIG = player
+endif
 
 ifeq ($(platform),)
 	platform = unix
@@ -456,20 +458,23 @@ DEFINES_PLAYER += -DLUTRO_ENABLE_ALERT=0
 DEFINES_PLAYER += -DLUTRO_ENABLE_ASSERT_TOOL=0
 DEFINES_PLAYER += -DLUTRO_ENABLE_ASSERT_DBG=0
 
-ifeq ($(LUTRO_CONFIG), debug)
+ifeq ($(LUTRO_CONFIG),debug)
 	DEFINES += $(DEFINES_DEBUG)
 	CFLAGS += -O0 -g
 	LUA_MYCFLAGS += -O0 -g -DLUA_USE_APICHECK
-else ifeq ($(LUTRO_CONFIG), tool)
+else ifeq ($(LUTRO_CONFIG),tool)
 	DEFINES += $(DEFINES_TOOL)
 	DEFINES += -DNDEBUG
 	CFLAGS += -O1 -g
 	LUA_MYCFLAGS += -O1 -g -DLUA_USE_APICHECK
-else ifeq ($(LUTRO_CONFIG), player)
+else ifeq ($(LUTRO_CONFIG),player)
 	DEFINES += $(DEFINES_PLAYER)
 	DEFINES += -DNDEBUG
 	CFLAGS += -O3 -g
 	LUA_MYCFLAGS += -O3 -g
+else
+	$(info valid config targets are: debug, tool, player)
+	$(error invalid or unspecified config target: config=$(LUTRO_CONFIG))
 endif
 
 CORE_DIR := .

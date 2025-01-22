@@ -20,10 +20,15 @@ function lutro.filesystem.getAppdataDirectoryTest()
 end
 
 function lutro.filesystem.getUserDirectoryTest()
-    local homeDir = lutro.filesystem.getUserDirectory()
-    -- @todo Find out how to make os.getenv('HOME') work on Windows?
-    local luaHomeDir = os.getenv("HOME")
-    unit.assertEquals(homeDir, luaHomeDir)
+    -- UserDirectory should always have a trailing slash. This is easy to verify.
+    -- Other aspects of UserDirectory are platform specific and non-trivial to calculate and there
+    -- isn't much value to trying to replicate it here.
+    local userDir = lutro.filesystem.getUserDirectory()
+    local userDirFixed = getUserDir
+    if userDirFixed:sub(-1) ~= '/' then
+        userDirFixed = userDirFixed .. '/'
+    end
+    unit.assertEquals(userDir, userDirFixed)
 end
 
 function lutro.filesystem.getDirectoryItemsTest()

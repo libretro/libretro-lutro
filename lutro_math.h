@@ -7,7 +7,7 @@
 #include <stdbool.h>
 #include "runtime.h"
 
-void lutro_math_init();
+void lutro_math_init(void);
 int lutro_math_preload(lua_State *L);
 int lutro_math_random(lua_State *L);
 int lutro_math_setRandomSeed(lua_State *L);

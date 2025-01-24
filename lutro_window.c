@@ -33,7 +33,7 @@ int lutro_window_preload(lua_State *L)
    return 1;
 }
 
-void lutro_window_init()
+void lutro_window_init(void)
 {
 }
 

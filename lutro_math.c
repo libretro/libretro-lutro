@@ -5,7 +5,7 @@
 #include <string.h>
 #include <time.h>
 
-void lutro_math_init()
+void lutro_math_init(void)
 {
     time_t t;
     srand((unsigned) time(&t));

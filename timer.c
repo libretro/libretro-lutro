@@ -18,7 +18,7 @@ int lutro_timer_preload(lua_State *L)
    return 1;
 }
 
-void lutro_timer_init()
+void lutro_timer_init(void)
 {
 }
 

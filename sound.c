@@ -19,7 +19,7 @@ int lutro_sound_preload(lua_State *L)
    return 1;
 }
 
-void lutro_sound_init()
+void lutro_sound_init(void)
 {
 }
 

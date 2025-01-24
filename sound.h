@@ -20,7 +20,7 @@ typedef struct
    mixer_presaturate_t* data;
 } snd_SoundData;
 
-void lutro_sound_init();
+void lutro_sound_init(void);
 int lutro_sound_preload(lua_State *L);
 
 int snd_newSoundData(lua_State *L);

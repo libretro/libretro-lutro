@@ -274,7 +274,7 @@ void lutro_audio_init(lua_State* L)
    lua_setglobal(L, "refs_audio_playing");
 }
 
-void lutro_audio_deinit()
+void lutro_audio_deinit(void)
 {
    if (!sources_playing) return;
 

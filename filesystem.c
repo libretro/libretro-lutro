@@ -108,14 +108,14 @@ int lutro_filesystem_preload(lua_State *L)
    return 1;
 }
 
-void lutro_filesystem_init()
+void lutro_filesystem_init(void)
 {
    #if WANT_PHYSFS
    PHYSFS_init(NULL);
    #endif
 }
 
-void lutro_filesystem_deinit()
+void lutro_filesystem_deinit(void)
 {
    #if WANT_PHYSFS
    PHYSFS_deinit();

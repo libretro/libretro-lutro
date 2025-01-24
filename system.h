@@ -7,7 +7,7 @@
 #include <stdbool.h>
 #include "runtime.h"
 
-void lutro_system_init();
+void lutro_system_init(void);
 int lutro_system_preload(lua_State *L);
 
 int sys_getOS(lua_State *L);

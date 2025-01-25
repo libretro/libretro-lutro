@@ -1,6 +1,5 @@
 -- Lutro Tester
 local availableStates = {
-	"config/print",
 	"graphics/print",
 	"unit/tests",
 	"joystick/isDown",
@@ -18,8 +17,7 @@ local joystickButton = 0
 local keypressed = ""
 
 local function write_error_traceback(errmsg)
-	print(errmsg)
-	print(debug.traceback())
+	print(debug.traceback(errmsg))
 end
 
 local function get_write_error_traceback(noprint)
@@ -38,33 +36,36 @@ local function create_failed_test(state, msg)
 end
 
 function lutro.load()
-	font = lutro.graphics.newImageFont("graphics/font.png", " abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.,!?-+/")
-	lutro.graphics.setFont(font)
-	lutro.graphics.setBackgroundColor(0, 0, 0)
+	g_font = lutro.graphics.newImageFont("graphics/font.png", " abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.,!?-+/")
 
 	-- Initiate all available test states.
 	-- Do not add states that fail to initialize, to avoid potentially deadlocking errors later on.
 	for i, state in ipairs(availableStates) do
-		local success, test = xpcall(
-			function() return require(state) end,
-			write_error_traceback
-		)
-		if not success then
-			local msg = ("An error occurred at importing %s"):format(state)
-			test = create_failed_test(state, msg)
-		end
+		if state then
+			local name = "lutro." .. string.gsub(state, "/", ".")
+			print (("Test #%d:%s:Import..."):format(i, name))
+			local success, test = xpcall(
+				function() return require(state) end,
+				write_error_traceback
+			)
+			if not success then
+				local msg = ("An error occurred at importing %s"):format(state)
+				test = create_failed_test(state, msg)
+			end
 
-		test['name'] = "lutro." .. string.gsub(state, "/", ".")
-		table.insert(states, test)
+			test.name = name
+			table.insert(states, test)
+		end
 	end
 
 	-- Load all states.
 	for i, state in ipairs(states) do
-		if states[i] and states[i]['load'] then
-			local success, test = xpcall(states[i]['load'], write_error_traceback)
+		print (("Test #%d:%s:Load..."):format(i, state.name))
+		if state and state.load then
+			local success, test = xpcall(state.load, write_error_traceback)
 			if not success then
-				local msg = ("An error occurred loading %s"):format(state)
-				states[i] = create_failed_test(state, msg)
+				local msg = ("An error occurred loading %s"):format(state.name)
+				states[i] = create_failed_test(availableStates[i], msg)
 			end
 		end
 	end
@@ -82,16 +83,19 @@ function lutro.update(dt)
 	end
 
 	-- Update the current state.
-	if states[currentState] and states[currentState]['update'] then
-		local success, test = xpcall(states[currentState]['update'], get_write_error_traceback(states[currentState].has_update_error), dt)
+	if states[currentState] and states[currentState].update then
+		local success, test = xpcall(
+			function() return states[currentState].update(dt) end,
+			get_write_error_traceback(states[currentState].has_update_error)
+		)
 		if not success then
 			-- if an error occurs during update, hook the draw routine to add a message to the display.
 			-- this allows the draw to continue even if update fails, as sometimes draws don't explicitly
 			-- require updates to work to still report useful results to the developer.
 			if not states[currentState].has_update_error then
-				local name = states[currentState]['name']
-				local origdraw = states[currentState]['draw']
-				states[currentState]['draw'] = function()
+				local name = states[currentState].name
+				local origdraw = states[currentState].draw
+				states[currentState].draw = function()
 					local msg = ("An error occurred updating %s"):format(name)
 					if origdraw then origdraw() end
 					lutro.graphics.print(msg, 30, 20)
@@ -108,16 +112,22 @@ function lutro.draw()
 		return
 	end
 
-	-- Draw the current state.
+	-- setup graphics defaults. Some tests may override this just for the test's render context.
+	lutro.graphics.setFont(g_font)
+	lutro.graphics.setBackgroundColor(30, 0, 30)
 	lutro.graphics.clear()
-	local success, test = xpcall(states[currentState]['draw'], get_write_error_traceback(states[currentState].has_draw_error), dt)
-	if not success then
-		local msg = ("An error occurred drawing %s"):format(states[currentState]['name'])
-		lutro.graphics.print(msg, 30, 35)
-		states[currentState].has_draw_error = true
+
+	-- Draw the current active test
+	if states[currentState].draw then
+		local success, test = xpcall(states[currentState].draw, get_write_error_traceback(states[currentState].has_draw_error))
+		if not success then
+			local msg = ("An error occurred drawing %s"):format(states[currentState].name)
+			lutro.graphics.print(msg, 30, 35)
+			states[currentState].has_draw_error = true
+		end
 	end
 
-	local status = 'Test ' .. currentState .. ' - ' .. states[currentState]['name']
+	local status = 'Test ' .. currentState .. ' - ' .. states[currentState].name
 	lutro.graphics.print(status, 10, 5)
 
 	-- Testing the keyboard/joystick pressed event.

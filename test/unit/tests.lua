@@ -7,6 +7,7 @@ unit = require 'luaunit'
 -- Runs all tests.
 function runTests()
 	local moduleTests = {
+		require 'modules/featureflags',
 		require 'modules/filesystem',
 		require 'modules/graphics',
 		require 'modules/keyboard',

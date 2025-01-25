@@ -204,9 +204,41 @@ static void init_lutro_global_table(lua_State *L)
    lua_pop(L, 1);
 }
 
+// reveals which configuration options were used to compile lutro.
+static void init_config(lua_State *L)
+{   
+   player_checked_stack_begin(L);
+
+   luax_reqglobal(L, "lutro");
+   lua_newtable(L);
+
+   char buf[128];
+
+   #define STR(a) #a
+   #define CAPABILITY(cap)                           \
+      snprintf(buf, sizeof(buf), "%s", #cap);        \
+      lua_pushboolean(L, (buf[0] && strtold(buf, NULL) != 0)); \
+      lua_setfield(L, -2, #cap)
+
+   CAPABILITY(HAVE_COMPOSITION);
+   CAPABILITY(HAVE_TRANSFORM);
+   CAPABILITY(HAVE_INOTIFY);
+   CAPABILITY(HAVE_JIT);
+   CAPABILITY(HAVE_LUASOCKET);
+
+   #undef STR
+   #undef CAPABILITY
+
+   lua_setfield(L, -2, "featureflags");
+   lua_pop(L, 1);
+
+   (void)player_checked_stack_end(L,0);
+}
 
 static int lutro_core_preload(lua_State *L)
 {
+   init_config(L);
+
    return 1;
 }
 
@@ -229,11 +261,13 @@ static void init_settings(lua_State *L)
 
 void lutro_newlib_x(lua_State* L, luaL_Reg const* funcs, char const* fieldname, int numfuncs)
 {
+   player_checked_stack_begin(L);
    luax_reqglobal(L, "lutro");
    lua_createtable(L, 0, numfuncs);
    luaL_setfuncs(L, funcs, 0);
    lua_setfield(L, -2, fieldname);
    lua_pop(L, 1);
+   player_checked_stack_end(L,0);
 }
 
 void lutro_init(void)

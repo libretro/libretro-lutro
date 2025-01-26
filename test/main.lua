@@ -5,7 +5,8 @@ local availableStates = {
 	"joystick/isDown",
 	"graphics/rectangle",
 	"graphics/line",
-	"graphics/scale",
+	-- ignore this test if lutro compiled without HAVE_TRANSFORM:
+	lutro.featureflags.HAVE_TRANSFORM and "graphics/scale" or false,
 	"audio/play",
 	"joystick/getJoystickCount",
 	"window/close"
@@ -13,7 +14,8 @@ local availableStates = {
 local states = {}
 local currentState = 1
 local currentTime = 0
-local intervalTime = 2.5
+local intervalTimeDefault = 2.5
+local intervalTime = intervalTimeDefault
 local joystickButton = 0
 local keypressed = ""
 
@@ -70,6 +72,10 @@ function lutro.load()
 			end
 		end
 	end
+
+	currentState = 1
+	currentTime = 0
+	intervalTime = states[currentState].intervalTime or intervalTimeDefault
 end
 
 function lutro.update(dt)
@@ -80,6 +86,12 @@ function lutro.update(dt)
 		currentState = currentState + 1
 		if currentState > #states then
 			currentState = 1
+		end
+
+		if states[currentState] and states[currentState].intervalTime then
+			intervalTime = states[currentState].intervalTime
+		else
+			intervalTime = intervalTimeDefault
 		end
 	end
 
@@ -140,7 +152,7 @@ function lutro.draw()
 	lutro.graphics.print('FPS ' .. fps, 10, 350)
 
 	-- Display test instructions.
-	text = "Tests switch every 3 seconds. Counting: %.1f"
+	text = "Test runs for %.1f seconds. Counting: %.1f"
 	lutro.graphics.print(text:format(currentTime), 10,365)
 end
 

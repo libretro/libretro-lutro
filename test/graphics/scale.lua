@@ -4,6 +4,8 @@ local line_segments = {}
 local img = nil
 
 return {
+	intervalTime = 5,
+
 	load = function()
 		img = lutro.graphics.newImage("graphics/font.png")
 		line_segments[1] = {x=104, y=108} -- 100 + centred on quad
@@ -54,13 +56,13 @@ return {
 		end
 		
 		-- image offset while scaled
-		if t > 1.5 then
+		if t > 2.5 then
 			-- set xscale, yscale to something arbitrary
 			-- then ensure origin is offset correctly by scale
-			scale_x = 2.5 - math.pow(t - 1.5, 9)
-			scale_y = 1.1 + math.pow(t - 1.5, 7)
-			org_x = -(t - 1.5) * 100
-			org_y = org_x + math.sin((t - 1.5) * 8) * 20
+			scale_x = 1.1 + math.pow(t - 2.5, 2)
+			scale_y = 1.1 + math.pow(t - 2.5, 2)
+			org_x = -(t - 2.5) * 20
+			org_y = -10 - (math.sin((t - 2.5) * 3) * 10)
 			-- (origin should follow the line being drawn)
 			draw_line = true
 		end

@@ -26,13 +26,14 @@ WANT_ZLIB        ?= 1
 WANT_UNZIP       ?= 1
 WANT_LUASOCKET   ?= 0
 WANT_PHYSFS      ?= 0
+WANT_COMPOSITION ?= 1
+WANT_TRANSFORM   ?= 1
+TRACE_ALLOCATION ?= 0
 
 #### END CLI OPTIONS
 
 # setup some things that will be reassigned per-platform
-HAVE_COMPOSITION ?= 1
 HAVE_INOTIFY ?= 0
-TRACE_ALLOCATION ?= 0
 MMD := -MMD
 
 ifeq ($(LUTRO_CONFIG),)

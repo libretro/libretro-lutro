@@ -204,27 +204,37 @@ static void init_lutro_global_table(lua_State *L)
    lua_pop(L, 1);
 }
 
-// reveals which configuration options were used to compile lutro.
-static void init_config(lua_State *L)
+// exposes  build configuration options used to compile lutro to lua
+static void init_feature_flags(lua_State *L)
 {   
    player_checked_stack_begin(L);
 
    luax_reqglobal(L, "lutro");
    lua_newtable(L);
 
-   char buf[128];
+   char buf[64];
 
-   #define STR(a) #a
-   #define CAPABILITY(cap)                           \
-      snprintf(buf, sizeof(buf), "%s", #cap);        \
-      lua_pushboolean(L, (buf[0] && strtold(buf, NULL) != 0)); \
-      lua_setfield(L, -2, #cap)
+   #define _CAPABILITY(capname, capval) \
+      snprintf(buf, sizeof(buf), "%s", # capval);     \
+      lua_pushboolean(L, (buf[0] && strtod(buf, NULL) != 0)); \
+      lua_setfield(L, -2, capname)
+
+   #define CAPABILITY(cap) _CAPABILITY(#cap, cap)
 
    CAPABILITY(HAVE_COMPOSITION);
    CAPABILITY(HAVE_TRANSFORM);
    CAPABILITY(HAVE_INOTIFY);
    CAPABILITY(HAVE_JIT);
    CAPABILITY(HAVE_LUASOCKET);
+
+   // for unit testing purposes only.
+   #define _VERIFY_AS_TRUE  1
+   #define _VERIFY_AS_FALSE 0
+   CAPABILITY(_VERIFY_AS_TRUE);
+   CAPABILITY(_VERIFY_AS_FALSE);
+   CAPABILITY(_VERIFY_AS_UNDEFINED);
+   #undef _VERIFY_AS_TRUE
+   #undef _VERIFY_AS_FALSE
 
    #undef STR
    #undef CAPABILITY
@@ -237,7 +247,7 @@ static void init_config(lua_State *L)
 
 static int lutro_core_preload(lua_State *L)
 {
-   init_config(L);
+   init_feature_flags(L);
 
    return 1;
 }

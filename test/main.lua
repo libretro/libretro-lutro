@@ -1,6 +1,5 @@
 -- Lutro Tester
 local availableStates = {
-	"config/print",
 	"graphics/print",
 	"unit/tests",
 	"joystick/isDown",

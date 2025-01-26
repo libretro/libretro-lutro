@@ -158,7 +158,7 @@ endif
 
 # PhysFS
 ifeq ($(WANT_PHYSFS), 1)
-    DEFINES += -DWANT_PHYSFS
+    DEFINES += -DWANT_PHYSFS=1
     DEPS_DIR_PHYSFS := $(CORE_DIR)/deps/physfs
     CFLAGS += -I$(DEPS_DIR_PHYSFS)
     SOURCES_C_PHYSFS = $(DEPS_DIR_PHYSFS)/physfs.c \
@@ -183,12 +183,12 @@ ifeq ($(WANT_PHYSFS), 1)
         $(DEPS_DIR_PHYSFS)/physfs_platform_windows.c
     SOURCES_C += $(SOURCES_C_PHYSFS)
     ifeq ($(WANT_ZLIB),1)
-        DEFINES += -DPHYSFS_SUPPORTS_ZIP
+        DEFINES += -DPHYSFS_SUPPORTS_ZIP=1
     endif
 
     ifeq ($(platform),unix)
-        DEFINES += -DPHYSFS_PLATFORM_UNIX
-        DEFINES += -DPHYSFS_PLATFORM_LINUX
+        DEFINES += -DPHYSFS_PLATFORM_UNIX=1
+        DEFINES += -DPHYSFS_PLATFORM_LINUX=1
     endif
 endif
 

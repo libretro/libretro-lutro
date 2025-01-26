@@ -409,7 +409,7 @@ endif
 compiler_brand := $(shell $(CC) --version | grep -o -m1 clang || echo gcc)
 cc_version := $(shell $(CC) -dumpversion)
 
-WARN_FLAGS = 
+WARN_FLAGS ?= 
 
 # Clang compiler can pedantically generate compiler errors for printf formatting.
 # Printf formatting errors often result in undefined program behavior (crashes).

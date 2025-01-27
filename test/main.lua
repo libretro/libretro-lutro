@@ -11,6 +11,7 @@ local availableStates = {
 	"joystick/getJoystickCount",
 	"window/close"
 }
+
 local states = {}
 local currentState = 1
 local currentTime = 0
@@ -153,7 +154,7 @@ function lutro.draw()
 
 	-- Display test instructions.
 	text = "Test runs for %.1f seconds. Counting: %.1f"
-	lutro.graphics.print(text:format(currentTime), 10,365)
+	lutro.graphics.print(text:format(intervalTime, currentTime), 10,365)
 end
 
 function lutro.joystickpressed(joystick, button)

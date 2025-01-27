@@ -35,8 +35,9 @@ Compile Lutro by [installing the RetroArch dependencies](https://github.com/libr
     
 There are a few optional defines you can use to change how Lutro behaves.
 
-- `make HAVE_COMPOSITION=1` Enables alpha-blending.
-
+- `make WANT_COMPOSITION=1` Enables alpha-blending.
+- `make WANT_TRANSFORM=1` Enables scaling
+- `make TRACE_ALLOCATION=1` Enables memory allocation tracing
 
 ## Test
 

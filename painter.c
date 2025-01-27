@@ -57,12 +57,31 @@ void pntr_clear(painter_t *p)
    if (!p->target->data)
       return;
 
-   uint32_t *begin = p->target->data;
-   uint32_t *end   = p->target->data + p->target->height * (p->target->pitch >> 2);
    uint32_t color  = p->background;
 
-   while (begin < end)
-      *begin++ = color;
+   if (p->clip.x == 0 && p->clip.width == p->target->width
+      && p->clip.y == 0 && p->clip.height == p->target->height)
+   {
+      // this loop might be optimized by the compiler in comparison with
+      // the alternative loop below.
+      uint32_t *begin = p->target->data;
+      uint32_t *end   = p->target->data + p->target->height * (p->target->pitch >> 2);
+      while (begin < end)
+      {
+         *begin++ = color;
+      }
+   }
+   else
+   {
+      // less efficient loop than above, but can handle clipping rect.
+      for (uint32_t x = MAX(0, p->clip.x); x < MIN(p->clip.x + p->clip.width, p->target->width); ++x)
+      {
+         for (uint32_t y = MAX(0, p->clip.y); y < MAX(p->clip.y + p->clip.height, y < p->target->height); ++y)
+         {
+            p->target->data[x + y * (p->target->pitch >> 2)] = color;
+         }
+      }
+   }
 }
 
 
@@ -333,29 +352,114 @@ void pntr_draw(painter_t *p, const bitmap_t *bmp, const rect_t *src_rect, const 
    rect_t srect = *src_rect, drect = *dst_rect;
 
    drect.x += p->trans->tx;
-   drect.y += p->trans->ty;
+   drect.y -= p->trans->ty;
 
-   /* scaling not supported */
+#ifdef HAVE_TRANSFORM
+   // stored as 0 or 0xffffffff for masking properties.
+   const uint32_t is_x_reversed = (p->trans->sx < 0) ? 0xffffffff : 0;
+   const uint32_t is_y_reversed = (p->trans->sy < 0) ? 0xffffffff : 0;
+
+   float abs_sx = is_x_reversed ? -p->trans->sx : p->trans->sx;
+   float abs_sy = is_y_reversed ? -p->trans->sy : p->trans->sy;
+
+   drect.width  = srect.width * abs_sx;
+   drect.height = srect.height * abs_sy;
+
+   const uint32_t k_binexp = 16;
+   const uint32_t k_binexp_center = (1 << (k_binexp - 1));
+
+   // give up if scaling is small enough that division becomes untenable
+   if (abs_sx < 1.0/k_binexp_center || abs_sy < 1.0/k_binexp_center)
+      return;
+   
+   const uint32_t inv_scale_x = (1 << k_binexp) / abs_sx;
+   const uint32_t inv_scale_y = (1 << k_binexp) / abs_sy;
+
+   #define SCALE_DST_TO_SRC(axis, a) (((a) * inv_scale_##axis + k_binexp_center) >> k_binexp)
+
+   // negative scaling reverses the top-left and bottom-right corners like so:
+   if (is_x_reversed)
+   {
+      drect.x -= drect.width;
+   }
+   if (is_y_reversed)
+   {
+      drect.y -= drect.height;
+   }
+#else
    drect.width  = srect.width;
    drect.height = srect.height;
 
+   #define SCALE_DST_TO_SRC(axis, a) (a)
+   #define is_x_reversed 0
+   #define is_y_reversed 0
+#endif
+
+   // crop source rect to destination
    if (drect.x < 0)
    {
-      srect.x     += -drect.x;
-      srect.width += drect.x;
+      srect.width += SCALE_DST_TO_SRC(x, drect.x);
+      if (!is_x_reversed)
+      {
+         // (crop from left side of source)
+         srect.x  += SCALE_DST_TO_SRC(x, -drect.x);
+      }
+      drect.width += drect.x;
+      drect.x      = 0;
    }
 
    if (drect.y < 0)
    {
-      srect.y     += -drect.y;
-      srect.height += drect.y;
+      srect.height += SCALE_DST_TO_SRC(y, drect.y);
+      if (!is_y_reversed)
+      {
+         // (crop from top of source)
+         srect.y   += SCALE_DST_TO_SRC(y, -drect.y);
+      }
+      drect.height += drect.y;
+      drect.y       = 0;
    }
 
-   drect        = rect_intersect(&drect, &p->clip);
-   drect.width  = MIN(drect.width, srect.width);
-   drect.height = MIN(drect.height, srect.height);
+   rect_t drect_clipped = rect_intersect(&drect, &p->clip);
 
-   if (rect_is_null(&drect) || rect_is_null(&srect))
+   // (note: this can never be negative, so srect.x, srect.y remain positive)
+   srect.x      += SCALE_DST_TO_SRC(x, drect_clipped.x      - drect.x);
+   srect.width  -= SCALE_DST_TO_SRC(x, drect.width - drect_clipped.width);
+   srect.y      += SCALE_DST_TO_SRC(y, drect_clipped.y      - drect.y);
+   srect.height -= SCALE_DST_TO_SRC(y, drect.height - drect_clipped.height);
+
+   drect = drect_clipped;
+
+   // ensure source rect is cropped to source bounds
+   if (srect.x + srect.width > bmp->width)
+   {
+      srect.width = bmp->width - srect.x;
+   }
+   if (srect.y + srect.height > bmp->height)
+   {
+      srect.height = bmp->height - srect.y;
+   }
+
+   // ensure we won't exceed the bitmap's data during the upcoming blit:
+   #ifdef HAVE_TRANSFORM
+      // temporary implementation
+      // TODO: replace this.
+      if (srect.x >= bmp->width || srect.y >= bmp->height)
+         return;
+      while (srect.x + SCALE_DST_TO_SRC(x, drect.width) > bmp->width)
+      {
+         drect.width--;
+      }
+      while (srect.y + SCALE_DST_TO_SRC(y, drect.height) > bmp->height)
+      {
+         drect.height--;
+      }
+   #else
+      drect.width = MIN(drect.width, srect.width);
+      drect.height = MIN(drect.height, srect.height); 
+   #endif
+
+   if (rect_is_null(&drect) || rect_is_null(&srect) || p->trans->sx == 0 || p->trans->sy == 0)
       return;
 
    size_t dst_skip = p->target->pitch >> 2;
@@ -368,39 +472,47 @@ void pntr_draw(painter_t *p, const bitmap_t *bmp, const rect_t *src_rect, const 
    int cols = drect.width;
    int x = 0;
 
+#ifdef HAVE_TRANSFORM
+   uint32_t y = 0;
+#endif
 #ifdef HAVE_COMPOSITION
    uint32_t sa, sr, sg, sb, da, dr, dg, db, s, d;
+#else
+   uint32_t s;
+#endif
    while (rows_left--)
    {
       for (x = 0; x < cols; ++x)
       {
+#ifdef HAVE_TRANSFORM
+         uint32_t xo = (x & ~is_x_reversed) | ((cols - x - 1) & is_x_reversed);
+         uint32_t yo = (y & ~is_y_reversed) | ((drect.height - y - 1) & is_y_reversed);
+         uint32_t xi = SCALE_DST_TO_SRC(x, xo);
+         uint32_t yi = SCALE_DST_TO_SRC(y, yo);
+         s = src[xi + yi * src_skip];
+#else
          s = src[x];
+#endif
+#ifdef HAVE_COMPOSITION
          d = dst[x];
          sa = s >> 24;
          da = d >> 24;
          DISASSEMBLE_RGB(s, sr, sg, sb);
          DISASSEMBLE_RGB(d, dr, dg, db);
          dst[x] = ((sa + da * (255 - sa)) << 24) | (COMPOSE_FAST(sr, dr, sa) << 16) | (COMPOSE_FAST(sg, dg, sa) << 8) | (COMPOSE_FAST(sb, db, sa));
-      }
-
-      dst += dst_skip;
-      src += src_skip;
-   }
 #else
-   uint32_t c;
-   while (rows_left--)
-   {
-      for (x = 0; x < cols; ++x)
-      {
-         c = src[x];
-         if (c & 0xff000000)
-            dst[x] = c;
+         if (s & 0xff000000)
+         dst[x] = s;
+#endif
       }
 
       dst += dst_skip;
+#ifdef HAVE_TRANSFORM
+      y += 1;
+#else
       src += src_skip;
-   }
 #endif
+   }
 }
 
 
@@ -453,14 +565,14 @@ void pntr_print(painter_t *p, int x, int y, const char *text, int limit)
          if (limit > 0 && drect.x - x > limit)
          {
             drect.x = x;
-            drect.y += atlas->height;
-         }
+	        drect.y += atlas->height;
+		 }
 
-         if (c == '\n')
-         {
+		 if (c == '\n')
+		 {
             drect.x = x;
-            drect.y += atlas->height;
-         }
+	        drect.y += atlas->height;
+		 }
       }
 
       if (utf32 != buf)

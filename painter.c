@@ -352,7 +352,7 @@ void pntr_draw(painter_t *p, const bitmap_t *bmp, const rect_t *src_rect, const 
    rect_t srect = *src_rect, drect = *dst_rect;
 
    drect.x += p->trans->tx;
-   drect.y -= p->trans->ty;
+   drect.y += p->trans->ty;
 
 #ifdef HAVE_TRANSFORM
    // stored as 0 or 0xffffffff for masking properties.

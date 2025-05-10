@@ -50,7 +50,7 @@ ifeq ($(platform),)
         platform = osx
     else ifneq ($(findstring win,$(shell uname -a)),)
         platform = win
-    else ($(findstring OpenOrbisSDK,$(OO_PS4_TOOLCHAIN)),)
+    else ifneq ($(findstring OpenOrbisSDK,$(OO_PS4_TOOLCHAIN)),)
         platform = ps4
     endif
 endif
@@ -71,7 +71,7 @@ ifeq ($(shell uname -p),powerpc)
 endif
 else ifneq ($(findstring MINGW,$(shell uname -a)),)
     system_platform = win
-else ($(findstring OpenOrbisSDK,$(OO_PS4_TOOLCHAIN)),)
+else ifneq ($(findstring OpenOrbisSDK,$(OO_PS4_TOOLCHAIN)),)
     system_platform = ps4
 endif
 

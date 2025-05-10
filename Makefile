@@ -50,6 +50,8 @@ ifeq ($(platform),)
         platform = osx
     else ifneq ($(findstring win,$(shell uname -a)),)
         platform = win
+    else ($(findstring OpenOrbisSDK,$(OO_PS4_TOOLCHAIN)),)
+        platform = ps4
     endif
 endif
 
@@ -69,10 +71,14 @@ ifeq ($(shell uname -p),powerpc)
 endif
 else ifneq ($(findstring MINGW,$(shell uname -a)),)
     system_platform = win
+else ($(findstring OpenOrbisSDK,$(OO_PS4_TOOLCHAIN)),)
+    system_platform = ps4
 endif
 
 TARGET_NAME := lutro
+ifndef GIT_VERSION
 GIT_VERSION := " $(shell git rev-parse --short HEAD || echo unknown)"
+endif
 ifneq ($(GIT_VERSION)," unknown")
     GVFLAGS += -DGIT_VERSION=\"$(GIT_VERSION)\"
 endif
@@ -309,6 +315,16 @@ else ifeq ($(platform), ps3)
     AR = $(CELL_SDK)/host-win32/ppu/bin/ppu-lv2-ar.exe
     DEFINES := -D__CELLOS_LV2__
     LUA_MYCFLAGS := $(DEFINES) $(CFLAGS)
+    STATIC_LINKING = 1
+    MMD :=
+
+# PS4    
+else ifeq ($(platform), ps4)
+    TARGET := $(TARGET_NAME)_libretro_$(platform).self
+    DEFINES := -D__ORBIS__ -D__PS4__
+    CFLAGS += $(DEFINES) -O2 -std=gnu11 -fPIC -funwind-tables
+    CXXFLAGS += $(DEFINES) -O2 -std=gnu++11
+    LDFLAGS += -Wl,--gc-sections -m elf_x86_64 -pie
     STATIC_LINKING = 1
     MMD :=
 

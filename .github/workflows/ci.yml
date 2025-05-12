@@ -5,6 +5,7 @@ on:
     branches: [master]
   pull_request:
     branches: [master]
+  workflow_dispatch:
 
 defaults:
   run:
@@ -91,5 +92,5 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run:                 docker run --rm -w /workspace -v "$(pwd)":/workspace --user $(id -u):$(id -g) openorbisofficial/toolchain:latest make -j4 config=tool GIT_VERSION=`git rev-parse --short HEAD`
-      - run: git clean -f && docker run --rm -w /workspace -v "$(pwd)":/workspace --user $(id -u):$(id -g) openorbisofficial/toolchain:latest make -j4 config=player GIT_VERSION=`git rev-parse --short HEAD`
+      - run:                 docker run --rm -w /workspace -v "$(pwd)":/workspace --user $(id -u):$(id -g) openorbisofficial/toolchain:latest make -j4 config=tool platform=ps4 GIT_VERSION=`git rev-parse --short HEAD`
+      - run: git clean -f && docker run --rm -w /workspace -v "$(pwd)":/workspace --user $(id -u):$(id -g) openorbisofficial/toolchain:latest make -j4 config=player platform=ps4 GIT_VERSION=`git rev-parse --short HEAD`

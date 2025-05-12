@@ -50,8 +50,6 @@ ifeq ($(platform),)
         platform = osx
     else ifneq ($(findstring win,$(shell uname -a)),)
         platform = win
-    else ($(findstring OpenOrbisSDK,$(OO_PS4_TOOLCHAIN)),)
-        platform = ps4
     endif
 endif
 
@@ -71,8 +69,6 @@ ifeq ($(shell uname -p),powerpc)
 endif
 else ifneq ($(findstring MINGW,$(shell uname -a)),)
     system_platform = win
-else ($(findstring OpenOrbisSDK,$(OO_PS4_TOOLCHAIN)),)
-    system_platform = ps4
 endif
 
 TARGET_NAME := lutro
@@ -320,7 +316,7 @@ else ifeq ($(platform), ps3)
 
 # PS4    
 else ifeq ($(platform), ps4)
-    TARGET := $(TARGET_NAME)_libretro_$(platform).self
+    TARGET := $(TARGET_NAME)_libretro_$(platform).a
     DEFINES := -D__ORBIS__ -D__PS4__
     CFLAGS += $(DEFINES) -O2 -std=gnu11 -fPIC -funwind-tables
     CXXFLAGS += $(DEFINES) -O2 -std=gnu++11

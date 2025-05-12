@@ -320,7 +320,7 @@ else ifeq ($(platform), ps4)
     DEFINES := -D__ORBIS__ -D__PS4__
     CFLAGS += $(DEFINES) -O2 -std=gnu11 -fPIC -funwind-tables
     CXXFLAGS += $(DEFINES) -O2 -std=gnu++11
-    LDFLAGS += -Wl,--gc-sections -m elf_x86_64 -pie
+    LDFLAGS += -Wl,--gc-sections -pie
     STATIC_LINKING = 0
     MMD :=
 

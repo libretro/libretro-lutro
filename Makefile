@@ -321,7 +321,7 @@ else ifeq ($(platform), ps4)
     CFLAGS += $(DEFINES) -O2 -std=gnu11 -fPIC -funwind-tables
     CXXFLAGS += $(DEFINES) -O2 -std=gnu++11
     LDFLAGS += -Wl,--gc-sections -m elf_x86_64 -pie
-    STATIC_LINKING = 1
+    STATIC_LINKING = 0
     MMD :=
 
 # ARM

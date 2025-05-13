@@ -317,7 +317,7 @@ else ifeq ($(platform), ps3)
 # PS4    
 else ifeq ($(platform), ps4)
     TARGET := $(TARGET_NAME)_libretro_$(platform).elf
-    DEFINES := -D'RETRO_API=__declspec(dllexport)' -D__ORBIS__ -D__PS4__ 
+    DEFINES := -DRETRO_API='__attribute__((visibility("default")))' -D__ORBIS__ -D__PS4__ 
     CFLAGS += $(DEFINES) -O2 -std=gnu11 -fPIC -funwind-tables
     CXXFLAGS += $(DEFINES) -O2 -std=gnu++11
     LDFLAGS += -Wl,--gc-sections -pie

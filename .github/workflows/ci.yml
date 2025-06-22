@@ -16,74 +16,88 @@ defaults:
 # debug builds are currently not built to keep the turnaround time on PRs shorter.
 
 jobs:
-  build_linux:
+  build_linux_x86_64:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - run:                 make -j4 config=tool
       - run: git clean -f && make -j4 config=player
 
+  build_linux_arm64:
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - uses: actions/checkout@v4
+      - run:                 make -j4 config=tool
+      - run: git clean -f && make -j4 config=player
+    
   build_linux_jit:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - run: make -j4 config=player WANT_JIT=1
 
   build_linux_luasocket:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - run: make -j4 config=player WANT_LUASOCKET=1
 
   build_linux_armv7_neon:
     runs-on: ubuntu-latest
     container: dockcross/linux-armv7
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - run:                 make -j4 platform=unix-armv7-neon-hardfloat config=player 
 
 #  build_linux_armv7_neon_jit:
 #    runs-on: ubuntu-latest
 #    container: dockcross/linux-armv7
 #    steps:
-#      - uses: actions/checkout@v2
+#      - uses: actions/checkout@v4
 #      - run: make WANT_JIT=1 platform=unix-armv7-neon-hardfloat -j4
 
-  build_osx:
+  build_osx_x86_64:
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
+      - run:                 make -j4 platform=osx config=tool
+      - run: git clean -f && make -j4 platform=osx config=player
+
+  build_osx_arm64:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
       - run:                 make -j4 platform=osx config=tool
       - run: git clean -f && make -j4 platform=osx config=player
 
   build_osx_jit:
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - run:                 make -j4 platform=osx config=player WANT_JIT=1 MACOSX_DEPLOYMENT_TARGET=12.6
 
   build_osx_luasocket:
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - run:                 make -j4 platform=osx config=player WANT_LUASOCKET=1 
 
   build_windows:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - run:                 CC=gcc make -j4 platform=win config=tool   
       - run: git clean -f && CC=gcc make -j4 platform=win config=player
 
   build_windows_jit:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - run:                 CC=gcc make -j4 platform=win config=player WANT_JIT=1 
 
   build_windows_luasocket:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - run:                 CC=gcc make -j4 platform=win config=player WANT_LUASOCKET=1 
 

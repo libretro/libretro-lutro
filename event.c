@@ -10,7 +10,7 @@ int lutro_event_preload(lua_State *L)
 {
    static const luaL_Reg event_funcs[] =  {
       { "quit", event_quit },
-      {NULL, NULL}
+      { NULL, NULL }
    };
 
    lutro_newlib(L, event_funcs, "event");

@@ -74,7 +74,7 @@ int l_not_implemented(lua_State *L);
 #define LUA_OPLE	2
 
 #define luaL_newlibtable(L,l)  \
-  lua_createtable(L, 0, sizeof(l)/sizeof((l)[0]) - 1)
+   lua_createtable(L, 0, sizeof(l)/sizeof((l)[0]) - 1)
 
 #define luaL_newlib(L,l)       (luaL_newlibtable(L,l), luaL_setfuncs(L,l,0))
 
@@ -97,7 +97,6 @@ int lutro_pcall_isfunction(lua_State* L, int idx);
 
 void lutro_newlib_x(lua_State* L, luaL_Reg const* funcs, char const* fieldname, int numfuncs);
 #define lutro_newlib(L,funcs,fieldname)  (lutro_newlib_x(L,funcs,fieldname, (sizeof(funcs) / sizeof((funcs)[0]) - 1)))
-
 
 #define luax_reqglobal(L, k)  ((void) (lua_getglobal(L, k), dbg_assertf(lua_istable(L, -1), "missing global table '%s'",k), 0) )
 

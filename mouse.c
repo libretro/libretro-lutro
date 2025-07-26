@@ -34,10 +34,10 @@ void lutro_mouseevent(lua_State* L)
    {
       int16_t value = settings.input_cb(0, RETRO_DEVICE_MOUSE, 0, i);
       if (i == RETRO_DEVICE_ID_MOUSE_X || i == RETRO_DEVICE_ID_MOUSE_Y) {
-        mouse_cache[i] += value;
+         mouse_cache[i] += value;
       }
       else {
-        mouse_cache[i] = value;
+         mouse_cache[i] = value;
       }
    }
 }
@@ -138,4 +138,3 @@ int mouse_getPosition(lua_State *L)
 
    return 2;
 }
-

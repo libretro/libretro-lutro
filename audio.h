@@ -1,37 +1,37 @@
 #ifndef AUDIO_H
 #define AUDIO_H
 
-#include "audio_mixer.h"
-#include "decoder.h"
-#include "runtime.h"
-#include "sound.h"
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "audio_mixer.h"
+#include "decoder.h"
+#include "runtime.h"
+#include "sound.h"
 
 typedef enum {
-  AUDIO_STOPPED = 0,
-  AUDIO_PAUSED,
-  AUDIO_PLAYING
+   AUDIO_STOPPED = 0,
+   AUDIO_PAUSED,
+   AUDIO_PLAYING
 } audio_source_state;
 
 typedef struct {
-  // only one of these should be non-null for a given source.
+   // only one of these should be non-null for a given source.
 
-  dec_WavData *wavData; // streaming from wav
-  dec_OggData *oggData; // streaming from ogg
+   dec_WavData *wavData; // streaming from wav
+   dec_OggData *oggData; // streaming from ogg
 
-  snd_SoundData *sndta; // pre-decoded sound
-  int lua_ref_sndta; // (REGISTRY) ref to sndta is held as long as this object
-                     // isn't disposed/__gc'd
+   snd_SoundData *sndta; // pre-decoded sound
+   int lua_ref_sndta; // (REGISTRY) ref to sndta is held as long as this object
+                      // isn't disposed/__gc'd
 
-  intmax_t sndpos; // readpos in samples for pre-decoded sound only
+   intmax_t sndpos; // readpos in samples for pre-decoded sound only
 
-  bool loop;
-  float volume;
-  float pitch;
-  audio_source_state state;
+   bool loop;
+   float volume;
+   float pitch;
+   audio_source_state state;
 } audio_Source;
 
 void lutro_audio_init(lua_State *L);

@@ -15,7 +15,7 @@
 
 // any source which is playing must maintain a ref in lua, to avoid __gc.
 typedef struct {
-   int           lua_ref;
+   int lua_ref;
 } audioSourceByRef;
 
 

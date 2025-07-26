@@ -815,10 +815,6 @@ int audio_getActiveSourceCount(lua_State *L)
    return 1;
 }
 
-static void pause_sources_in_table(lua_State* L, int idx)
-{
-}
-
 // returns list of sources paused by this call.
 // love2D docs indicate that it only returns a value when called with no arguments. This hardly
 // makes sense - might as well return a list of sources which were paused regardless. The user

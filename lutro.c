@@ -722,6 +722,7 @@ void lutro_reset(void)
       }
    }
 
+   lua_pop(L, 1);
    player_checked_stack_end(L, 0);
    lua_gc(L, LUA_GCSTEP, 0);
 }

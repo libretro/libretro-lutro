@@ -742,11 +742,15 @@ size_t lutro_serialize_size(void)
       }
 
       if (lua_isnumber(L, -1))
+      {
          size = lua_tonumber(L, -1);
+         lua_pop(L, 1);
+      }
       else
          tool_assertf(false, "Invalid type returned from lutro.serializeSize. An integer result is expected.\n");
    }
 
+   lua_pop(L, 1);
    player_checked_stack_end(L, 0);
    lua_gc(L, LUA_GCSTEP, 0);
 
@@ -776,6 +780,7 @@ bool lutro_serialize(void *data_, size_t size)
       }
    }
 
+   lua_pop(L, 1);
    player_checked_stack_end(L, 0);
    lua_gc(L, LUA_GCSTEP, 0);
 

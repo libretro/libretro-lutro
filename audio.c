@@ -256,7 +256,7 @@ int lutro_audio_preload(lua_State *L)
       { "setVolume", audio_setVolume },
       { "getActiveSources",      audio_getActiveSources },
       { "getActiveSourceCount",  audio_getActiveSourceCount },
-      {NULL, NULL}
+      { NULL, NULL }
    };
 
    lutro_newlib(L, audio_funcs, "audio");
@@ -337,7 +337,7 @@ static void make_metatable_Source(lua_State* L, int stidx_udata)
          { "setPitch",   source_setPitch },
          { "getPitch",   source_getPitch },
          { "__gc",       source_gc },
-         {NULL, NULL}
+         { NULL, NULL }
       };
 
       lua_pushvalue(L, -1);
@@ -814,7 +814,6 @@ int audio_getActiveSourceCount(lua_State *L)
    getActiveSourcesFiltered(L, FILTER_ACTIVE | FILTER_RESULT_COUNT);
    return 1;
 }
-
 
 static void pause_sources_in_table(lua_State* L, int idx)
 {

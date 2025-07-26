@@ -856,7 +856,8 @@ static int gfx_points(lua_State *L)
 
    canvas = get_canvas_ref(L, cur_canv);
 
-   for (i = 1; i < n; i += 2) {
+   for (i = 1; i < n; i += 2)
+   {
       x = luaL_checknumber(L, i);
       y = luaL_checknumber(L, i + 1);
 
@@ -893,16 +894,19 @@ static int gfx_line(lua_State *L)
 /* TODO: move this elsewhere, we will certainly need it a lot */
 void *checkudata (lua_State *L, int ud, const char *tname) {
    void *p = lua_touserdata(L, ud);
-   if (p != NULL) {  /* value is a userdata? */
-      if (lua_getmetatable(L, ud)) {  /* does it have a metatable? */
+   if (p != NULL)
+   {  /* value is a userdata? */
+      if (lua_getmetatable(L, ud))
+      {  /* does it have a metatable? */
          lua_getfield(L, LUA_REGISTRYINDEX, tname);  /* get correct metatable */
-         if (lua_rawequal(L, -1, -2)) {  /* does it have the correct mt? */
-         lua_pop(L, 2);  /* remove both metatables */
-         return p;
+         if (lua_rawequal(L, -1, -2))
+         {  /* does it have the correct mt? */
+            lua_pop(L, 2);  /* remove both metatables */
+            return p;
          }
       }
    }
-   return NULL;  /* to avoid warnings */
+   return NULL; /* to avoid warnings */
 }
 
 #define OPTNUMBER(L, ndx, def) (lua_isnumber(L, ndx) ? lua_tonumber(L, ndx) : def)
@@ -1235,7 +1239,7 @@ int lutro_graphics_preload(lua_State *L)
       { "setLineWidth", gfx_setLineWidth },
       { "setScissor",   gfx_setScissor },
       { "setCanvas",    gfx_setCanvas },
-      {NULL, NULL}
+      { NULL, NULL }
    };
 
    lutro_newlib(L, gfx_funcs, "graphics");

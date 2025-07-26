@@ -13,9 +13,12 @@
 #  endif
 #endif
 
-#  define _impl_checked_stack_begin_(L) int _stack__ = lua_gettop(L)
-#  define _impl_checked_stack_end_(L, retvals) \
-     ( ((lua_gettop(L) - _stack__) != retvals) && (lutro_checked_stack_assert(L, _stack__ + retvals, __FILE__, __LINE__), 1), retvals )
+#define _impl_checked_stack_begin_(L) \
+   int _stack__ = lua_gettop(L)
+#define _impl_checked_stack_end_(L, retvals)                                                  \
+      ( ((lua_gettop(L) - _stack__) != retvals)                                               \
+         ? (lutro_checked_stack_assert(L, _stack__ + retvals, __FILE__, __LINE__), (retvals)) \
+         : (retvals) )
 
 // performs stack checking in player/retail builds. Use only in situations where performance will not be impacted.
 #define player_checked_stack_begin(L)        _impl_checked_stack_begin_(L)
@@ -26,12 +29,11 @@
 #  define tool_checked_stack_begin(L)        _impl_checked_stack_begin_(L)
 #  define tool_checked_stack_end(L, retvals) _impl_checked_stack_end_(L, retvals)
 #else
-#  define tool_checked_stack_begin(L)         ((void)0) 
+#  define tool_checked_stack_begin(L)         ((void)0)
 #  define tool_checked_stack_end(L, retvals)  (retvals)
 #endif
 
 void lutro_checked_stack_assert(lua_State* L, int expectedTop, char const* file, int line);
-
 
 int lutro_preload(lua_State *L, lua_CFunction f, const char *name);
 void lutro_namespace(lua_State *L);
@@ -73,12 +75,13 @@ int l_not_implemented(lua_State *L);
 #define LUA_OPLT	1
 #define LUA_OPLE	2
 
-#define luaL_newlibtable(L,l)  \
+#define luaL_newlibtable(L,l) \
    lua_createtable(L, 0, sizeof(l)/sizeof((l)[0]) - 1)
 
-#define luaL_newlib(L,l)       (luaL_newlibtable(L,l), luaL_setfuncs(L,l,0))
+#define luaL_newlib(L,l) \
+   (luaL_newlibtable(L,l), luaL_setfuncs(L,l,0))
 
-#define lua_pushglobaltable(L)  \
+#define lua_pushglobaltable(L) \
    lua_pushvalue(L, LUA_GLOBALSINDEX)
 
 LUALIB_API void luaL_setfuncs (lua_State *L, const luaL_Reg *l, int nup);
@@ -96,8 +99,11 @@ int lutro_pcall(lua_State *L, int narg, int nret);
 int lutro_pcall_isfunction(lua_State* L, int idx);
 
 void lutro_newlib_x(lua_State* L, luaL_Reg const* funcs, char const* fieldname, int numfuncs);
-#define lutro_newlib(L,funcs,fieldname)  (lutro_newlib_x(L,funcs,fieldname, (sizeof(funcs) / sizeof((funcs)[0]) - 1)))
 
-#define luax_reqglobal(L, k)  ((void) (lua_getglobal(L, k), dbg_assertf(lua_istable(L, -1), "missing global table '%s'",k), 0) )
+#define lutro_newlib(L,funcs,fieldname) \
+   (lutro_newlib_x(L,funcs,fieldname, (sizeof(funcs) / sizeof((funcs)[0]) - 1)))
+
+#define luax_reqglobal(L, k) \
+   ((void) (lua_getglobal(L, k), dbg_assertf(lua_istable(L, -1), "missing global table '%s'",k), 0))
 
 #endif // RUNTIME_H

@@ -101,7 +101,6 @@ int _lutro_assertf_internal(int ignorable, const char *fmt, ...)
    // We can use this knowledge to parse the file and line positions and perform additional clever filtering
    // or log prep/routing.
 
-   int top = lua_gettop(L);
    lua_getglobal(L, "debug");
    lua_getfield(L, -1, "traceback");
    lua_pushstring(L, "");
@@ -603,7 +602,6 @@ int lutro_load(const char *path)
 
    lua_getfield(L, tbl_top_lutro, "load");
 
-   int result = 1;
    // Check if lutro.load() exists.
    if (lutro_pcall_isfunction(L, -1))
    {
@@ -611,7 +609,6 @@ int lutro_load(const char *path)
       if(lutro_pcall(L, 0, 0))
       {
          lua_pop(L, 1);
-         result = 0;
       }
    }
 

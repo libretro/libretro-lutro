@@ -391,7 +391,7 @@ int fs_getDirectoryItems(lua_State *L)
 
    // Prepare the output table.
    lua_newtable(L);
-   int index = 0;
+   int index = 1;
 
    // Iterate through each directory entry, ignoring the current and previous directories.
    while (retro_vfs_readdir_impl(dir)) {

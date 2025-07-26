@@ -53,7 +53,7 @@ int lutro_filesystem_preload(lua_State *L)
 
       // internal helpers for lua-authored functions.
       { "_raw_get_user_writable_dir", _raw_get_user_writable_dir },
-      {NULL, NULL}
+      { NULL, NULL }
    };
 
    lutro_newlib(L, fs_funcs, "filesystem");
@@ -86,7 +86,7 @@ int lutro_filesystem_preload(lua_State *L)
    }
 
    // lutro.filesystem.getUserDirectory
-   // 
+   //
    // Returns the writable save directory provided by libretro frontend. The directory
    // may or may not be sandboxed according to a current user, depending on the design
    // and capabilities of the platform OS. Funtion may return nil if the libretro frontend
@@ -306,7 +306,7 @@ int fs_getAppdataDirectory(lua_State *L)
 /**
  * lutro.filesystem.getWorkingDirectory
  *
- * Retrieves the process current working directory (cwd or pwd). Lutro always returns the 
+ * Retrieves the process current working directory (cwd or pwd). Lutro always returns the
  * relative directory prefix "./" which is generally interpreted by filesystem APIs as the
  * cwd when used as the prefix to a function. LOVE returns the CWD as an absolute path.
  * Note that the concept of cwd is inherently non-portable and leads to unexpected or surprising

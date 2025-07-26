@@ -30,10 +30,10 @@ static int strpos(const uint32_t *haystack, uint32_t needle)
 {
    // Note on performance a hash table would be much faster here
    for (int i = 0; i < MAX_FONT_CHAR; i++) {
-       if (haystack[i] == 0)
-           break;
-       if (haystack[i] == needle)
-           return i;
+      if (haystack[i] == 0)
+         break;
+      if (haystack[i] == needle)
+         return i;
    }
    return -1;
 }
@@ -252,8 +252,8 @@ void pntr_fill_poly(painter_t *p, const int *points, int nb_points)
    int ymax = -1;
    for (int i = 0; i < (nb_points / 2); ++i)
    {
-     ymin = MIN(ymin, points[(2 * i) + 1]);
-     ymax = MAX(ymax, points[(2 * i) + 1]);
+      ymin = MIN(ymin, points[(2 * i) + 1]);
+      ymax = MAX(ymax, points[(2 * i) + 1]);
    }
 
    // Note: the following algorithm is correct for convex polygons only.
@@ -371,7 +371,7 @@ void pntr_draw(painter_t *p, const bitmap_t *bmp, const rect_t *src_rect, const 
    // give up if scaling is small enough that division becomes untenable
    if (abs_sx < 1.0/k_binexp_center || abs_sy < 1.0/k_binexp_center)
       return;
-   
+
    const uint32_t inv_scale_x = (1 << k_binexp) / abs_sx;
    const uint32_t inv_scale_y = (1 << k_binexp) / abs_sy;
 
@@ -456,7 +456,7 @@ void pntr_draw(painter_t *p, const bitmap_t *bmp, const rect_t *src_rect, const 
       }
    #else
       drect.width = MIN(drect.width, srect.width);
-      drect.height = MIN(drect.height, srect.height); 
+      drect.height = MIN(drect.height, srect.height);
    #endif
 
    if (rect_is_null(&drect) || rect_is_null(&srect) || p->trans->sx == 0 || p->trans->sy == 0)
@@ -542,9 +542,9 @@ void pntr_print(painter_t *p, int x, int y, const char *text, int limit)
       // Avoid to call malloc for small string rendering
       uint32_t buf[256];
       if (char_nb < 256) {
-          utf32 = buf;
+         utf32 = buf;
       } else {
-          utf32 = lutro_malloc(char_nb * 4);
+         utf32 = lutro_malloc(char_nb * 4);
       }
       utf8_conv_utf32(utf32, char_nb, text, strlen(text));
 
@@ -553,7 +553,7 @@ void pntr_print(painter_t *p, int x, int y, const char *text, int limit)
          uint32_t c = utf32[i];
          int pos = strpos(font->characters, c);
          if (pos < 0)
-             continue;
+            continue;
 
          srect.x = font->separators[pos] + 1;
          drect.width = srect.width = font->separators[pos+1] - srect.x;
@@ -565,18 +565,18 @@ void pntr_print(painter_t *p, int x, int y, const char *text, int limit)
          if (limit > 0 && drect.x - x > limit)
          {
             drect.x = x;
-	        drect.y += atlas->height;
-		 }
+	         drect.y += atlas->height;
+		   }
 
-		 if (c == '\n')
-		 {
+		   if (c == '\n')
+		   {
             drect.x = x;
-	        drect.y += atlas->height;
-		 }
+	         drect.y += atlas->height;
+		   }
       }
 
       if (utf32 != buf)
-          lutro_free(utf32);
+         lutro_free(utf32);
    }
 }
 
@@ -601,9 +601,9 @@ int pntr_text_width(painter_t *p, const char *text)
       // Avoid to call malloc for small string rendering
       uint32_t buf[256];
       if (char_nb < 256) {
-          utf32 = buf;
+         utf32 = buf;
       } else {
-          utf32 = lutro_malloc(char_nb * 4);
+         utf32 = lutro_malloc(char_nb * 4);
       }
       utf8_conv_utf32(utf32, char_nb, text, strlen(text));
 
@@ -612,7 +612,7 @@ int pntr_text_width(painter_t *p, const char *text)
          uint32_t c = utf32[i];
          int pos = strpos(font->characters, c);
          if (pos < 0)
-             continue;
+            continue;
 
          glyph_x = font->separators[pos] + 1;
          glyph_width = font->separators[pos+1] - glyph_x;
@@ -621,7 +621,7 @@ int pntr_text_width(painter_t *p, const char *text)
       }
 
       if (utf32 != buf)
-          lutro_free(utf32);
+         lutro_free(utf32);
    }
 
    return width;
@@ -768,7 +768,7 @@ font_t *font_load_bitmap(const bitmap_t *atlas, const char *characters, unsigned
    // font->separators buffers
    size_t len = utf8len(characters);
    if (len > MAX_FONT_CHAR) {
-       fprintf(stderr, "Font atlas is too big. It will be truncated !\n");
+      fprintf(stderr, "Font atlas is too big. It will be truncated !\n");
    }
    utf8_conv_utf32(font->characters, MAX_FONT_CHAR, characters, strlen(characters));
 

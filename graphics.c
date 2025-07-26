@@ -164,7 +164,6 @@ static int img_gc(lua_State *L)
    return 0;
 }
 
-
 static int gfx_newImage(lua_State *L)
 {
    int n = lua_gettop(L);
@@ -485,10 +484,10 @@ static int gfx_newImageFont(lua_State *L)
    }
 
    if (n >= 3) {
-       font->extraspacing = luaL_checkint(L, 3);
+      font->extraspacing = luaL_checkint(L, 3);
    } else {
-       // FIXME: it should be 0 here, but 1 keep lutro compatibility
-       font->extraspacing = 1;
+      // FIXME: it should be 0 here, but 1 keep lutro compatibility
+      font->extraspacing = 1;
    }
 
    push_font(L, font);
@@ -893,17 +892,17 @@ static int gfx_line(lua_State *L)
 
 /* TODO: move this elsewhere, we will certainly need it a lot */
 void *checkudata (lua_State *L, int ud, const char *tname) {
-  void *p = lua_touserdata(L, ud);
-  if (p != NULL) {  /* value is a userdata? */
-    if (lua_getmetatable(L, ud)) {  /* does it have a metatable? */
-      lua_getfield(L, LUA_REGISTRYINDEX, tname);  /* get correct metatable */
-      if (lua_rawequal(L, -1, -2)) {  /* does it have the correct mt? */
-        lua_pop(L, 2);  /* remove both metatables */
-        return p;
+   void *p = lua_touserdata(L, ud);
+   if (p != NULL) {  /* value is a userdata? */
+      if (lua_getmetatable(L, ud)) {  /* does it have a metatable? */
+         lua_getfield(L, LUA_REGISTRYINDEX, tname);  /* get correct metatable */
+         if (lua_rawequal(L, -1, -2)) {  /* does it have the correct mt? */
+         lua_pop(L, 2);  /* remove both metatables */
+         return p;
+         }
       }
-    }
-  }
-  return NULL;  /* to avoid warnings */
+   }
+   return NULL;  /* to avoid warnings */
 }
 
 #define OPTNUMBER(L, ndx, def) (lua_isnumber(L, ndx) ? lua_tonumber(L, ndx) : def)
@@ -1239,7 +1238,7 @@ int lutro_graphics_preload(lua_State *L)
       {NULL, NULL}
    };
 
-   lutro_newlib(L, gfx_funcs, "graphics"); 
+   lutro_newlib(L, gfx_funcs, "graphics");
 
    return 1;
 }

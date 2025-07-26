@@ -1,48 +1,47 @@
 #ifndef AUDIO_H
 #define AUDIO_H
 
-#include <stdint.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <stdbool.h>
+#include "audio_mixer.h"
+#include "decoder.h"
 #include "runtime.h"
 #include "sound.h"
-#include "decoder.h"
-#include "audio_mixer.h"
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
 
-typedef enum
-{
-   AUDIO_STOPPED = 0,
-   AUDIO_PAUSED,
-   AUDIO_PLAYING
+typedef enum {
+  AUDIO_STOPPED = 0,
+  AUDIO_PAUSED,
+  AUDIO_PLAYING
 } audio_source_state;
 
-typedef struct
-{
-   // only one of these should be non-null for a given source.
+typedef struct {
+  // only one of these should be non-null for a given source.
 
-   dec_WavData*   wavData;       // streaming from wav
-   dec_OggData*   oggData;       // streaming from ogg
+  dec_WavData *wavData; // streaming from wav
+  dec_OggData *oggData; // streaming from ogg
 
-   snd_SoundData* sndta;         // pre-decoded sound
-   int lua_ref_sndta;            // (REGISTRY) ref to sndta is held as long as this object isn't disposed/__gc'd
+  snd_SoundData *sndta; // pre-decoded sound
+  int lua_ref_sndta; // (REGISTRY) ref to sndta is held as long as this object
+                     // isn't disposed/__gc'd
 
-   intmax_t sndpos;              // readpos in samples for pre-decoded sound only
+  intmax_t sndpos; // readpos in samples for pre-decoded sound only
 
-   bool loop;
-   float volume;
-   float pitch;
-   audio_source_state state;
+  bool loop;
+  float volume;
+  float pitch;
+  audio_source_state state;
 } audio_Source;
 
-void lutro_audio_init(lua_State* L);
+void lutro_audio_init(lua_State *L);
 void lutro_audio_deinit(void);
-void lutro_audio_stop_all(lua_State* L);
+void lutro_audio_stop_all(lua_State *L);
 int lutro_audio_preload(lua_State *L);
-void lutro_mixer_render(int16_t* buffer);
+void lutro_mixer_render(int16_t *buffer);
 
-void mixer_render(lua_State* L, int16_t *buffer);
-void mixer_unref_stopped_sounds(lua_State* L);
+void mixer_render(lua_State *L, int16_t *buffer);
+void mixer_unref_stopped_sounds(lua_State *L);
 
 int audio_newSource(lua_State *L);
 int audio_setVolume(lua_State *L);
@@ -67,6 +66,5 @@ int source_getPitch(lua_State *L);
 int source_setPitch(lua_State *L);
 
 int source_gc(lua_State *L);
-
 
 #endif // AUDIO_H

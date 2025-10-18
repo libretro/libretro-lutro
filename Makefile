@@ -72,7 +72,9 @@ else ifneq ($(findstring MINGW,$(shell uname -a)),)
 endif
 
 TARGET_NAME := lutro
+ifndef GIT_VERSION
 GIT_VERSION := " $(shell git rev-parse --short HEAD || echo unknown)"
+endif
 ifneq ($(GIT_VERSION)," unknown")
     GVFLAGS += -DGIT_VERSION=\"$(GIT_VERSION)\"
 endif
@@ -310,6 +312,16 @@ else ifeq ($(platform), ps3)
     DEFINES := -D__CELLOS_LV2__
     LUA_MYCFLAGS := $(DEFINES) $(CFLAGS)
     STATIC_LINKING = 1
+    MMD :=
+
+# PS4    
+else ifeq ($(platform), ps4)
+    TARGET := $(TARGET_NAME)_libretro_$(platform).elf
+    DEFINES := -DRETRO_API='__attribute__((visibility("default")))' -D__ORBIS__ -D__PS4__ 
+    CFLAGS += $(DEFINES) -O2 -std=gnu11 -fPIC -funwind-tables
+    CXXFLAGS += $(DEFINES) -O2 -std=gnu++11
+    LDFLAGS += -Wl,--gc-sections -pie
+    STATIC_LINKING = 0
     MMD :=
 
 # ARM

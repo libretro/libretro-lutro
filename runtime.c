@@ -37,7 +37,7 @@ void lutro_checked_stack_assert(lua_State* L, int expectedTop, char const* file,
    // recovery: set the expected stack on exit. App can usually continue running.
    // (TODO: add some option for fast-fail assertion here, such as a debug breakpoint or such, but such a thing
    //  usually needs to be ignorable to be useful)
-   lua_settop(L, expectedTop); 
+   lua_settop(L, expectedTop);
 }
 
 void lutro_stack_dump(lua_State* L)
@@ -68,19 +68,19 @@ void lutro_stack_dump(lua_State* L)
       case LUA_TTABLE:
          puts( "table" );
          break;
-       case LUA_TFUNCTION:
+      case LUA_TFUNCTION:
          puts( "function" );
          break;
-       case LUA_TUSERDATA:
+      case LUA_TUSERDATA:
          puts( "userdata" );
          break;
-       case LUA_TTHREAD:
+      case LUA_TTHREAD:
          puts( "thread" );
          break;
-       case LUA_TLIGHTUSERDATA:
+      case LUA_TLIGHTUSERDATA:
          puts( "ltuserdata" );
          break;
-       default:
+      default:
          puts("");
          break;
       }
@@ -214,7 +214,6 @@ static int typeerror (lua_State *L, int narg, const char *tname)
                                      tname, luaL_typename(L, narg));
    return luaL_argerror(L, narg, msg);
 }
-
 
 static void tag_error (lua_State *L, int narg, int tag)
 {

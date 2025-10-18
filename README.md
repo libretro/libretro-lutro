@@ -1,3 +1,5 @@
+[![CI](https://github.com/libretro/libretro-lutro/actions/workflows/ci.yml/badge.svg)](https://github.com/libretro/libretro-lutro/actions/workflows/ci.yml)
+
 # Lutro
 
 Experimental [Lua](http://lua.org) game framework for [libretro](http://libretro.com), following the [LÖVE](http://love2d.org) API.

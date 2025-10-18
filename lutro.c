@@ -14,7 +14,9 @@
 #include "timer.h"
 #include "lutro_math.h"
 #include "lutro_window.h"
+#ifdef HAVE_INOTIFY
 #include "live.h"
+#endif
 #include "mouse.h"
 #include "joystick.h"
 
@@ -99,7 +101,6 @@ int _lutro_assertf_internal(int ignorable, const char *fmt, ...)
    // We can use this knowledge to parse the file and line positions and perform additional clever filtering
    // or log prep/routing.
 
-   int top = lua_gettop(L);
    lua_getglobal(L, "debug");
    lua_getfield(L, -1, "traceback");
    lua_pushstring(L, "");
@@ -206,7 +207,7 @@ static void init_lutro_global_table(lua_State *L)
 
 // exposes  build configuration options used to compile lutro to lua
 static void init_feature_flags(lua_State *L)
-{   
+{
    player_checked_stack_begin(L);
 
    luax_reqglobal(L, "lutro");
@@ -242,7 +243,7 @@ static void init_feature_flags(lua_State *L)
    lua_setfield(L, -2, "featureflags");
    lua_pop(L, 1);
 
-   (void)player_checked_stack_end(L,0);
+   (void)player_checked_stack_end(L, 0);
 }
 
 static int lutro_core_preload(lua_State *L)
@@ -277,7 +278,7 @@ void lutro_newlib_x(lua_State* L, luaL_Reg const* funcs, char const* fieldname, 
    luaL_setfuncs(L, funcs, 0);
    lua_setfield(L, -2, fieldname);
    lua_pop(L, 1);
-   player_checked_stack_end(L,0);
+   player_checked_stack_end(L, 0);
 }
 
 void lutro_init(void)
@@ -601,7 +602,6 @@ int lutro_load(const char *path)
 
    lua_getfield(L, tbl_top_lutro, "load");
 
-   int result = 1;
    // Check if lutro.load() exists.
    if (lutro_pcall_isfunction(L, -1))
    {
@@ -609,7 +609,6 @@ int lutro_load(const char *path)
       if(lutro_pcall(L, 0, 0))
       {
          lua_pop(L, 1);
-         result = 0;
       }
    }
 
@@ -699,7 +698,7 @@ void lutro_run(double delta)
    lutro_mouseevent(L);
    lutro_joystickevent(L);
 
-   player_checked_stack_end(L,0);
+   player_checked_stack_end(L, 0);
 
    mixer_unref_stopped_sounds(L);
    lua_gc(L, LUA_GCSTEP, 0);
@@ -720,7 +719,8 @@ void lutro_reset(void)
       }
    }
 
-   player_checked_stack_end(L,0);
+   lua_pop(L, 1);
+   player_checked_stack_end(L, 0);
    lua_gc(L, LUA_GCSTEP, 0);
 }
 
@@ -740,12 +740,16 @@ size_t lutro_serialize_size(void)
       }
 
       if (lua_isnumber(L, -1))
+      {
          size = lua_tonumber(L, -1);
+         lua_pop(L, 1);
+      }
       else
          tool_assertf(false, "Invalid type returned from lutro.serializeSize. An integer result is expected.\n");
    }
 
-   player_checked_stack_end(L,0);
+   lua_pop(L, 1);
+   player_checked_stack_end(L, 0);
    lua_gc(L, LUA_GCSTEP, 0);
 
    return size;
@@ -774,7 +778,8 @@ bool lutro_serialize(void *data_, size_t size)
       }
    }
 
-   player_checked_stack_end(L,0);
+   lua_pop(L, 1);
+   player_checked_stack_end(L, 0);
    lua_gc(L, LUA_GCSTEP, 0);
 
    return true;
@@ -796,7 +801,7 @@ bool lutro_unserialize(const void *data_, size_t size)
       }
    }
 
-   player_checked_stack_end(L,0);
+   player_checked_stack_end(L, 0);
    lua_gc(L, LUA_GCSTEP, 0);
 
    return true;
@@ -819,7 +824,7 @@ void lutro_cheat_set(unsigned index, bool enabled, const char *code)
       }
    }
 
-   player_checked_stack_end(L,0);
+   player_checked_stack_end(L, 0);
    lua_gc(L, LUA_GCSTEP, 0);
 }
 
@@ -837,7 +842,7 @@ void lutro_cheat_reset(void)
       }
    }
 
-   player_checked_stack_end(L,0);
+   player_checked_stack_end(L, 0);
    lua_gc(L, LUA_GCSTEP, 0);
 }
 
@@ -856,74 +861,74 @@ void lutro_assetPath_init(AssetPathInfo* dest, const char* path)
 
 void *lutro_malloc_internal(size_t size, const char* debug, int line)
 {
-    void *a = malloc(size);
+   void *a = malloc(size);
 #if TRACE_ALLOCATION
-    if (a) {
-        fprintf(stderr,"TRACE ALLOC:%p:malloc:%s:%d\n", a, debug, line);
-        allocation_count++;
-    } else {
-        fprintf(stderr,"TRACE ALLOC:failure:malloc:%s:%d\n", debug, line);
-    }
+   if (a) {
+      fprintf(stderr,"TRACE ALLOC:%p:malloc:%s:%d\n", a, debug, line);
+      allocation_count++;
+   } else {
+      fprintf(stderr,"TRACE ALLOC:failure:malloc:%s:%d\n", debug, line);
+   }
 #endif
-    return a;
+   return a;
 }
 
 void lutro_free_internal(void *ptr, const char* debug, int line)
 {
 #if TRACE_ALLOCATION
-    // Don't trace nop
-    if (ptr) {
-        fprintf(stderr,"TRACE ALLOC:%p:free:%s:%d\n", ptr, debug, line);
-        allocation_count--;
-    }
+   // Don't trace nop
+   if (ptr) {
+      fprintf(stderr,"TRACE ALLOC:%p:free:%s:%d\n", ptr, debug, line);
+      allocation_count--;
+   }
 #endif
-    free(ptr);
+   free(ptr);
 }
 
 void *lutro_calloc_internal(size_t nmemb, size_t size, const char* debug, int line)
 {
-    void *a = calloc(nmemb, size);
+   void *a = calloc(nmemb, size);
 #if TRACE_ALLOCATION
-    if (a) {
-        fprintf(stderr,"TRACE ALLOC:%p:calloc:%s:%d\n", a, debug, line);
-        allocation_count++;
-    } else {
-        fprintf(stderr,"TRACE ALLOC:failure:calloc:%s:%d\n", debug, line);
-    }
+   if (a) {
+      fprintf(stderr,"TRACE ALLOC:%p:calloc:%s:%d\n", a, debug, line);
+      allocation_count++;
+   } else {
+      fprintf(stderr,"TRACE ALLOC:failure:calloc:%s:%d\n", debug, line);
+   }
 #endif
-    return a;
+   return a;
 }
 
 void *lutro_realloc_internal(void *ptr, size_t size, const char* debug, int line)
 {
-    void *a = realloc(ptr, size);
+   void *a = realloc(ptr, size);
 #if TRACE_ALLOCATION
-    if (a) {
-        if (ptr == NULL) {
-            // If original pointer is null, realloc behave as a malloc
-            fprintf(stderr,"TRACE ALLOC:%p:realloc (malloc):%s:%d\n", a, debug, line);
-            // Note even if size is 0, realloc can return a pointer suitable to
-            // be passed to free
-            allocation_count++;
-        } else {
-            fprintf(stderr,"TRACE ALLOC:%p:realloc (move from %p):%s:%d\n", a, ptr, debug, line);
-        }
-    } else {
-        // Either realloc fail, or it released the memory
-        if (ptr != NULL && size == 0) {
-            // If size is 0, realloc behave as a free
-            fprintf(stderr,"TRACE ALLOC:null:realloc (free %p):%s:%d\n", ptr, debug, line);
-            allocation_count--;
-        } else {
-            fprintf(stderr,"TRACE ALLOC:failure:realloc (%p):%s:%d\n", ptr, debug, line);
-        }
-    }
+   if (a) {
+      if (ptr == NULL) {
+         // If original pointer is null, realloc behave as a malloc
+         fprintf(stderr,"TRACE ALLOC:%p:realloc (malloc):%s:%d\n", a, debug, line);
+         // Note even if size is 0, realloc can return a pointer suitable to
+         // be passed to free
+         allocation_count++;
+      } else {
+         fprintf(stderr,"TRACE ALLOC:%p:realloc (move from %p):%s:%d\n", a, ptr, debug, line);
+      }
+   } else {
+      // Either realloc fail, or it released the memory
+      if (ptr != NULL && size == 0) {
+         // If size is 0, realloc behave as a free
+         fprintf(stderr,"TRACE ALLOC:null:realloc (free %p):%s:%d\n", ptr, debug, line);
+         allocation_count--;
+      } else {
+         fprintf(stderr,"TRACE ALLOC:failure:realloc (%p):%s:%d\n", ptr, debug, line);
+      }
+   }
 #endif
-    return a;
+   return a;
 }
 
 void lutro_print_allocation(void) {
 #if TRACE_ALLOCATION
-    fprintf(stderr,"TRACE ALLOC:total pending allocations:%d\n", allocation_count);
+   fprintf(stderr,"TRACE ALLOC:total pending allocations:%d\n", allocation_count);
 #endif
 }

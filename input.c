@@ -6,23 +6,23 @@
 #include "lutro.h"
 
 const struct int_const_map joystick_enum[17] = {
-   {RETRO_DEVICE_ID_JOYPAD_B,      "b"},
-   {RETRO_DEVICE_ID_JOYPAD_Y,      "y"},
-   {RETRO_DEVICE_ID_JOYPAD_SELECT, "select"},
-   {RETRO_DEVICE_ID_JOYPAD_START,  "start"},
-   {RETRO_DEVICE_ID_JOYPAD_UP,     "up"},
-   {RETRO_DEVICE_ID_JOYPAD_DOWN,   "down"},
-   {RETRO_DEVICE_ID_JOYPAD_LEFT,   "left"},
-   {RETRO_DEVICE_ID_JOYPAD_RIGHT,  "right"},
-   {RETRO_DEVICE_ID_JOYPAD_A,      "a"},
-   {RETRO_DEVICE_ID_JOYPAD_X,      "x"},
-   {RETRO_DEVICE_ID_JOYPAD_L,      "l1"},
-   {RETRO_DEVICE_ID_JOYPAD_R,      "r1"},
-   {RETRO_DEVICE_ID_JOYPAD_L2,     "l2"},
-   {RETRO_DEVICE_ID_JOYPAD_R2,     "r2"},
-   {RETRO_DEVICE_ID_JOYPAD_L3,     "l3"},
-   {RETRO_DEVICE_ID_JOYPAD_R3,     "r3"},
-   {0, NULL}
+   { RETRO_DEVICE_ID_JOYPAD_B,      "b" },
+   { RETRO_DEVICE_ID_JOYPAD_Y,      "y" },
+   { RETRO_DEVICE_ID_JOYPAD_SELECT, "select" },
+   { RETRO_DEVICE_ID_JOYPAD_START,  "start" },
+   { RETRO_DEVICE_ID_JOYPAD_UP,     "up" },
+   { RETRO_DEVICE_ID_JOYPAD_DOWN,   "down" },
+   { RETRO_DEVICE_ID_JOYPAD_LEFT,   "left" },
+   { RETRO_DEVICE_ID_JOYPAD_RIGHT,  "right" },
+   { RETRO_DEVICE_ID_JOYPAD_A,      "a" },
+   { RETRO_DEVICE_ID_JOYPAD_X,      "x" },
+   { RETRO_DEVICE_ID_JOYPAD_L,      "l1" },
+   { RETRO_DEVICE_ID_JOYPAD_R,      "r1" },
+   { RETRO_DEVICE_ID_JOYPAD_L2,     "l2" },
+   { RETRO_DEVICE_ID_JOYPAD_R2,     "r2" },
+   { RETRO_DEVICE_ID_JOYPAD_L3,     "l3" },
+   { RETRO_DEVICE_ID_JOYPAD_R3,     "r3" },
+   { 0, NULL }
 };
 
 // TODO: ask somebody to add a hash table to libretro-common
@@ -51,8 +51,8 @@ const char* input_find_name(const struct int_const_map *map, unsigned value)
 int lutro_input_preload(lua_State *L)
 {
    static const luaL_Reg funcs[] =  {
-      {"joypad", input_joypad},
-      {NULL, NULL}
+      { "joypad", input_joypad },
+      { NULL, NULL }
    };
 
    lutro_newlib(L, funcs, "input");

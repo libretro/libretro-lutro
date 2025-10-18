@@ -149,14 +149,14 @@ static int l_getPixel(lua_State *L)
    int b = 0;
 
    if (self->data) {
-       uint32_t* data = self->data;
+      uint32_t* data = self->data;
 
-       uint32_t color = data[y * (self->pitch >> 2) + x];
+      uint32_t color = data[y * (self->pitch >> 2) + x];
 
-       a = ((color & ALPHA_MASK) >> ALPHA_SHIFT);
-       r = ((color & RED_MASK) >> RED_SHIFT);
-       g = ((color & GREEN_MASK) >> GREEN_SHIFT);
-       b = ((color & BLUE_MASK) >> BLUE_SHIFT);
+      a = ((color & ALPHA_MASK) >> ALPHA_SHIFT);
+      r = ((color & RED_MASK) >> RED_SHIFT);
+      g = ((color & GREEN_MASK) >> GREEN_SHIFT);
+      b = ((color & BLUE_MASK) >> BLUE_SHIFT);
    }
 
    lua_pushnumber(L, r);
@@ -184,7 +184,7 @@ static int l_setPixel(lua_State *L)
    lua_pop(L, n);
 
    if (self->data)
-       self->data[y * (self->pitch >> 2) + x] = (c.a<<24) | (c.r<<16) | (c.g<<8) | c.b;
+      self->data[y * (self->pitch >> 2) + x] = (c.a<<24) | (c.r<<16) | (c.g<<8) | c.b;
 
    return 0;
 }
@@ -201,8 +201,8 @@ static int l_gc(lua_State *L)
 {
    bitmap_t* self = (bitmap_t*)luaL_checkudata(L, 1, "ImageData");
    if (self->data) {
-       lutro_free(self->data);
-       self->data = NULL;
+      lutro_free(self->data);
+      self->data = NULL;
    }
    return 0;
 }

@@ -45,7 +45,7 @@ bool decOgg_init(dec_OggData *data, const char *filename)
          return false;
       }
 
-      lutro_errorf("vorbis: Failed to open file: %s", filename, strerror(errno));
+      lutro_errorf("vorbis: Failed to open file: %s: %s", filename, strerror(errno));
       return false;
    }
 

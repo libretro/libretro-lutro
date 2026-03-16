@@ -22,29 +22,22 @@ int lutro_preload(lua_State *L, lua_CFunction f, const char *name)
    return 0;
 }
 
-int lutro_ensure_global_table(lua_State *L, const char *name)
+void lutro_checked_stack_assert(lua_State* L, int expectedTop, char const* file, int line)
 {
-   lua_getglobal(L, name);
+   // TODO: report this error once per file/line, as a means of reducing spam potential
+   //  (requires some hash table, perhaps stored within the lua_State itself)
 
-   if (!lua_istable(L, -1)) {
-      lua_pop(L, 1);
-      lua_newtable(L);
+   int curTop = lua_gettop(L);
+   fflush(stdout);
+   fprintf(stderr, "%s:%d: Stack assertion failed: got=%i expected=%i.\n", file, line, curTop, expectedTop);
+   fflush(stderr);
+   lutro_stack_dump(L);
+   fflush(stdout);
 
-      // Introduce lutro.getVersion().
-      lua_pushcfunction(L, lutro_getVersion);
-      lua_setfield(L, -2, "getVersion");
-
-      // Add the "lutro" Lua global.
-      lua_pushvalue(L, -1);
-      lua_setglobal(L, name);
-   }
-
-   return 1;
-}
-
-void lutro_namespace(lua_State *L)
-{
-   lutro_ensure_global_table(L, "lutro");
+   // recovery: set the expected stack on exit. App can usually continue running.
+   // (TODO: add some option for fast-fail assertion here, such as a debug breakpoint or such, but such a thing
+   //  usually needs to be ignorable to be useful)
+   lua_settop(L, expectedTop);
 }
 
 void lutro_stack_dump(lua_State* L)
@@ -52,14 +45,14 @@ void lutro_stack_dump(lua_State* L)
    int i;
    int top = lua_gettop(L);
 
-   printf("   %4s | %4s | %10s | %10s | %s\n",
+   printf("   %4s | %4s | %16s | %10s | %s\n",
           "Abs", "Rel", "Addr", "Type", "Value");
-   puts("   ----------------------------------------------");
+   puts("   -----------------------------------------------------");
 
    for (i = top; i >= 1; i--)
    {
       int t = lua_type(L, i);
-      printf("   %4i | %4i | %10p | %10s | ",
+      printf("   %4i | %4i | %16p | %10s | ",
              i, i - top - 1, lua_topointer(L, i), lua_typename(L, t));
 
       switch (t) {
@@ -71,6 +64,21 @@ void lutro_stack_dump(lua_State* L)
          break;
       case LUA_TNUMBER:
          printf("%g\n", lua_tonumber(L, i));
+         break;
+      case LUA_TTABLE:
+         puts( "table" );
+         break;
+      case LUA_TFUNCTION:
+         puts( "function" );
+         break;
+      case LUA_TUSERDATA:
+         puts( "userdata" );
+         break;
+      case LUA_TTHREAD:
+         puts( "thread" );
+         break;
+      case LUA_TLIGHTUSERDATA:
+         puts( "ltuserdata" );
          break;
       default:
          puts("");
@@ -85,7 +93,7 @@ int lutro_require(lua_State *L, const char *modname, int pop_result)
    lua_getglobal(L, "require");
    lua_pushstring(L, modname);
 
-   int success = lua_pcall(L, 1, 1, 0) == 0;
+   int success = lutro_pcall(L, 1, 1) == 0;
 
    if (success && pop_result)
       lua_pop(L, 1);
@@ -206,7 +214,6 @@ static int typeerror (lua_State *L, int narg, const char *tname)
                                      tname, luaL_typename(L, narg));
    return luaL_argerror(L, narg, msg);
 }
-
 
 static void tag_error (lua_State *L, int narg, int tag)
 {

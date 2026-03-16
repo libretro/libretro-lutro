@@ -15,7 +15,7 @@
 
 // any source which is playing must maintain a ref in lua, to avoid __gc.
 typedef struct {
-   int           lua_ref;
+   int lua_ref;
 } audioSourceByRef;
 
 
@@ -247,7 +247,7 @@ void mixer_render(lua_State* L, int16_t *buffer)
 
 int lutro_audio_preload(lua_State *L)
 {
-   static luaL_Reg gfx_funcs[] =  {
+   static const luaL_Reg audio_funcs[] =  {
       { "play",      audio_play },
       { "stop",      audio_stop },
       { "pause",     audio_pause },
@@ -256,14 +256,10 @@ int lutro_audio_preload(lua_State *L)
       { "setVolume", audio_setVolume },
       { "getActiveSources",      audio_getActiveSources },
       { "getActiveSourceCount",  audio_getActiveSourceCount },
-      {NULL, NULL}
+      { NULL, NULL }
    };
 
-   lutro_ensure_global_table(L, "lutro");
-
-   luaL_newlib(L, gfx_funcs);
-
-   lua_setfield(L, -2, "audio");
+   lutro_newlib(L, audio_funcs, "audio");
 
    return 1;
 }
@@ -278,7 +274,7 @@ void lutro_audio_init(lua_State* L)
    lua_setglobal(L, "refs_audio_playing");
 }
 
-void lutro_audio_deinit()
+void lutro_audio_deinit(void)
 {
    if (!sources_playing) return;
 
@@ -341,7 +337,7 @@ static void make_metatable_Source(lua_State* L, int stidx_udata)
          { "setPitch",   source_setPitch },
          { "getPitch",   source_getPitch },
          { "__gc",       source_gc },
-         {NULL, NULL}
+         { NULL, NULL }
       };
 
       lua_pushvalue(L, -1);
@@ -671,7 +667,7 @@ int audio_play(lua_State *L)
 
    if (!sourceIsPlayable(self))
    {
-      lutro_errorf("Audio source is not playable.", self->state);
+      lutro_errorf("Audio source is not playable.");
       self->state = AUDIO_STOPPED;
       return 0;
    }
@@ -817,11 +813,6 @@ int audio_getActiveSourceCount(lua_State *L)
 {
    getActiveSourcesFiltered(L, FILTER_ACTIVE | FILTER_RESULT_COUNT);
    return 1;
-}
-
-
-static void pause_sources_in_table(lua_State* L, int idx)
-{
 }
 
 // returns list of sources paused by this call.

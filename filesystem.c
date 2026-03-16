@@ -1,10 +1,19 @@
 #include "filesystem.h"
 #include "lutro.h"
+#include "lutro_assert.h"
+
 #include <compat/strl.h>
 #include <file/file_path.h>
 #include <streams/file_stream.h>
 #include <vfs/vfs_implementation.h>
 #include <string/stdstring.h>
+
+// for getcwd...
+#if defined(_WIN32)
+#  include <direct.h>
+#else
+#  include <unistd.h>
+#endif
 
 #if WANT_PHYSFS
 #include "physfs.h"
@@ -13,9 +22,21 @@
 #include <stdlib.h>
 #include <string.h>
 
+int _raw_get_user_writable_dir(lua_State *L)
+{
+   char* savedir;
+   if ((*settings.environ_cb)(RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY, &savedir)) {
+      lua_pushstring(L, savedir);
+      return 1;
+   }
+
+   // in the case that no savedir is available: return nil rather than seeking a fallback.
+   return 0;
+}
+
 int lutro_filesystem_preload(lua_State *L)
 {
-   static luaL_Reg gfx_funcs[] =  {
+   static const luaL_Reg fs_funcs[] =  {
       { "exists",      fs_exists },
       { "read",        fs_read },
       { "write",       fs_write },
@@ -23,32 +44,88 @@ int lutro_filesystem_preload(lua_State *L)
       { "getRequirePath", fs_getRequirePath },
       { "load",        fs_load },
       { "setIdentity", fs_setIdentity },
-      { "getUserDirectory", fs_getUserDirectory },
       { "getAppdataDirectory", fs_getAppdataDirectory },
+      { "getWorkingDirectory", fs_getWorkingDirectory },
       { "isDirectory", fs_isDirectory },
       { "isFile",      fs_isFile },
       { "createDirectory", fs_createDirectory },
       { "getDirectoryItems", fs_getDirectoryItems },
-      {NULL, NULL}
+
+      // internal helpers for lua-authored functions.
+      { "_raw_get_user_writable_dir", _raw_get_user_writable_dir },
+      { NULL, NULL }
    };
 
-   lutro_ensure_global_table(L, "lutro");
+   lutro_newlib(L, fs_funcs, "filesystem");
 
-   luaL_newlib(L, gfx_funcs);
+   // lutro.filesystem._appendTrailingSlash - appends a trailing slash to match behavior of LOVE.
+   // Because slash or backslash is platform dependent, this implementation takes the laziest
+   // approach: if the incoming path has a trailing backslash then it checks if the OS environment
+   // is Windows (WINDIR) and if yes then it doesn't append a trailing slash. It does not attempt
+   // to append trialing backslashes. Windows tolerates forward slash and mixed-slash paths well.
+   if (1) {
+      int ret = luaL_dostring(L, "\
+      lutro.filesystem._appendTrailingSlash = function(path)\n\
+         if path:sub(-1) == '\\\\' then\n\
+            local winDir = os.getenv('WINDIR')\n\
+            if winDir ~= nil and winDir ~= '' then\n\
+               path = path .. '/'\n\
+            end\n\
+         end\n\
+         if path:sub(-1) ~= '/' then\n\
+            path = path .. '/'\n\
+         end\n\
+         return path\n\
+      end");
 
-   lua_setfield(L, -2, "filesystem");
+      if (ret) {
+         // don't hard-fail - no need to block apps that might not use the function.
+         lutro_errorf("failed to assign lutro.filesystem.getUserDirectory: %s\n", lua_tostring(L, -1));
+         lua_pop(L, 1); // pop error message
+      }
+   }
+
+   // lutro.filesystem.getUserDirectory
+   //
+   // Returns the writable save directory provided by libretro frontend. The directory
+   // may or may not be sandboxed according to a current user, depending on the design
+   // and capabilities of the platform OS. Funtion may return nil if the libretro frontend
+   // does not provide a writable save directory.
+   //
+   // implementation notes:
+   //  - UserDirectory should always have a trailing slash (as confirmed on Love2D)
+   //  - Cache the UserDir to avoid costly re-calculation of env var lookups. UserDir and all env vars
+   //    are static for the lifetime of the process.
+   //  - https://love2d.org/wiki/love.filesystem.getUserDirectory
+
+   if (1) {
+      int ret = luaL_dostring(L, "\
+      lutro.filesystem.getUserDirectory = function()\n\
+         local savedir = lutro.filesystem._raw_get_user_writable_dir()\n\
+         if savedir == nil or savedir == '' then\n\
+            return nil\n\
+         end\n\
+         return lutro.filesystem._appendTrailingSlash(savedir)\n\
+      end");
+
+      if (ret) {
+         // don't hard-fail - no need to block apps that might not use the function.
+         lutro_errorf("failed to assign lutro.filesystem.getUserDirectory: %s\n", lua_tostring(L, -1));
+         lua_pop(L, 1); // pop error message
+      }
+   }
 
    return 1;
 }
 
-void lutro_filesystem_init()
+void lutro_filesystem_init(void)
 {
    #if WANT_PHYSFS
    PHYSFS_init(NULL);
    #endif
 }
 
-void lutro_filesystem_deinit()
+void lutro_filesystem_deinit(void)
 {
    #if WANT_PHYSFS
    PHYSFS_deinit();
@@ -206,35 +283,6 @@ int fs_setIdentity(lua_State *L)
 }
 
 /**
- * lutro.filesystem.getUserDirectory
- *
- * https://love2d.org/wiki/love.filesystem.getUserDirectory
- */
-int fs_getUserDirectory(lua_State *L)
-{
-   // Retrieve the user's home directory from environment variables.
-   char *homedir = getenv("HOME");
-   if (homedir == NULL) {
-      homedir = getenv("HOMEDRIVE");
-      if (homedir == NULL) {
-         // TODO: Figure out what to do when HOME isn't available.
-         homedir = ".";
-      }
-   }
-
-   // If needed, append a / at the end of the homedir.
-   size_t len = strlen(homedir);
-   if (homedir[len] != '/') {
-      homedir[len++] = '/';
-      homedir[len] = '\0';
-   }
-
-   lua_pushstring(L, homedir);
-
-   return 1;
-}
-
-/**
  * lutro.filesystem.getAppdataDirectory
  *
  * Retrieves libretro's SYSTEM directory.
@@ -251,6 +299,24 @@ int fs_getAppdataDirectory(lua_State *L)
    else {
       lua_pushstring(L, "");
    }
+   return 1;
+}
+
+
+/**
+ * lutro.filesystem.getWorkingDirectory
+ *
+ * Retrieves the process current working directory (cwd or pwd). Lutro always returns the
+ * relative directory prefix "./" which is generally interpreted by filesystem APIs as the
+ * cwd when used as the prefix to a function. LOVE returns the CWD as an absolute path.
+ * Note that the concept of cwd is inherently non-portable and leads to unexpected or surprising
+ * behavior for users, and should only be used for local development or debug purposes.
+ *
+ * @see https://love2d.org/wiki/love.filesystem.getWorkingDirectory
+ */
+int fs_getWorkingDirectory(lua_State *L)
+{
+   lua_pushstring(L, "./");
    return 1;
 }
 
@@ -325,7 +391,7 @@ int fs_getDirectoryItems(lua_State *L)
 
    // Prepare the output table.
    lua_newtable(L);
-   int index = 0;
+   int index = 1;
 
    // Iterate through each directory entry, ignoring the current and previous directories.
    while (retro_vfs_readdir_impl(dir)) {

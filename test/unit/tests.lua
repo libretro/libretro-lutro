@@ -7,6 +7,7 @@ unit = require 'luaunit'
 -- Runs all tests.
 function runTests()
 	local moduleTests = {
+		require 'modules/featureflags',
 		require 'modules/filesystem',
 		require 'modules/graphics',
 		require 'modules/keyboard',
@@ -25,6 +26,8 @@ end
 -- Return a load and draw function for running the unit
 -- tests in the Lutro testing suite.
 return {
+	intervalTime = 2,
+
 	load = function()
 		runTests()
 	end,

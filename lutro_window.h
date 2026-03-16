@@ -7,7 +7,7 @@
 #include <stdbool.h>
 #include "runtime.h"
 
-void lutro_window_init();
+void lutro_window_init(void);
 int lutro_window_preload(lua_State *L);
 
 int win_close(lua_State *L);

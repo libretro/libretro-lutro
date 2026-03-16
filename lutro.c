@@ -14,7 +14,9 @@
 #include "timer.h"
 #include "lutro_math.h"
 #include "lutro_window.h"
+#ifdef HAVE_INOTIFY
 #include "live.h"
+#endif
 #include "mouse.h"
 #include "joystick.h"
 
@@ -50,7 +52,6 @@
 
 static lua_State *L;
 static int16_t input_cache[16];
-int g_lua_stack = 0;
 static int32_t allocation_count = 0;
 
 lutro_settings_t settings = {
@@ -69,55 +70,19 @@ lutro_settings_t settings = {
 
 struct retro_perf_callback perf_cb;
 
-#if 0
-static void dumpstack( lua_State* L )
-{
-  int top = lua_gettop( L );
+// Like lua_isfunction, but this one pops the item off the stack if it's not a function.
+// Intended for use when wrapping lutro_pcall() only. This function should not be used in
+// situations where a polymorphic argument is being tested for multiple possible valid types.
+// returns a boolean result, TRUE (non-zero) if the index on the stack is a function.
+int lutro_pcall_isfunction(lua_State* L, int idx) {
+   if (!lua_isfunction(L, -1))
+   {
+      lua_pop(L, 1);
+      return 0;
+   }
 
-  for ( int i = 1; i <= top; i++ )
-  {
-    printf( "%2d %3d ", i, i - top - 1 );
-
-    lua_pushvalue( L, i );
-
-    switch ( lua_type( L, -1 ) )
-    {
-    case LUA_TNIL:
-      printf( "nil\n" );
-      break;
-    case LUA_TNUMBER:
-      printf( "%e\n", lua_tonumber( L, -1 ) );
-      break;
-    case LUA_TBOOLEAN:
-      printf( "%s\n", lua_toboolean( L, -1 ) ? "true" : "false" );
-      break;
-    case LUA_TSTRING:
-      printf( "\"%s\"\n", lua_tostring( L, -1 ) );
-      break;
-    case LUA_TTABLE:
-      printf( "table\n" );
-      break;
-    case LUA_TFUNCTION:
-      printf( "function\n" );
-      break;
-    case LUA_TUSERDATA:
-      printf( "userdata\n" );
-      break;
-    case LUA_TTHREAD:
-      printf( "thread\n" );
-      break;
-    case LUA_TLIGHTUSERDATA:
-      printf( "light userdata\n" );
-      break;
-    default:
-      printf( "?\n" );
-      break;
-    }
-  }
-
-  lua_settop( L, top );
+   return 1;
 }
-#endif
 
 int _lutro_assertf_internal(int ignorable, const char *fmt, ...)
 {
@@ -136,7 +101,6 @@ int _lutro_assertf_internal(int ignorable, const char *fmt, ...)
    // We can use this knowledge to parse the file and line positions and perform additional clever filtering
    // or log prep/routing.
 
-   int top = lua_gettop(L);
    lua_getglobal(L, "debug");
    lua_getfield(L, -1, "traceback");
    lua_pushstring(L, "");
@@ -192,19 +156,27 @@ int traceback(lua_State *L) {
    return 1;
 }
 
+// prints error and backtrace to console if an error occurs during the call. The error is left on
+// on the stack and should be removed with lua_pop() if this function returns non-zero.
 int lutro_pcall(lua_State *L, int narg, int nret)
 {
-   int handler = lua_gettop(L) - narg - 1;
-   while (handler && (lua_tocfunction(L, handler) != traceback)) --handler;
-   dbg_assert(lua_tocfunction(L, handler) == traceback);
-   return lua_pcall(L, narg, nret, handler);
+   int base = lua_gettop(L) - narg;
+   lua_pushcfunction(L, traceback);
+   lua_insert(L, base);  // move traceback below the arguments
+   int result = lua_pcall(L, narg, nret, base);
+   lua_remove(L, base);  // remove traceback function
+   return result;
+}
+
+int lutro_pcall_cached_traceback(lua_State *L, int narg, int nret, int traceback)
+{
+   return lua_pcall(L, narg, nret, traceback);
 }
 
 static int dofile(lua_State *L, const char *path)
 {
    int res;
 
-   lua_pushcfunction(L, traceback);
    res = luaL_loadfile(L, path);
    if (res)
       return res;
@@ -213,45 +185,122 @@ static int dofile(lua_State *L, const char *path)
    return res;
 }
 
+static void init_lutro_global_table(lua_State *L)
+{
+   lua_getglobal(L, "lutro");
+
+   if (!lua_istable(L, -1)) {
+      lua_pop(L, 1);
+      lua_newtable(L);
+
+      // Introduce lutro.getVersion().
+      lua_pushcfunction(L, lutro_getVersion);
+      lua_setfield(L, -2, "getVersion");
+
+      // Add the "lutro" Lua global.
+      lua_pushvalue(L, -1);
+      lua_setglobal(L, "lutro");
+   }
+
+   lua_pop(L, 1);
+}
+
+// exposes  build configuration options used to compile lutro to lua
+static void init_feature_flags(lua_State *L)
+{
+   player_checked_stack_begin(L);
+
+   luax_reqglobal(L, "lutro");
+   lua_newtable(L);
+
+   char buf[64];
+
+   #define _CAPABILITY(capname, capval) \
+      snprintf(buf, sizeof(buf), "%s", # capval);     \
+      lua_pushboolean(L, (buf[0] && strtod(buf, NULL) != 0)); \
+      lua_setfield(L, -2, capname)
+
+   #define CAPABILITY(cap) _CAPABILITY(#cap, cap)
+
+   CAPABILITY(HAVE_COMPOSITION);
+   CAPABILITY(HAVE_TRANSFORM);
+   CAPABILITY(HAVE_INOTIFY);
+   CAPABILITY(HAVE_JIT);
+   CAPABILITY(HAVE_LUASOCKET);
+
+   // for unit testing purposes only.
+   #define _VERIFY_AS_TRUE  1
+   #define _VERIFY_AS_FALSE 0
+   CAPABILITY(_VERIFY_AS_TRUE);
+   CAPABILITY(_VERIFY_AS_FALSE);
+   CAPABILITY(_VERIFY_AS_UNDEFINED);
+   #undef _VERIFY_AS_TRUE
+   #undef _VERIFY_AS_FALSE
+
+   #undef STR
+   #undef CAPABILITY
+
+   lua_setfield(L, -2, "featureflags");
+   lua_pop(L, 1);
+
+   (void)player_checked_stack_end(L, 0);
+}
+
 static int lutro_core_preload(lua_State *L)
 {
-   lutro_ensure_global_table(L, "lutro");
+   init_feature_flags(L);
 
    return 1;
 }
 
 static void init_settings(lua_State *L)
 {
-   lutro_ensure_global_table(L, "lutro");
+   player_checked_stack_begin(L);
+   luax_reqglobal(L, "lutro");
 
    lua_newtable(L);
-
    lua_pushnumber(L, settings.width);
    lua_setfield(L, -2, "width");
 
    lua_pushnumber(L, settings.height);
    lua_setfield(L, -2, "height");
 
-   lua_setfield(L, -2, "settings");
-
+   lua_setfield(L, -2, "settings");    // lutro.settings
    lua_pop(L, 1);
+   player_checked_stack_end(L, 0);
 }
 
-void lutro_init()
+void lutro_newlib_x(lua_State* L, luaL_Reg const* funcs, char const* fieldname, int numfuncs)
+{
+   player_checked_stack_begin(L);
+   luax_reqglobal(L, "lutro");
+   lua_createtable(L, 0, numfuncs);
+   luaL_setfuncs(L, funcs, 0);
+   lua_setfield(L, -2, fieldname);
+   lua_pop(L, 1);
+   player_checked_stack_end(L, 0);
+}
+
+void lutro_init(void)
 {
    L = luaL_newstate();
 
-   // handler for errors thatr occur outside pcall() scope
+   // handler for errors that occur outside pcall() scope
    lua_atpanic(L, &lutro_lua_panic);
 
    luaL_openlibs(L);
+
+   // impose default behavior that ensures stdout prints in realtime and is in correct
+   // chronological sequence with stderr.
+   luaL_dostring(L, "io.stdout:setvbuf('no')");
 
 #ifdef HAVE_JIT
    luaJIT_setmode(L, -1, LUAJIT_MODE_WRAPCFUNC|LUAJIT_MODE_ON);
 #endif
 
-   lutro_checked_stack_begin();
+   player_checked_stack_begin(L);
 
+   init_lutro_global_table(L);
    init_settings(L);
 
    lutro_preload(L, lutro_core_preload, "lutro");
@@ -309,10 +358,10 @@ void lutro_init()
    // Initialize the filesystem.
    lutro_filesystem_init();
 
-   lutro_checked_stack_assert(0);
+   player_checked_stack_end(L, 0);
 }
 
-void lutro_deinit()
+void lutro_deinit(void)
 {
 #ifdef HAVE_INOTIFY
    if (settings.live_enable)
@@ -328,6 +377,7 @@ void lutro_deinit()
    lutro_filesystem_deinit();
 
    lutro_print_allocation();
+
 }
 
 void lutro_mixer_render(int16_t* buffer)
@@ -340,7 +390,7 @@ int lutro_set_package_path(lua_State* L, const char* path)
 {
    const char *cur_path;
    char new_path[PATH_MAX_LENGTH];
-   lua_getglobal(L, "package");
+   luax_reqglobal(L, "package");
    lua_getfield(L, -1, "path");
    cur_path = lua_tostring( L, -1);
    strlcpy(new_path, cur_path, sizeof(new_path));
@@ -504,31 +554,26 @@ int lutro_load(const char *path)
    }
 
    int oldtop = lua_gettop(L);
-   lua_pushcfunction(L, traceback);
-   lua_getglobal(L, "lutro");
-
+   luax_reqglobal(L, "lutro");
    int tbl_top_lutro = lua_gettop(L);
 
    strlcpy(settings.gamedir, gamedir, PATH_MAX_LENGTH);
 
-   lua_getfield(L, -1, "conf");
+   lua_getfield(L, tbl_top_lutro, "conf");
 
    // Process the custom configuration, if it exists.
-   if (lua_isfunction(L, -1))
+   if (lutro_pcall_isfunction(L, -1))
    {
-      lua_getfield(L, -2, "settings");
+      player_checked_stack_begin(L);
+      lua_getfield(L, tbl_top_lutro, "settings");
 
       if(lutro_pcall(L, 1, 0))
       {
-         fprintf(stderr, "%s\n", lua_tostring(L, -1));
          lua_pop(L, 1);
-
          return 0;
       }
 
-      // no stack cleanup necessary inside oldtop scope.
-
-      lua_getfield(L, -1, "settings");
+      lua_getfield(L, tbl_top_lutro, "settings");
 
       lua_getfield(L, -1, "width");
       lua_getfield(L, -2, "height");
@@ -539,6 +584,9 @@ int lutro_load(const char *path)
       settings.height         = lua_tointeger(L, -3);
       settings.live_enable    = lua_toboolean(L, -2);
       settings.live_call_load = lua_toboolean(L, -1);
+
+      lua_pop(L, 4);
+      player_checked_stack_end(L, 0);
    }
 
    lutro_graphics_init(L);
@@ -551,19 +599,16 @@ int lutro_load(const char *path)
    if (settings.live_enable)
       lutro_live_init();
 #endif
-   lua_settop(L, tbl_top_lutro);
-   lua_getfield(L, -1, "load");
 
-   int result = 1;
+   lua_getfield(L, tbl_top_lutro, "load");
+
    // Check if lutro.load() exists.
-   if (lua_isfunction(L, -1))
+   if (lutro_pcall_isfunction(L, -1))
    {
       // It exists, so call lutro.load().
       if(lutro_pcall(L, 0, 0))
       {
-         fprintf(stderr, "%s\n", lua_tostring(L, -1));
          lua_pop(L, 1);
-         result = 0;
       }
    }
 
@@ -573,35 +618,31 @@ int lutro_load(const char *path)
 
 void lutro_gamepadevent(lua_State* L)
 {
-   ENTER_LUA_STACK
-   unsigned i;
+   tool_checked_stack_begin(L);
 
+   luax_reqglobal(L, "lutro");
+
+   unsigned i;
    for (i = 0; i < 16; i++)
    {
       int16_t is_down = settings.input_cb(0, RETRO_DEVICE_JOYPAD, 0, i);
       if (is_down != input_cache[i])
       {
-         lua_getglobal(L, "lutro");
          lua_getfield(L, -1, is_down ? "gamepadpressed" : "gamepadreleased");
-         if (lua_isfunction(L, -1))
+         if (lutro_pcall_isfunction(L, -1))
          {
             lua_pushnumber(L, i);
             lua_pushstring(L, input_find_name(joystick_enum, i));
             if (lutro_pcall(L, 2, 0)) // takes care of poping the function too
             {
-               fprintf(stderr, "%s\n", lua_tostring(L, -1));
                lua_pop(L, 1);
             }
             input_cache[i] = is_down;
          }
-         else
-         {
-            lua_pop(L, 1); // pop getfield gamepadpressed or gamepadreleased
-         }
-         lua_pop(L, 1); // pop getglobal lutro
       }
    }
-   EXIT_LUA_STACK
+   lua_pop(L, 1);
+   tool_checked_stack_end(L, 0);
 }
 
 void lutro_run(double delta)
@@ -622,94 +663,93 @@ void lutro_run(double delta)
       lutro_live_update(L);
 #endif
 
-   int oldtop = lua_gettop(L);
+   player_checked_stack_begin(L);
    lua_pushcfunction(L, traceback);
+   int idx_traceback = lua_gettop(L);
+   luax_reqglobal(L, "lutro");
 
-   lua_getglobal(L, "lutro");
-   lua_getfield(L, -1, "update");
-   if (lua_isfunction(L, -1))
+   lua_getfield(L, -1, "update");   // lutro["update"]
+   if (lutro_pcall_isfunction(L, -1))
    {
       lua_pushnumber(L, delta);
 
-      if(lutro_pcall(L, 1, 0))
+      if(lutro_pcall_cached_traceback(L, 1, 0, idx_traceback))
       {
-         fprintf(stderr, "%s\n", lua_tostring(L, -1));
          lua_pop(L, 1);
       }
    }
 
-   lua_getfield(L, -1, "draw");
-   if (lua_isfunction(L, -1))
+   lua_getfield(L, -1, "draw");     // lutro["draw"]
+   if (lutro_pcall_isfunction(L, -1))
    {
       lutro_graphics_begin_frame(L);
 
-      if(lutro_pcall(L, 0, 0))
+      if(lutro_pcall_cached_traceback(L, 0, 0, idx_traceback))
       {
-         fprintf(stderr, "%s\n", lua_tostring(L, -1));
          lua_pop(L, 1);
       }
       lutro_graphics_end_frame(L);
    }
+
+   lua_pop(L,2);     // lutro table and traceback
 
    lutro_keyboardevent(L);
    lutro_gamepadevent(L);
    lutro_mouseevent(L);
    lutro_joystickevent(L);
 
-   lua_settop(L, oldtop);
+   player_checked_stack_end(L, 0);
 
    mixer_unref_stopped_sounds(L);
    lua_gc(L, LUA_GCSTEP, 0);
 }
 
-void lutro_reset()
+void lutro_reset(void)
 {
-   int oldtop = lua_gettop(L);
-
-   lua_pushcfunction(L, traceback);
-
-   lua_getglobal(L, "lutro");
+   player_checked_stack_begin(L);
+   luax_reqglobal(L, "lutro");
    lua_getfield(L, -1, "reset");
 
-   if (lua_isfunction(L, -1))
+   if (lutro_pcall_isfunction(L, -1))
    {
       lutro_audio_stop_all(L);
       if(lutro_pcall(L, 0, 0))
       {
-         fprintf(stderr, "%s\n", lua_tostring(L, -1));
          lua_pop(L, 1);
       }
    }
 
-   lua_settop(L, oldtop);
+   lua_pop(L, 1);
+   player_checked_stack_end(L, 0);
    lua_gc(L, LUA_GCSTEP, 0);
 }
 
-size_t lutro_serialize_size()
+size_t lutro_serialize_size(void)
 {
    size_t size = 0;
-   int oldtop = lua_gettop(L);
 
-   lua_pushcfunction(L, traceback);
-
-   lua_getglobal(L, "lutro");
+   player_checked_stack_begin(L);
+   luax_reqglobal(L, "lutro");
    lua_getfield(L, -1, "serializeSize");
 
-   if (lua_isfunction(L, -1))
+   if (lutro_pcall_isfunction(L, -1))
    {
       if (lutro_pcall(L, 0, 1))
       {
-         fprintf(stderr, "%s\n", lua_tostring(L, -1));
          lua_pop(L, 1);
       }
 
       if (lua_isnumber(L, -1))
+      {
          size = lua_tonumber(L, -1);
+         lua_pop(L, 1);
+      }
       else
          tool_assertf(false, "Invalid type returned from lutro.serializeSize. An integer result is expected.\n");
    }
 
-   lua_settop(L, oldtop);
+   lua_pop(L, 1);
+   player_checked_stack_end(L, 0);
    lua_gc(L, LUA_GCSTEP, 0);
 
    return size;
@@ -717,18 +757,15 @@ size_t lutro_serialize_size()
 
 bool lutro_serialize(void *data_, size_t size)
 {
-   int oldtop = lua_gettop(L);
-   lua_pushcfunction(L, traceback);
-
-   lua_getglobal(L, "lutro");
+   player_checked_stack_begin(L);
+   luax_reqglobal(L, "lutro");
    lua_getfield(L, -1, "serialize");
 
-   if (lua_isfunction(L, -1))
+   if (lutro_pcall_isfunction(L, -1))
    {
       lua_pushnumber(L, size);
       if (lutro_pcall(L, 1, 1))
       {
-         fprintf(stderr, "%s\n", lua_tostring(L, -1));
          lua_pop(L, 1);
       }
       else
@@ -741,7 +778,8 @@ bool lutro_serialize(void *data_, size_t size)
       }
    }
 
-   lua_settop(L, oldtop);
+   lua_pop(L, 1);
+   player_checked_stack_end(L, 0);
    lua_gc(L, LUA_GCSTEP, 0);
 
    return true;
@@ -749,24 +787,21 @@ bool lutro_serialize(void *data_, size_t size)
 
 bool lutro_unserialize(const void *data_, size_t size)
 {
-   int oldtop = lua_gettop(L);
-   lua_pushcfunction(L, traceback);
-
-   lua_getglobal(L, "lutro");
+   player_checked_stack_begin(L);
+   luax_reqglobal(L, "lutro");
    lua_getfield(L, -1, "unserialize");
 
-   if (lua_isfunction(L, -1))
+   if (lutro_pcall_isfunction(L, -1))
    {
       lua_pushstring(L, data_);
       lua_pushnumber(L, size);
       if (lutro_pcall(L, 2, 0))
       {
-         fprintf(stderr, "%s\n", lua_tostring(L, -1));
          lua_pop(L, 1);
       }
    }
 
-   lua_settop(L, oldtop);
+   player_checked_stack_end(L, 0);
    lua_gc(L, LUA_GCSTEP, 0);
 
    return true;
@@ -774,46 +809,40 @@ bool lutro_unserialize(const void *data_, size_t size)
 
 void lutro_cheat_set(unsigned index, bool enabled, const char *code)
 {
-   int oldtop = lua_gettop(L);
-   lua_pushcfunction(L, traceback);
-
-   lua_getglobal(L, "lutro");
+   player_checked_stack_begin(L);
+   luax_reqglobal(L, "lutro");
    lua_getfield(L, -1, "cheat_set");
 
-   if (lua_isfunction(L, -1))
+   if (lutro_pcall_isfunction(L, -1))
    {
       lua_pushnumber(L, index);
       lua_pushboolean(L, enabled);
       lua_pushstring(L, code);
       if (lutro_pcall(L, 3, 0))
       {
-         fprintf(stderr, "%s\n", lua_tostring(L, -1));
          lua_pop(L, 1);
       }
    }
 
-   lua_settop(L, oldtop);
+   player_checked_stack_end(L, 0);
    lua_gc(L, LUA_GCSTEP, 0);
 }
 
-void lutro_cheat_reset()
+void lutro_cheat_reset(void)
 {
-   int oldtop = lua_gettop(L);
-   lua_pushcfunction(L, traceback);
-
-   lua_getglobal(L, "lutro");
+   player_checked_stack_begin(L);
+   luax_reqglobal(L, "lutro");
    lua_getfield(L, -1, "cheat_reset");
 
-   if (lua_isfunction(L, -1))
+   if (lutro_pcall_isfunction(L, -1))
    {
       if (lutro_pcall(L, 0, 0))
       {
-         fprintf(stderr, "%s\n", lua_tostring(L, -1));
          lua_pop(L, 1);
       }
    }
 
-   lua_settop(L, oldtop);
+   player_checked_stack_end(L, 0);
    lua_gc(L, LUA_GCSTEP, 0);
 }
 
@@ -832,74 +861,74 @@ void lutro_assetPath_init(AssetPathInfo* dest, const char* path)
 
 void *lutro_malloc_internal(size_t size, const char* debug, int line)
 {
-    void *a = malloc(size);
+   void *a = malloc(size);
 #if TRACE_ALLOCATION
-    if (a) {
-        fprintf(stderr,"TRACE ALLOC:%p:malloc:%s:%d\n", a, debug, line);
-        allocation_count++;
-    } else {
-        fprintf(stderr,"TRACE ALLOC:failure:malloc:%s:%d\n", debug, line);
-    }
+   if (a) {
+      fprintf(stderr,"TRACE ALLOC:%p:malloc:%s:%d\n", a, debug, line);
+      allocation_count++;
+   } else {
+      fprintf(stderr,"TRACE ALLOC:failure:malloc:%s:%d\n", debug, line);
+   }
 #endif
-    return a;
+   return a;
 }
 
 void lutro_free_internal(void *ptr, const char* debug, int line)
 {
 #if TRACE_ALLOCATION
-    // Don't trace nop
-    if (ptr) {
-        fprintf(stderr,"TRACE ALLOC:%p:free:%s:%d\n", ptr, debug, line);
-        allocation_count--;
-    }
+   // Don't trace nop
+   if (ptr) {
+      fprintf(stderr,"TRACE ALLOC:%p:free:%s:%d\n", ptr, debug, line);
+      allocation_count--;
+   }
 #endif
-    free(ptr);
+   free(ptr);
 }
 
 void *lutro_calloc_internal(size_t nmemb, size_t size, const char* debug, int line)
 {
-    void *a = calloc(nmemb, size);
+   void *a = calloc(nmemb, size);
 #if TRACE_ALLOCATION
-    if (a) {
-        fprintf(stderr,"TRACE ALLOC:%p:calloc:%s:%d\n", a, debug, line);
-        allocation_count++;
-    } else {
-        fprintf(stderr,"TRACE ALLOC:failure:calloc:%s:%d\n", debug, line);
-    }
+   if (a) {
+      fprintf(stderr,"TRACE ALLOC:%p:calloc:%s:%d\n", a, debug, line);
+      allocation_count++;
+   } else {
+      fprintf(stderr,"TRACE ALLOC:failure:calloc:%s:%d\n", debug, line);
+   }
 #endif
-    return a;
+   return a;
 }
 
 void *lutro_realloc_internal(void *ptr, size_t size, const char* debug, int line)
 {
-    void *a = realloc(ptr, size);
+   void *a = realloc(ptr, size);
 #if TRACE_ALLOCATION
-    if (a) {
-        if (ptr == NULL) {
-            // If original pointer is null, realloc behave as a malloc
-            fprintf(stderr,"TRACE ALLOC:%p:realloc (malloc):%s:%d\n", a, debug, line);
-            // Note even if size is 0, realloc can return a pointer suitable to
-            // be passed to free
-            allocation_count++;
-        } else {
-            fprintf(stderr,"TRACE ALLOC:%p:realloc (move from %p):%s:%d\n", a, ptr, debug, line);
-        }
-    } else {
-        // Either realloc fail, or it released the memory
-        if (ptr != NULL && size == 0) {
-            // If size is 0, realloc behave as a free
-            fprintf(stderr,"TRACE ALLOC:null:realloc (free %p):%s:%d\n", ptr, debug, line);
-            allocation_count--;
-        } else {
-            fprintf(stderr,"TRACE ALLOC:failure:realloc (%p):%s:%d\n", ptr, debug, line);
-        }
-    }
+   if (a) {
+      if (ptr == NULL) {
+         // If original pointer is null, realloc behave as a malloc
+         fprintf(stderr,"TRACE ALLOC:%p:realloc (malloc):%s:%d\n", a, debug, line);
+         // Note even if size is 0, realloc can return a pointer suitable to
+         // be passed to free
+         allocation_count++;
+      } else {
+         fprintf(stderr,"TRACE ALLOC:%p:realloc (move from %p):%s:%d\n", a, ptr, debug, line);
+      }
+   } else {
+      // Either realloc fail, or it released the memory
+      if (ptr != NULL && size == 0) {
+         // If size is 0, realloc behave as a free
+         fprintf(stderr,"TRACE ALLOC:null:realloc (free %p):%s:%d\n", ptr, debug, line);
+         allocation_count--;
+      } else {
+         fprintf(stderr,"TRACE ALLOC:failure:realloc (%p):%s:%d\n", ptr, debug, line);
+      }
+   }
 #endif
-    return a;
+   return a;
 }
 
-void lutro_print_allocation() {
+void lutro_print_allocation(void) {
 #if TRACE_ALLOCATION
-    fprintf(stderr,"TRACE ALLOC:total pending allocations:%d\n", allocation_count);
+   fprintf(stderr,"TRACE ALLOC:total pending allocations:%d\n", allocation_count);
 #endif
 }

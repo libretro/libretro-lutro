@@ -10,7 +10,7 @@ static int16_t mouse_cache[8];
 
 int lutro_mouse_preload(lua_State *L)
 {
-   static luaL_Reg mouse_funcs[] =  {
+   static const luaL_Reg mouse_funcs[] =  {
       { "isDown", mouse_isDown },
       { "getX", mouse_getX },
       { "getY", mouse_getY },
@@ -18,16 +18,12 @@ int lutro_mouse_preload(lua_State *L)
       {NULL, NULL}
    };
 
-   lutro_ensure_global_table(L, "lutro");
-
-   luaL_newlib(L, mouse_funcs);
-
-   lua_setfield(L, -2, "mouse");
+   lutro_newlib(L, mouse_funcs, "mouse");
 
    return 1;
 }
 
-void lutro_mouse_init()
+void lutro_mouse_init(void)
 {
 }
 
@@ -38,10 +34,10 @@ void lutro_mouseevent(lua_State* L)
    {
       int16_t value = settings.input_cb(0, RETRO_DEVICE_MOUSE, 0, i);
       if (i == RETRO_DEVICE_ID_MOUSE_X || i == RETRO_DEVICE_ID_MOUSE_Y) {
-        mouse_cache[i] += value;
+         mouse_cache[i] += value;
       }
       else {
-        mouse_cache[i] = value;
+         mouse_cache[i] = value;
       }
    }
 }
@@ -142,4 +138,3 @@ int mouse_getPosition(lua_State *L)
 
    return 2;
 }
-

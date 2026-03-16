@@ -335,7 +335,6 @@
     <ClInclude Include=".././mouse.h" />
     <ClInclude Include=".././msbuild/fi-msw-buildconf.h" />
     <ClInclude Include=".././msbuild/fi-printf-redirect.h" />
-    <ClInclude Include=".././msbuild/fi-verify-printf-msvc.h" />
     <ClInclude Include=".././painter.h" />
     <ClInclude Include=".././runtime.h" />
     <ClInclude Include=".././sound.h" />

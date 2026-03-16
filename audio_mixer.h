@@ -56,13 +56,11 @@
    #define mixer_presaturate_normalized_max (INT16_MAX)
 #endif
 
-
 typedef struct _presaturate_buffer_desc
 {
    int channels;
    int samplelen;
    mixer_presaturate_t* data;
 } presaturate_buffer_desc;
-
 
 #endif

@@ -279,8 +279,8 @@
     <ClInclude Include=".././deps/vorbis/vorbisenc.h" />
     <ClInclude Include=".././deps/vorbis/vorbisfile.h" />
     <ClInclude Include=".././deps/vorbis/window.h" />
+    <ClInclude Include=".././deps/zlib/crc32.h" />
     <ClInclude Include=".././deps/zlib/deflate.h" />
-    <ClInclude Include=".././deps/zlib/gzfile.h" />
     <ClInclude Include=".././deps/zlib/gzguts.h" />
     <ClInclude Include=".././deps/zlib/inffast.h" />
     <ClInclude Include=".././deps/zlib/inffixed.h" />

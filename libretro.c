@@ -11,7 +11,9 @@
 #include <libretro.h>
 #include <streams/file_stream.h>
 
+#include "libretro_core_options.h"
 #include "joystick.h"
+#include "mouse.h"
 
 int16_t audio_buffer[2 * AUDIO_FRAMES];
 
@@ -26,6 +28,20 @@ static retro_input_poll_t input_poll_cb;
 static retro_input_state_t input_state_cb;
 
 double frame_time = 0;
+
+static void check_variables(void)
+{
+   struct retro_variable var = {0};
+
+   var.key = "lutro_mouse_input";
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+   {
+      if (!strcmp(var.value, "pointer"))
+         lutro_mouse_setdevice(RETRO_DEVICE_POINTER);
+      else
+         lutro_mouse_setdevice(RETRO_DEVICE_MOUSE);
+   }
+}
 
 static void emit_audio(void)
 {
@@ -121,6 +137,8 @@ void retro_set_environment(retro_environment_t cb)
    bool no_rom = false;
    cb(RETRO_ENVIRONMENT_SET_SUPPORT_NO_GAME, &no_rom);
 
+   libretro_set_core_options(environ_cb);
+
    if (environ_cb(RETRO_ENVIRONMENT_GET_VFS_INTERFACE, &vfs_iface_info))
       filestream_vfs_init(&vfs_iface_info);
 }
@@ -163,6 +181,10 @@ static void frame_time_cb(retro_usec_t usec)
 
 void retro_run(void)
 {
+   bool updated = false;
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE, &updated) && updated)
+      check_variables();
+
    input_poll_cb();
 
    lutro_run(frame_time);
@@ -196,6 +218,9 @@ bool retro_load_game(const struct retro_game_info *info)
       return false;
 
    environ_cb(RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS, desc);
+
+   // Apply the initial core option values.
+   check_variables();
 
    enum retro_pixel_format fmt = RETRO_PIXEL_FORMAT_XRGB8888;
    if (!environ_cb(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &fmt))

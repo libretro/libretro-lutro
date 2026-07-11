@@ -7,6 +7,7 @@
 
 int lutro_mouse_preload(lua_State *L);
 void lutro_mouse_init(void);
+void lutro_mouse_setdevice(unsigned device);
 void lutro_mouseevent(lua_State* L);
 int mouse_isDown(lua_State *L);
 int mouse_getX(lua_State *L);

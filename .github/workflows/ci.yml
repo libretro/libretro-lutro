@@ -5,6 +5,7 @@ on:
     branches: [master]
   pull_request:
     branches: [master]
+  workflow_dispatch:
 
 defaults:
   run:
@@ -101,3 +102,9 @@ jobs:
       - uses: actions/checkout@v4
       - run:                 CC=gcc make -j4 platform=win config=player WANT_LUASOCKET=1 
 
+  build_ps4_orbis:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run:                 docker run --rm -w /workspace -v "$(pwd)":/workspace --user $(id -u):$(id -g) openorbisofficial/toolchain:latest make -j4 config=tool platform=ps4 GIT_VERSION=`git rev-parse --short HEAD`
+      - run: git clean -f && docker run --rm -w /workspace -v "$(pwd)":/workspace --user $(id -u):$(id -g) openorbisofficial/toolchain:latest make -j4 config=player platform=ps4 GIT_VERSION=`git rev-parse --short HEAD`

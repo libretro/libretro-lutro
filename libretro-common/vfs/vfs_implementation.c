@@ -783,7 +783,12 @@ int retro_vfs_file_remove_impl(const char *path)
 
    if (path_local)
    {
-      int ret = remove(path_local);
+      int ret;
+      /* We need to check if path is a directory */
+      if ((retro_vfs_stat_impl(path, NULL) & RETRO_VFS_STAT_IS_DIRECTORY) != 0)
+         ret = _rmdir(path_local);
+      else
+         ret = remove(path_local);
       free(path_local);
 
       if (ret == 0)
@@ -794,7 +799,12 @@ int retro_vfs_file_remove_impl(const char *path)
 
    if (path_wide)
    {
-      int ret = _wremove(path_wide);
+      int ret;
+      /* We need to check if path is a directory */
+      if ((retro_vfs_stat_impl(path, NULL) & RETRO_VFS_STAT_IS_DIRECTORY) != 0)
+         ret = _wrmdir(path_wide);
+      else
+         ret = _wremove(path_wide);
       free(path_wide);
 
       if (ret == 0)

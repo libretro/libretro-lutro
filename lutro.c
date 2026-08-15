@@ -23,6 +23,7 @@
 #include <file/file_path.h>
 #include <streams/file_stream.h>
 #include <compat/strl.h>
+#include <vfs/vfs_implementation.h>
 #include <ctype.h>
 
 #ifdef HAVE_JIT
@@ -53,6 +54,7 @@
 static lua_State *L;
 static int16_t input_cache[16];
 static int32_t allocation_count = 0;
+static char extract_dir[PATH_MAX_LENGTH];
 
 lutro_settings_t settings = {
    .width = 320,
@@ -504,6 +506,43 @@ int lutro_unzip(const char *path, const char *extraction_directory)
    return 0;
 }
 
+static int remove_dir_recursive(const char *dir)
+{
+   libretro_vfs_implementation_dir *rdir = retro_vfs_opendir_impl(dir, true);
+   if (!rdir)
+      return -1;
+
+   while (retro_vfs_readdir_impl(rdir))
+   {
+      const char *name = retro_vfs_dirent_get_name_impl(rdir);
+      char entry[PATH_MAX_LENGTH];
+
+      if (!name || !strcmp(name, ".") || !strcmp(name, ".."))
+         continue;
+
+      fill_pathname_join(entry, dir, name, sizeof(entry));
+
+      if (retro_vfs_dirent_is_dir_impl(rdir))
+         remove_dir_recursive(entry);
+      else
+         retro_vfs_file_remove_impl(entry);
+   }
+
+   retro_vfs_closedir_impl(rdir);
+
+   return retro_vfs_file_remove_impl(dir);
+}
+
+// Removes the files extracted from a .lutro archive.
+void lutro_unload_game(void)
+{
+   if (*extract_dir)
+   {
+      remove_dir_recursive(extract_dir);
+      *extract_dir = '\0';
+   }
+}
+
 int lutro_load(const char *path)
 {
    char mainfile[PATH_MAX_LENGTH];
@@ -522,8 +561,23 @@ int lutro_load(const char *path)
    // Loading a .lutro file.
    if (!strcmp(path_get_extension(mainfile), "lutro"))
    {
-      fill_pathname(gamedir, mainfile, "/", sizeof(gamedir));
-      fill_pathname(gamedir, conffile, "/", sizeof(gamedir));
+      const char *savedir = NULL;
+
+      // Extract to the save directory, as the content directory may not be writable (e.g. Android scoped storage).
+      if ((*settings.environ_cb)(RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY, &savedir) && savedir && *savedir)
+      {
+         char gamename[PATH_MAX_LENGTH];
+         char subdir[PATH_MAX_LENGTH];
+         fill_pathname_base(gamename, mainfile, sizeof(gamename));
+         path_remove_extension(gamename);
+         fill_pathname_join(subdir, savedir, "lutro", sizeof(subdir));
+         fill_pathname_join(gamedir, subdir, gamename, sizeof(gamedir));
+         fill_pathname_slash(gamedir, sizeof(gamedir));
+      }
+      else
+         fill_pathname(gamedir, mainfile, "/", sizeof(gamedir));
+
+      strlcpy(extract_dir, gamedir, sizeof(extract_dir));
       lutro_unzip(mainfile, gamedir);
    }
 

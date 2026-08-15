@@ -50,6 +50,7 @@ void lutro_cheat_reset(void);
 void lutro_cheat_set(unsigned index, bool enabled, const char *code);
 
 void lutro_shutdown_game(void);
+void lutro_unload_game(void);
 
 typedef struct _AssetPathInfo
 {

@@ -181,7 +181,7 @@ bool decOgg_decode(dec_OggData *data, presaturate_buffer_desc *buffer, float vol
          }
       }
 
-      dst += ret * data->info->channels;
+      dst += ret * buffer->channels;
       bufsz -= ret;
       rendered += ret;
    }

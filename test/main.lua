@@ -5,6 +5,7 @@ local availableStates = {
 	"joystick/isDown",
 	"graphics/rectangle",
 	"graphics/line",
+	"graphics/canvas_alpha",
 	-- ignore this test if lutro compiled without HAVE_TRANSFORM:
 	lutro.featureflags.HAVE_TRANSFORM and "graphics/scale" or false,
 	"audio/play",

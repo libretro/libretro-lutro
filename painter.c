@@ -20,6 +20,7 @@
 #ifdef HAVE_COMPOSITION
 /* from http://www.codeguru.com/cpp/cpp/algorithms/general/article.php/c15989/Tip-An-Optimized-Formula-for-Alpha-Blending-Pixels.htm */
 #define COMPOSE_FAST(S, D, A) (((S * A) + (D * (256U - A))) >> 8U)
+#define COMPOSE_ALPHA(SA, DA) ((SA) + ((DA) * (255U - (SA)) + 127U) / 255U)
 #define DISASSEMBLE_RGB(COLOR, R, G, B) \
    R = ((COLOR & RED_MASK) >> RED_SHIFT);\
    G = ((COLOR & GREEN_MASK) >> GREEN_SHIFT);\
@@ -170,7 +171,7 @@ void pntr_fill_rect(painter_t *p, const rect_t *rect)
          da = d >> 24;
          DISASSEMBLE_RGB(s, sr, sg, sb);
          DISASSEMBLE_RGB(d, dr, dg, db);
-         row[x] = ((sa + da * (255 - sa)) << 24) | (COMPOSE_FAST(sr, dr, sa) << 16) | (COMPOSE_FAST(sg, dg, sa) << 8) | (COMPOSE_FAST(sb, db, sa));
+         row[x] = (COMPOSE_ALPHA(sa, da) << 24) | (COMPOSE_FAST(sr, dr, sa) << 16) | (COMPOSE_FAST(sg, dg, sa) << 8) | (COMPOSE_FAST(sb, db, sa));
       }
 
       row += row_size;
@@ -499,7 +500,7 @@ void pntr_draw(painter_t *p, const bitmap_t *bmp, const rect_t *src_rect, const 
          da = d >> 24;
          DISASSEMBLE_RGB(s, sr, sg, sb);
          DISASSEMBLE_RGB(d, dr, dg, db);
-         dst[x] = ((sa + da * (255 - sa)) << 24) | (COMPOSE_FAST(sr, dr, sa) << 16) | (COMPOSE_FAST(sg, dg, sa) << 8) | (COMPOSE_FAST(sb, db, sa));
+         dst[x] = (COMPOSE_ALPHA(sa, da) << 24) | (COMPOSE_FAST(sr, dr, sa) << 16) | (COMPOSE_FAST(sg, dg, sa) << 8) | (COMPOSE_FAST(sb, db, sa));
 #else
          if (s & 0xff000000)
          dst[x] = s;

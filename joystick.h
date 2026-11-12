@@ -6,7 +6,7 @@
 
 #include "runtime.h"
 
-#define NB_JOYSTICKS 8
+#define NB_JOYSTICKS 16
 #define NB_BUTTONS 16
 
 extern const struct joystick_int_const_map {

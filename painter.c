@@ -354,11 +354,11 @@ void pntr_draw(painter_t *p, const bitmap_t *bmp, const rect_t *src_rect, const 
    drect.x += p->trans->tx;
    drect.y += p->trans->ty;
 
-#ifdef HAVE_TRANSFORM
    // stored as 0 or 0xffffffff for masking properties.
    const uint32_t is_x_reversed = (p->trans->sx < 0) ? 0xffffffff : 0;
    const uint32_t is_y_reversed = (p->trans->sy < 0) ? 0xffffffff : 0;
 
+#ifdef HAVE_TRANSFORM
    float abs_sx = is_x_reversed ? -p->trans->sx : p->trans->sx;
    float abs_sy = is_y_reversed ? -p->trans->sy : p->trans->sy;
 
@@ -376,6 +376,12 @@ void pntr_draw(painter_t *p, const bitmap_t *bmp, const rect_t *src_rect, const 
    const uint32_t inv_scale_y = (1 << k_binexp) / abs_sy;
 
    #define SCALE_DST_TO_SRC(axis, a) (((a) * inv_scale_##axis + k_binexp_center) >> k_binexp)
+#else
+   drect.width  = srect.width;
+   drect.height = srect.height;
+
+   #define SCALE_DST_TO_SRC(axis, a) (a)
+#endif
 
    // negative scaling reverses the top-left and bottom-right corners like so:
    if (is_x_reversed)
@@ -386,14 +392,6 @@ void pntr_draw(painter_t *p, const bitmap_t *bmp, const rect_t *src_rect, const 
    {
       drect.y -= drect.height;
    }
-#else
-   drect.width  = srect.width;
-   drect.height = srect.height;
-
-   #define SCALE_DST_TO_SRC(axis, a) (a)
-   #define is_x_reversed 0
-   #define is_y_reversed 0
-#endif
 
    // crop source rect to destination
    if (drect.x < 0)
@@ -471,10 +469,7 @@ void pntr_draw(painter_t *p, const bitmap_t *bmp, const rect_t *src_rect, const 
    int rows_left = drect.height;
    int cols = drect.width;
    int x = 0;
-
-#ifdef HAVE_TRANSFORM
    uint32_t y = 0;
-#endif
 #ifdef HAVE_COMPOSITION
    uint32_t sa, sr, sg, sb, da, dr, dg, db, s, d;
 #else
@@ -484,14 +479,23 @@ void pntr_draw(painter_t *p, const bitmap_t *bmp, const rect_t *src_rect, const 
    {
       for (x = 0; x < cols; ++x)
       {
-#ifdef HAVE_TRANSFORM
+#if defined(HAVE_TRANSFORM)
          uint32_t xo = (x & ~is_x_reversed) | ((cols - x - 1) & is_x_reversed);
          uint32_t yo = (y & ~is_y_reversed) | ((drect.height - y - 1) & is_y_reversed);
          uint32_t xi = SCALE_DST_TO_SRC(x, xo);
          uint32_t yi = SCALE_DST_TO_SRC(y, yo);
          s = src[xi + yi * src_skip];
 #else
-         s = src[x];
+         if (is_x_reversed || is_y_reversed)
+         {
+            uint32_t xo = is_x_reversed ? (uint32_t)(cols - x - 1) : (uint32_t)x;
+            uint32_t yo = is_y_reversed ? (uint32_t)(drect.height - y - 1) : y;
+            s = src[xo + yo * src_skip];
+         }
+         else
+         {
+            s = src[x];
+         }
 #endif
 #ifdef HAVE_COMPOSITION
          d = dst[x];
@@ -507,10 +511,13 @@ void pntr_draw(painter_t *p, const bitmap_t *bmp, const rect_t *src_rect, const 
       }
 
       dst += dst_skip;
-#ifdef HAVE_TRANSFORM
+#if defined(HAVE_TRANSFORM)
       y += 1;
 #else
-      src += src_skip;
+      if (is_x_reversed || is_y_reversed)
+         y += 1;
+      else
+         src += src_skip;
 #endif
    }
 }

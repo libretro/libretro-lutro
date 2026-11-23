@@ -961,10 +961,10 @@ static int gfx_draw(lua_State *L)
    // int ky = OPTNUMBER(L, start + 9, 0);
 
 #ifndef HAVE_TRANSFORM
-   // if transformations are not enabled, we set them to default values here
-   // in order to prevent them from having any unexpected effects whatsoever.
-   sx = 1;
-   sy = 1;
+   // Magnitude and rotation need HAVE_TRANSFORM. Keep the sign so that
+   // sx/sy of -1 still mirror the image.
+   sx = (sx < 0) ? -1 : 1;
+   sy = (sy < 0) ? -1 : 1;
    r = 0;
 #endif
 
